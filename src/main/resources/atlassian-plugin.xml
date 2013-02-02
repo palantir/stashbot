@@ -1,0 +1,36 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginLogo.png</param>
+    </plugin-info>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="stashbot-helper"/>
+    
+    <!-- add our web resources -->
+    <web-resource key="stashbot-helper-resources" name="stashbot-helper Web Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        
+        <resource type="download" name="stashbot-helper.css" location="/css/stashbot-helper.css"/>
+        <resource type="download" name="stashbot-helper.js" location="/js/stashbot-helper.js"/>
+        <resource type="download" name="images/" location="/images"/>
+
+        <context>stashbot-helper</context>
+    </web-resource>
+    
+    <!-- publish our component -->
+    <component key="myPluginComponent" class="com.palantir.stash.stashbothelper.MyPluginComponentImpl" public="true">
+        <interface>com.palantir.stash.stashbothelper.MyPluginComponent</interface>
+    </component>
+    
+    <!-- import from the product container -->
+    <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
+    <component-import key="permissionValidationService" interface="com.atlassian.stash.user.PermissionValidationService"/>
+    <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+    <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
+    <component-import key="webResourceManager" interface="com.atlassian.plugin.webresource.WebResourceManager"/>
+    
+</atlassian-plugin>
