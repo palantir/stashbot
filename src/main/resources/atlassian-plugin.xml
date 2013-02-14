@@ -20,17 +20,39 @@
 
         <context>stashbot-helper</context>
     </web-resource>
-    
-    <!-- publish our component -->
-    <component key="myPluginComponent" class="com.palantir.stash.stashbothelper.MyPluginComponentImpl" public="true">
-        <interface>com.palantir.stash.stashbothelper.MyPluginComponent</interface>
-    </component>
-    
+
+    <servlet key="ciInfoServlet" name="CI Info Servlet" class="com.palantir.stash.stashbothelper.CiInfoServlet">
+      <url-pattern>/repo/ciinfo/*</url-pattern>
+    </servlet>
+
+    <stash-resource key="ciInfoResources" name="CI Info Resources">
+        <directory location="/static/">
+          <exclude>/**/*-min.*</exclude>
+        </directory>
+        <context>plugin.page.ciInfo</context>
+        <dependency>com.atlassian.stash.stash-web-plugin:global</dependency>
+    </stash-resource>
+
+    <web-item key="repository-settings-ci-info-panel" name="Repository Stashbot Panel" weight="20" section="stash.repository.settings.panel">
+        <conditions type="OR">
+            <condition class="com.atlassian.stash.web.conditions.HasProjectPermissionCondition">
+                <param name="permission">PROJECT_ADMIN</param>
+            </condition>
+            <condition class="com.atlassian.stash.web.conditions.HasGlobalPermissionCondition">
+                <param name="permission">SYS_ADMIN</param>
+            </condition>
+        </conditions>
+        <label key="plugin.page.repo.ci.info.tab.label">Stashbot</label>
+        <tooltip key="plugin.page.repo.ci.sys.info.tab.tooltip">View Continuous Integration Properties</tooltip>
+        <link>/plugins/servlet/repo/ciinfo/${repository.project.key}/${repository.slug}</link>
+    </web-item>
+
     <!-- import from the product container -->
     <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
     <component-import key="permissionValidationService" interface="com.atlassian.stash.user.PermissionValidationService"/>
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
     <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
     <component-import key="webResourceManager" interface="com.atlassian.plugin.webresource.WebResourceManager"/>
-    
+    <component-import key="gitCommandBuilderFactory" interface="com.atlassian.stash.scm.git.GitCommandBuilderFactory"/>
+
 </atlassian-plugin>
