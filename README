@@ -1,13 +1,15 @@
-You have successfully created an Atlassian Plugin!
+Stashbot Helper is a plugin designed to enable a continuous integration
+workflow within stash (similar to gerrit + jenkins).
 
-Here are the SDK commands you'll use immediately:
+The first major release of stashbot should have the following features:
 
-* atlas-run   -- installs this plugin into the product and starts it on localhost
-* atlas-debug -- same as atlas-run, but allows a debugger to attach at port 5005
-* atlas-cli   -- after atlas-run or atlas-debug, opens a Maven command line window:
-                 - 'pi' reinstalls the plugin into the running product instance
-* atlas-help  -- prints description for all commands in the SDK
+* Any project can enable verification builds in a jenkins instance with a single click
+* Any commit can be built automatically with a single click
+* New pushes or pull requests are automatically verified
 
-Full documentation is always available at:
 
-https://developer.atlassian.com/display/DOCS/Introduction+to+the+Atlassian+Plugin+SDK
+Future features:
+
+* Separate publish build versus verification build (depending on branch name)
+* Allow multiple jenkins instances
+
