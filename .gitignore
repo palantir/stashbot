@@ -1,0 +1,11 @@
+**.swp
+.settings/*
+.classpath
+.project
+*/.settings/*
+*/.classpath
+*/.project
+*/target/*
+target/*
+*.log
+%PRODUCT_HOME_DIR%
