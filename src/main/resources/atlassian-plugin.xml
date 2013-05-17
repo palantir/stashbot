@@ -9,11 +9,11 @@
 
     <!-- add our i18n resource -->
     <resource type="i18n" name="i18n" location="stashbot-helper"/>
-    
+
     <!-- add our web resources -->
     <web-resource key="stashbot-helper-resources" name="stashbot-helper Web Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
-        
+
         <resource type="download" name="stashbot-helper.css" location="/css/stashbot-helper.css"/>
         <resource type="download" name="stashbot-helper.js" location="/js/stashbot-helper.js"/>
         <resource type="download" name="images/" location="/images"/>
@@ -21,19 +21,33 @@
         <context>stashbot-helper</context>
     </web-resource>
 
-    <servlet key="ciInfoServlet" name="CI Info Servlet" class="com.palantir.stash.stashbothelper.CiInfoServlet">
-      <url-pattern>/repo/ciinfo/*</url-pattern>
+    <!-- AO resources to persiste configuration data -->
+    <ao key="ao-module">
+        <description>The AO module for this plugin.</description>
+        <entity>com.palantir.stash.stashbothelper.config.JenkinsServerConfiguration</entity>
+        <entity>com.palantir.stash.stashbothelper.config.RepositoryConfiguration</entity>
+        <!-- unneeded - yet:
+           <upgradeTask>com <dot> palantir.stash.stashbothelper.upgrade.Version1UpgradeTask</upgradeTask>
+        -->
+    </ao>
+
+    <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.stashbothelper.admin.RepoConfigurationServlet">
+        <url-pattern>/stashbot/repo-admin/*</url-pattern>
     </servlet>
 
-    <stash-resource key="ciInfoResources" name="CI Info Resources">
+    <servlet key="jenkinsConfigurationAdmin" name="Jenkins Administration Servlet" class="com.palantir.stash.stashbothelper.admin.JenkinsConfigurationServlet">
+        <url-pattern>/stashbot/jenkins-admin</url-pattern>
+    </servlet>
+
+    <stash-resource key="stashbotConfigurationResources" name="Stashbot Configuration Panel Resources">
         <directory location="/static/">
           <exclude>/**/*-min.*</exclude>
         </directory>
-        <context>plugin.page.ciInfo</context>
+        <context>plugin.page.stashbot</context>
         <dependency>com.atlassian.stash.stash-web-plugin:global</dependency>
     </stash-resource>
 
-    <web-item key="repository-settings-ci-info-panel" name="Repository Stashbot Panel" weight="20" section="stash.repository.settings.panel">
+    <web-item key="repository-configuration-admin" name="Stashbot Repository Admin Panel" weight="20" section="stash.repository.settings.panel">
         <conditions type="OR">
             <condition class="com.atlassian.stash.web.conditions.HasProjectPermissionCondition">
                 <param name="permission">PROJECT_ADMIN</param>
@@ -42,9 +56,18 @@
                 <param name="permission">SYS_ADMIN</param>
             </condition>
         </conditions>
-        <label key="plugin.page.repo.ci.info.tab.label">Stashbot</label>
+        <label key="plugin.page.repo.ci.info.tab.label">Stashbot CI Admin</label>
         <tooltip key="plugin.page.repo.ci.sys.info.tab.tooltip">View Continuous Integration Properties</tooltip>
-        <link>/plugins/servlet/repo/ciinfo/${repository.project.key}/${repository.slug}</link>
+        <link>/plugins/servlet/stashbot/repo-admin/${repository.project.key}/${repository.slug}</link>
+    </web-item>
+
+    <web-item key="jenkins-configuration-admin" name="Stashbot Jenkins Admin Panel" weight="20" section="atl.admin/admin-settings-section" application="stash">
+        <condition class="com.atlassian.stash.web.conditions.HasGlobalPermissionCondition">
+            <param name="permission">SYS_ADMIN</param>
+        </condition>
+        <label key="plugin.page.repo.ci.info.tab.label">Stashbot Jenkins Admin</label>
+        <tooltip key="plugin.page.repo.ci.sys.info.tab.tooltip">View Jenkins Configuration Options</tooltip>
+        <link>/plugins/servlet/stashbot/jenkins-admin</link>
     </web-item>
 
     <!-- import from the product container -->
@@ -54,5 +77,8 @@
     <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
     <component-import key="webResourceManager" interface="com.atlassian.plugin.webresource.WebResourceManager"/>
     <component-import key="gitCommandBuilderFactory" interface="com.atlassian.stash.scm.git.GitCommandBuilderFactory"/>
+    <component-import key="activeObjects" interface="com.atlassian.activeobjects.external.ActiveObjects" />
+
+    <component key="configurationPersistenceManager" class="com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager" />
 
 </atlassian-plugin>

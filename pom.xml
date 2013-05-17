@@ -78,6 +78,33 @@
             <artifactId>commons-lang</artifactId>
             <version>2.6</version>
         </dependency>
+        <!-- New Dependencies -->
+        <dependency>
+            <groupId>com.atlassian.activeobjects</groupId>
+            <artifactId>activeobjects-plugin</artifactId>
+            <version>${ao.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- test dependencise -->
+        <dependency>
+            <groupId>com.atlassian.activeobjects</groupId>
+            <artifactId>activeobjects-test</artifactId>
+            <version>${ao.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.4</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- TODO: why do I need this for tests?  doesn't stash already depend upon this? -->
+        <dependency>
+            <groupId>hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>1.8.0.7</version>
+            <scope>test</scope>
+        </dependency>
         <!-- WIRED TEST RUNNER DEPENDENCIES -->
         <dependency>
             <groupId>com.atlassian.plugins</groupId>
@@ -131,5 +158,7 @@
         <stash.containerId>tomcat7x</stash.containerId>
         <amps.version>4.1.7</amps.version>
         <plugin.testrunner.version>1.1</plugin.testrunner.version>
+        <!-- TODO: I manually figured out this version - can we automatically figure it out? -->
+        <ao.version>0.21.2</ao.version>
     </properties>
 </project>

@@ -1,0 +1,62 @@
+{namespace plugin.page.stashbot}
+
+/**
+ * @param name
+ * @param url
+ * @param username
+ * @param password
+ **/
+{template .jenkinsConfigurationPanel}
+<html>
+<head>
+    <meta name="decorator" content="stash.admin.settings">
+    <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot Jenkins Server Configuration ({0})', $name)}}</title>
+</head>
+<body>
+{call widget.aui.group.group}
+    {param contents}
+        {call widget.aui.group.item}
+            {param contents}
+                <h2>{{stash_i18n('stash.web.repository.stashbot.heading', 'Stashbot Jenkins Settings ({0})', $name)}}</h2>
+            {/param}
+        {/call}
+    {/param}
+{/call}
+{call widget.aui.group.group}
+    {param contents}
+      {call widget.aui.form.form}
+        {param action: '' /}
+        {param contents}
+          {call widget.aui.form.text}
+            {param id: 'url' /}
+            {param labelHtml: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
+            {param initialValue: $url /}
+            {param description: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'username' /}
+            {param labelHtml: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
+            {param initialValue: $username /}
+            {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
+          {/call}
+          /** TODO: don't actually return the password, LOLOLOLz **/
+          {call widget.aui.form.text}
+            {param id: 'password' /}
+            {param labelHtml: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
+            {param initialValue: $password /}
+            {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
+          {/call}
+          {call widget.aui.form.input}
+            {param id: 'stash.web.stash.ci-prefs.submit' /}
+            {param labelHtml: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
+            {param value: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
+            {param type: 'submit' /}
+          {/call}
+        {/param}
+      {/call}
+    {/param}
+{/call}
+</body>
+</html>
+{/template}
+
