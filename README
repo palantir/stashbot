@@ -14,6 +14,11 @@ file in code-style directory.
 
 Doing these 4 things will ensure you do not introduce unneccessary whitespace changes.
 
+Jenkins:
+
+To run jenkins for testing, simply obtain a suitable jenkins.war and run the
+scripts in bin/
+
 =====
 
 Currently planned features:
