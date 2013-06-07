@@ -153,8 +153,8 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>2.3.1</stash.version>
-        <stash.data.version>2.3.1</stash.data.version>
+        <stash.version>2.4.2</stash.version>
+        <stash.data.version>2.4.2</stash.data.version>
         <stash.containerId>tomcat7x</stash.containerId>
         <amps.version>4.1.7</amps.version>
         <plugin.testrunner.version>1.1</plugin.testrunner.version>
