@@ -43,10 +43,12 @@ public class ConfigurationTest {
         String url = "http://www.example.com:1234/jenkins";
         String username = "jenkins_test_user";
         String password = "jenkins_test_user_password";
+        String stashUsername = "stash_test_user";
+        String stashPassword = "stash_test_user_password";
 
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
-        cpm.setJenkinsServerConfiguration(url, username, password);
+        cpm.setJenkinsServerConfiguration(url, username, password, stashUsername, stashPassword);
         JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
         Assert.assertEquals("default", jsc.getName());
         Assert.assertEquals(url, jsc.getUrl());
@@ -74,7 +76,7 @@ public class ConfigurationTest {
         int size = ao.count(RepositoryConfiguration.class);
 
         cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
-            "publishBranchRegex", "publishBuildCommand");
+            "publishBranchRegex", "publishBuildCommand", "prebuildCommand");
 
         RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
 
@@ -82,6 +84,7 @@ public class ConfigurationTest {
         Assert.assertEquals("publishBuildCommand", rc.getPublishBuildCommand());
         Assert.assertEquals("verifyBranchRegex", rc.getVerifyBranchRegex());
         Assert.assertEquals("verifyBuildCommand", rc.getVerifyBuildCommand());
+        Assert.assertEquals("prebuildCommand", rc.getPrebuildCommand());
         Assert.assertTrue(rc.getCiEnabled());
 
         Assert.assertEquals(size + 1, ao.count(RepositoryConfiguration.class));

@@ -34,4 +34,16 @@ public interface JenkinsServerConfiguration extends Entity {
     public String getPassword();
 
     public void setPassword(String password);
+
+    @NotNull
+    @Default("empty")
+    public String getStashUsername();
+
+    public void setStashUsername(String stashUsername);
+
+    @NotNull
+    @Default("empty")
+    public String getStashPassword();
+
+    public void setStashPassword(String stashPassword);
 }

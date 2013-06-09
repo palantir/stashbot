@@ -16,6 +16,7 @@ import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbothelper.config.RepositoryConfiguration;
+import com.palantir.stash.stashbothelper.managers.JenkinsManager;
 
 public class RepoConfigurationServlet extends HttpServlet {
 
@@ -28,13 +29,16 @@ public class RepoConfigurationServlet extends HttpServlet {
     private final SoyTemplateRenderer soyTemplateRenderer;
     private final WebResourceManager webResourceManager;
     private final ConfigurationPersistenceManager configurationPersistanceManager;
+    private final JenkinsManager jenkinsManager;
 
     public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
-        WebResourceManager webResourceManager, ConfigurationPersistenceManager configurationPersistenceManager) {
+        WebResourceManager webResourceManager, ConfigurationPersistenceManager configurationPersistenceManager,
+        JenkinsManager jenkinsManager) {
         this.repositoryService = repositoryService;
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.webResourceManager = webResourceManager;
         this.configurationPersistanceManager = configurationPersistenceManager;
+        this.jenkinsManager = jenkinsManager;
     }
 
     @Override
@@ -67,6 +71,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("publishBuildCommand", rc.getPublishBuildCommand())
                     .put("verifyBranchRegex", rc.getVerifyBranchRegex())
                     .put("verifyBuildCommand", rc.getVerifyBuildCommand())
+                    .put("prebuildCommand", rc.getPrebuildCommand())
                     .build()
                 );
         } catch (SoyException e) {
@@ -93,10 +98,14 @@ public class RepoConfigurationServlet extends HttpServlet {
         String publishBuildCommand = req.getParameter("publishBuildCommand");
         String verifyBranchRegex = req.getParameter("verifyBranchRegex");
         String verifyBuildCommand = req.getParameter("verifyBuildCommand");
+        String prebuildCommand = req.getParameter("prebuildCommand");
 
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
-                verifyBuildCommand, publishBranchRegex, publishBuildCommand);
+                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand);
+            // ensure hook is enabled, jobs exist
+            jenkinsManager.updateRepo(rep);
+
         } catch (SQLException e) {
             res.sendError(500, e.getMessage());
         }

@@ -31,7 +31,8 @@ public class ConfigurationPersistenceManager {
         return configs[0];
     }
 
-    public void setJenkinsServerConfiguration(String url, String username, String password) throws SQLException {
+    public void setJenkinsServerConfiguration(String url, String username, String password, String stashUsername,
+        String stashPassword) throws SQLException {
         JenkinsServerConfiguration[] configs =
             ao.find(JenkinsServerConfiguration.class,
                 Query.select().where("name = ?", JENKINS_SERVER_CONFIG_KEY));
@@ -41,13 +42,18 @@ public class ConfigurationPersistenceManager {
                 new DBParam("NAME", JENKINS_SERVER_CONFIG_KEY),
                 new DBParam("URL", url),
                 new DBParam("USERNAME", username),
-                new DBParam("PASSWORD", password));
+                new DBParam("PASSWORD", password),
+                new DBParam("STASH_USERNAME", stashUsername),
+                new DBParam("STASH_PASSWORD", stashPassword)
+                );
             return;
         }
         // already exists, so update it
         configs[0].setUrl(url);
         configs[0].setUsername(username);
         configs[0].setPassword(password);
+        configs[0].setStashUsername(stashUsername);
+        configs[0].setStashPassword(stashPassword);
         configs[0].save();
     }
 
@@ -65,7 +71,8 @@ public class ConfigurationPersistenceManager {
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo, boolean isCiEnabled, String verifyBranchRegex,
-        String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand) throws SQLException {
+        String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand, String prebuildCommand)
+        throws SQLException {
         RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
@@ -75,7 +82,8 @@ public class ConfigurationPersistenceManager {
                 new DBParam("VERIFY_BRANCH_REGEX", verifyBranchRegex),
                 new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
                 new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
-                new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand)
+                new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
+                new DBParam("PREBUILD_COMMAND", prebuildCommand)
                 );
             rc.save();
             return;
@@ -85,6 +93,7 @@ public class ConfigurationPersistenceManager {
         repos[0].setVerifyBuildCommand(verifyBuildCommand);
         repos[0].setPublishBranchRegex(publishBranchRegex);
         repos[0].setPublishBuildCommand(publishBuildCommand);
+        repos[0].setPrebuildCommand(prebuildCommand);
         repos[0].save();
     }
 }

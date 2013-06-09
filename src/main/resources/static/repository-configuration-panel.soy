@@ -7,6 +7,7 @@
  * @param publishBuildCommand
  * @param verifyBranchRegex
  * @param verifyBuildCommand
+ * @param prebuildCommand
  * @param 
  **/
 {template .repositoryConfigurationPanel}
@@ -38,6 +39,12 @@
             {param labelHtml: stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled') /}
             {param checked: $ciEnabled /}
             {param description: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Enables Stashbot to do CI builds for this repo') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'prebuildCommand' /}
+            {param labelHtml: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before the build') /}
+            {param initialValue: $prebuildCommand /}
+            {param description: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before the build') /}
           {/call}
           {call widget.aui.form.text}
             {param id: 'publishBranchRegex' /}

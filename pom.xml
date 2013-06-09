@@ -80,10 +80,34 @@
         </dependency>
         <!-- New Dependencies -->
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${google.guava.libversion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.atlassian.activeobjects</groupId>
             <artifactId>activeobjects-plugin</artifactId>
             <version>${ao.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-build-integration</artifactId>
+            <version>${stash.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.offbytwo.jenkins</groupId>
+            <artifactId>jenkins-client</artifactId>
+            <version>0.1.5</version>
+            <!-- excluding guava because jenkins-client uses 13 but stash needs a different version -->
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- test dependencise -->
         <dependency>
@@ -139,6 +163,7 @@
                             <containerId>${stash.containerId}</containerId>
                             <version>${stash.version}</version>
                             <dataVersion>${stash.data.version}</dataVersion>
+                            <log4jProperties>${basedir}/log4j.properties</log4jProperties>
                         </product>
                     </products>
                 </configuration>
@@ -156,6 +181,11 @@
         <stash.version>2.4.2</stash.version>
         <stash.data.version>2.4.2</stash.data.version>
         <stash.containerId>tomcat7x</stash.containerId>
+        <!--
+        WARNING: manually sync this with the version in stash - variable in the
+        pom has the same name but isn't imported for some reason.
+         -->
+        <google.guava.libversion>10.0.1</google.guava.libversion>
         <amps.version>4.1.7</amps.version>
         <plugin.testrunner.version>1.1</plugin.testrunner.version>
         <!-- TODO: I manually figured out this version - can we automatically figure it out? -->

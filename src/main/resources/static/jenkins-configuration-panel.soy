@@ -5,6 +5,8 @@
  * @param url
  * @param username
  * @param password
+ * @param stashUsername
+ * @param stashPassword
  **/
 {template .jenkinsConfigurationPanel}
 <html>
@@ -39,12 +41,24 @@
             {param initialValue: $username /}
             {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
           {/call}
-          /** TODO: don't actually return the password, LOLOLOLz **/
+          /** TODO: don't actually show the passwords, LOLOLOLz **/
           {call widget.aui.form.text}
             {param id: 'password' /}
             {param labelHtml: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
             {param initialValue: $password /}
             {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'stashUsername' /}
+            {param labelHtml: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
+            {param initialValue: $stashUsername /}
+            {param description: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'stashPassword' /}
+            {param labelHtml: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
+            {param initialValue: $stashPassword /}
+            {param description: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
           {/call}
           {call widget.aui.form.input}
             {param id: 'stash.web.stash.ci-prefs.submit' /}

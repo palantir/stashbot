@@ -20,6 +20,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbothelper.config.RepositoryConfiguration;
+import com.palantir.stash.stashbothelper.managers.JenkinsManager;
 
 public class RepoConfigurationServletTest {
 
@@ -31,6 +32,8 @@ public class RepoConfigurationServletTest {
     private WebResourceManager webResourceManager;
     @Mock
     private SoyTemplateRenderer soyTemplateRenderer;
+    @Mock
+    private JenkinsManager jenkinsManager;
 
     @Mock
     private HttpServletRequest req;
@@ -51,6 +54,7 @@ public class RepoConfigurationServletTest {
     private static final String VBR = "verifyBranchRegexString";
     private static final String PBC = "publishBranchCommandString";
     private static final String VBC = "verifyBranchCommandString";
+    private static final String PREBC = "prebuildCommandString";
 
     @Before
     public void setUp() throws Exception {
@@ -67,14 +71,16 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getPublishBuildCommand()).thenReturn(PBC);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(VBR);
         Mockito.when(rc.getVerifyBuildCommand()).thenReturn(VBC);
-
-        Mockito.when(rc2.getCiEnabled()).thenReturn(false);
+        Mockito.when(rc.getPrebuildCommand()).thenReturn(PREBC);
         Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
         Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
         Mockito.when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
         Mockito.when(rc2.getVerifyBuildCommand()).thenReturn(VBC + "2");
+        Mockito.when(rc2.getPrebuildCommand()).thenReturn(PREBC + "2");
 
-        rcs = new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, webResourceManager, cpm);
+        rcs =
+            new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, webResourceManager, cpm,
+                jenkinsManager);
     }
 
     @Test
@@ -111,6 +117,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(req.getParameter("publishBuildCommand")).thenReturn(PBC + "2");
         Mockito.when(req.getParameter("verifyBranchRegex")).thenReturn(VBR + "2");
         Mockito.when(req.getParameter("verifyBuildCommand")).thenReturn(VBC + "2");
+        Mockito.when(req.getParameter("prebuildCommand")).thenReturn(PREBC + "2");
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
 
@@ -118,7 +125,7 @@ public class RepoConfigurationServletTest {
 
         // Verify it persists
         Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", PBR + "2",
-            PBC + "2");
+            PBC + "2", PREBC + "2");
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
@@ -140,5 +147,6 @@ public class RepoConfigurationServletTest {
         Assert.assertEquals(PBC + "2", map.get("publishBuildCommand"));
         Assert.assertEquals(VBR + "2", map.get("verifyBranchRegex"));
         Assert.assertEquals(VBC + "2", map.get("verifyBuildCommand"));
+        Assert.assertEquals(PREBC + "2", map.get("prebuildCommand"));
     }
 }

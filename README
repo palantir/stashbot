@@ -1,7 +1,16 @@
 Stashbot Helper is a plugin designed to enable a continuous integration
 workflow within stash (similar to gerrit + jenkins).
 
-==== DEV GUIDE
+==== INSTALL GUIDE ====
+
+To work with Jenkins, you MUST install the following jenkins plugins first.
+
+1. Jenkins GIT plugin
+2. Post build task
+
+If either of these are missing, shit won't work.
+
+==== DEV GUIDE ====
 
 Eclipse config:
 
@@ -17,19 +26,25 @@ Doing these 4 things will ensure you do not introduce unneccessary whitespace ch
 Jenkins:
 
 To run jenkins for testing, simply obtain a suitable jenkins.war and run the
-scripts in bin/
+scripts in bin/ and follow the above steps for setting up Jenkins
 
-=====
+To install a custom version of the jenkins-client library, do something like this:
+
+atlas-mvn install:install-file -Dfile=/home/cmyers/gitrepos/jenkins-client/target/jenkins-client-0.1.5-SNAPSHOT.jar -DgroupId=com.offbytwo.jenkins -DartifactId=jenkins-client -Dversion=0.1.5-SNAPSHOT -Dpackaging=jar -DpomFile=/home/cmyers/gitrepos/jenkins-client/pom.xml
+
+==== TODO ====
 
 Currently planned features:
 
+* Test coverage
+* Error checking - validate hashes sent to build status, etc.
 * Any project can enable verification builds in a jenkins instance with a single click
 * Any commit can be built automatically with a single click
 * New pushes or pull requests are automatically verified
 
-
 Future features:
 
+* Change PullRequestBuildSuccessMergeCheck to only listen to comments made by the appropriate user? (not really necessary since we allow any user to ==override==).
 * Separate publish build versus verification build (depending on branch name)
 * Allow multiple jenkins instances
 

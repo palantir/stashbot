@@ -45,6 +45,8 @@ public class JenkinsConfigurationServletTest {
     private static final String JURL = "JenkinsURL";
     private static final String JU = "JenkisnUsername";
     private static final String JP = "JenkinsPassword";
+    private static final String SU = "StashUsername";
+    private static final String SP = "StashPassword";
 
     @Before
     public void setUp() throws Exception {
@@ -58,11 +60,15 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(jsc.getUrl()).thenReturn(JURL);
         Mockito.when(jsc.getUsername()).thenReturn(JU);
         Mockito.when(jsc.getPassword()).thenReturn(JP);
+        Mockito.when(jsc.getStashUsername()).thenReturn(SU);
+        Mockito.when(jsc.getStashPassword()).thenReturn(SP);
 
         Mockito.when(jsc2.getName()).thenReturn(JN + "2");
         Mockito.when(jsc2.getUrl()).thenReturn(JURL + "2");
         Mockito.when(jsc2.getUsername()).thenReturn(JU + "2");
         Mockito.when(jsc2.getPassword()).thenReturn(JP + "2");
+        Mockito.when(jsc2.getStashUsername()).thenReturn(SU + "2");
+        Mockito.when(jsc2.getStashPassword()).thenReturn(SP + "2");
 
         jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, webResourceManager, cpm);
     }
@@ -99,13 +105,15 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(req.getParameter("url")).thenReturn(JURL + "2");
         Mockito.when(req.getParameter("username")).thenReturn(JU + "2");
         Mockito.when(req.getParameter("password")).thenReturn(JP + "2");
+        Mockito.when(req.getParameter("stashUsername")).thenReturn(SU + "2");
+        Mockito.when(req.getParameter("stashPassword")).thenReturn(SP + "2");
 
         Mockito.when(cpm.getJenkinsServerConfiguration()).thenReturn(jsc2);
 
         jcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setJenkinsServerConfiguration(JURL + "2", JU + "2", JP + "2");
+        Mockito.verify(cpm).setJenkinsServerConfiguration(JURL + "2", JU + "2", JP + "2", SU + "2", SP + "2");
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
@@ -126,5 +134,7 @@ public class JenkinsConfigurationServletTest {
         Assert.assertEquals(JURL + "2", map.get("url"));
         Assert.assertEquals(JU + "2", map.get("username"));
         Assert.assertEquals(JP + "2", map.get("password"));
+        Assert.assertEquals(SU + "2", map.get("stashUsername"));
+        Assert.assertEquals(SP + "2", map.get("stashPassword"));
     }
 }

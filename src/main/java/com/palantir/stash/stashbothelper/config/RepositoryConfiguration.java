@@ -30,7 +30,7 @@ public interface RepositoryConfiguration extends Entity {
     public void setPublishBranchRegex(String publishBranchRegex);
 
     @NotNull
-    @Default("empty")
+    @Default("/bin/true")
     public String getPublishBuildCommand();
 
     public void setPublishBuildCommand(String publishBuildCommand);
@@ -42,8 +42,14 @@ public interface RepositoryConfiguration extends Entity {
     public void setVerifyBranchRegex(String verifyBranchRegex);
 
     @NotNull
-    @Default("empty")
+    @Default("/bin/true")
     public String getVerifyBuildCommand();
 
     public void setVerifyBuildCommand(String verifyBuildCommand);
+
+    @NotNull
+    @Default("/bin/true")
+    public String getPrebuildCommand();
+
+    public void setPrebuildCommand(String prebuildCommand);
 }

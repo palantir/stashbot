@@ -39,6 +39,10 @@
         <url-pattern>/stashbot/jenkins-admin</url-pattern>
     </servlet>
 
+    <servlet key="buildSuccessReporting" name="Build Success Reporting Servlet" class="com.palantir.stash.stashbothelper.admin.BuildSuccessReportingServlet">
+        <url-pattern>/stashbot/build-reporting/*</url-pattern>
+    </servlet>
+
     <stash-resource key="stashbotConfigurationResources" name="Stashbot Configuration Panel Resources">
         <directory location="/static/">
           <exclude>/**/*-min.*</exclude>
@@ -71,14 +75,34 @@
     </web-item>
 
     <!-- import from the product container -->
-    <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
-    <component-import key="permissionValidationService" interface="com.atlassian.stash.user.PermissionValidationService"/>
-    <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
-    <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
-    <component-import key="webResourceManager" interface="com.atlassian.plugin.webresource.WebResourceManager"/>
-    <component-import key="gitCommandBuilderFactory" interface="com.atlassian.stash.scm.git.GitCommandBuilderFactory"/>
     <component-import key="activeObjects" interface="com.atlassian.activeobjects.external.ActiveObjects" />
+    <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
+    <component-import key="buildStatusService" interface="com.atlassian.stash.build.BuildStatusService"/>
+    <component-import key="navBuilder" interface="com.atlassian.stash.nav.NavBuilder" />
+    <component-import key="permissionValidationService" interface="com.atlassian.stash.user.PermissionValidationService"/>
+    <component-import key="pullRequestService" interface="com.atlassian.stash.pull.PullRequestService"/>
+    <component-import key="repositoryHookService" interface="com.atlassian.stash.hook.repository.RepositoryHookService"/>
+    <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
+    <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+    <component-import key="webResourceManager" interface="com.atlassian.plugin.webresource.WebResourceManager"/>
 
     <component key="configurationPersistenceManager" class="com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager" />
+    <component key="jenkinsClientManager" class="com.palantir.stash.stashbothelper.managers.JenkinsClientManager" />
+    <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbothelper.jenkins.JenkinsJobXmlFormatter" />
+    <component key="jenkinsManager" class="com.palantir.stash.stashbothelper.managers.JenkinsManager" />
+    <component key="pullRequestVerifyListener" class="com.palantir.stash.stashbothelper.hooks.PullRequestVerifyListener" />
+    <!--
+    <component key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbothelper.hooks.PullRequestBuildSuccessMergeCheck" />
+    -->
 
+    <merge-check key="myMergeCheck" class="com.palantir.stash.stashbothelper.hooks.PullRequestBuildSuccessMergeCheck" />
+    <!--  <repository-hook key="pullRequestBuildSuccessMergeCheck" name="Pull Request Build Success Merge Check" class="com.palantir.stash.stashbothelper.hooks.PullRequestBuildSuccessMergeCheck">
+        <description>Hook for checking Pull Requests have a successful build first</description>
+    </repository-hook>-->
+    
+    <!-- note: the key below must be the same as the constant in JenkinsManager.java -->
+    <repository-hook key="triggerJenkinsBuildHook" name="Jenkins Build Trigger Hook" class="com.palantir.stash.stashbothelper.hooks.TriggerJenkinsBuildHook">
+        <description>Hook for triggering verification builds in jenkins when pushes occur</description>
+        <icon>icons/example.png</icon>
+    </repository-hook>
 </atlassian-plugin>

@@ -55,6 +55,8 @@ public class JenkinsConfigurationServlet extends HttpServlet {
                     .put("url", jsc.getUrl())
                     .put("username", jsc.getUsername())
                     .put("password", jsc.getPassword())
+                    .put("stashUsername", jsc.getStashUsername())
+                    .put("stashPassword", jsc.getStashPassword())
                     .build()
                 );
         } catch (SoyException e) {
@@ -73,9 +75,12 @@ public class JenkinsConfigurationServlet extends HttpServlet {
         String url = req.getParameter("url");
         String username = req.getParameter("username");
         String password = req.getParameter("password");
+        String stashUsername = req.getParameter("stashUsername");
+        String stashPassword = req.getParameter("stashPassword");
 
         try {
-            configurationPersistanceManager.setJenkinsServerConfiguration(url, username, password);
+            configurationPersistanceManager.setJenkinsServerConfiguration(url, username, password, stashUsername,
+                stashPassword);
         } catch (SQLException e) {
             res.sendError(500, e.getMessage());
         }
