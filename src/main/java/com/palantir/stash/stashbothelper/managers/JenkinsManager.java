@@ -43,6 +43,11 @@ public class JenkinsManager {
     private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY =
         "com.palantir.stash.stashbot-helper:triggerJenkinsBuildHook";
 
+    // Tacking this onto the end of the build command makes it print out "BUILD SUCCESS0" on success and
+    // "BUILD FAILURE1" on failure.
+    private static final String BUILD_COMMAND_POSTFIX =
+        "&& echo \"BUILD SUCCESS$?\" || /bin/false || echo \"BUILD FAILURE$?\"";
+
     private final NavBuilder navBuilder;
     private final ConfigurationPersistenceManager cpm;
     private final JenkinsJobXmlFormatter xmlFormatter;
@@ -120,6 +125,8 @@ public class JenkinsManager {
         } else {
             buildCommand = "/bin/true";
         }
+
+        buildCommand = "$(" + buildCommand + ") " + BUILD_COMMAND_POSTFIX;
 
         // URL looks like: "BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
         Collection<JenkinsBuildParam> params =
