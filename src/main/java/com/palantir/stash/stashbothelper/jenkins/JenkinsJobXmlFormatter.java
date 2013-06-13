@@ -104,6 +104,22 @@ public class JenkinsJobXmlFormatter {
             sb.append("        </hudson.model." + type.toString() + ">\n");
             return sb.toString();
         }
+
+        public String getName() {
+            return name;
+        }
+
+        public JenkinsBuildParamType getType() {
+            return type;
+        }
+
+        public String getDefaultValue() {
+            return defaultValue;
+        }
+
+        public String getDescription() {
+            return description;
+        }
     }
 
     public static String escapeXml(String text) {
