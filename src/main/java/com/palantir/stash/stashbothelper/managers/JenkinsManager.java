@@ -1,7 +1,6 @@
 package com.palantir.stash.stashbothelper.managers;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -201,6 +200,7 @@ public class JenkinsManager {
 
         try {
             JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
+            RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
 
             String jenkinsBuildId = type.getBuildNameFor(repo);
             String url = jsc.getUrl();
@@ -210,7 +210,7 @@ public class JenkinsManager {
             log.info("Triggering jenkins build id " + jenkinsBuildId + " on hash " + hashToBuild
                 + " (" + user + "@" + url + " pw: " + password + ")");
 
-            JenkinsServer js = new JenkinsServer(new URI("http://localhost:8080", "jenkins_user", "jenkins_user"));
+            final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc, rc);
             Map<String, Job> jobMap = js.getJobs();
             String key = type.getBuildNameFor(repo);
 

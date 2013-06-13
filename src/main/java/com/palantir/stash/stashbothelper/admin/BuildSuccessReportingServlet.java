@@ -129,6 +129,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 bs = getSuccessStatus(repo, type, state, buildNumber, buildHead);
                 log.debug("Registering build status for buildHead " + buildHead + " " + bsToString(bs));
                 buildStatusService.add(buildHead, bs);
+                printOutput(req, res);
                 return;
             }
 
@@ -145,15 +146,19 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             log.debug("Registering comment on pr for buildHead " + buildHead + " mergeHead " + mergeHead);
             pullRequestService.addComment(repo.getId(), pullRequest.getId(), sb.toString());
 
-            res.reset();
-            res.setStatus(200);
-            res.setContentType("text/plain;charset=UTF-8");
-            Writer w = res.getWriter();
-            w.append("Status Updated");
-            w.close();
+            printOutput(req, res);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to get configuration", e);
         }
+    }
+
+    private void printOutput(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        res.reset();
+        res.setStatus(200);
+        res.setContentType("text/plain;charset=UTF-8");
+        Writer w = res.getWriter();
+        w.append("Status Updated");
+        w.close();
     }
 
     private BuildStatus getSuccessStatus(Repository repo, JenkinsBuildTypes type, State state, long buildNumber,
