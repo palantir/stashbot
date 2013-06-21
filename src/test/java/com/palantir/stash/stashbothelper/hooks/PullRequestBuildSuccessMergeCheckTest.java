@@ -1,5 +1,6 @@
 package com.palantir.stash.stashbothelper.hooks;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +23,8 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.pull.MergeRequest;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
+import com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbothelper.config.RepositoryConfiguration;
 
 public class PullRequestBuildSuccessMergeCheckTest {
 
@@ -30,6 +33,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
     @Mock
     private PullRequestService prs;
+    @Mock
+    private ConfigurationPersistenceManager cpm;
 
     @Mock
     private PullRequest pr;
@@ -41,6 +46,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
     private PullRequestRef fromRef;
     @Mock
     private PullRequestRef toRef;
+    @Mock
+    private RepositoryConfiguration rc;
 
     private PullRequestBuildSuccessMergeCheck prmc;
 
@@ -56,11 +63,13 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
     @SuppressWarnings("unchecked")
     @Before
-    public void setUp() {
+    public void setUp() throws SQLException {
         MockitoAnnotations.initMocks(this);
 
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
+        Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
+        Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
 
         Mockito.when(mr.getPullRequest()).thenReturn(pr);
@@ -82,7 +91,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
             prs.getActivities(Mockito.eq(REPO_ID), Mockito.eq(PULL_REQUEST_ID), Mockito.any(PageRequest.class)))
             .thenReturn(activities);
 
-        prmc = new PullRequestBuildSuccessMergeCheck(prs);
+        prmc = new PullRequestBuildSuccessMergeCheck(prs, cpm);
 
         Mockito.doAnswer(new Answer<Void>() {
 

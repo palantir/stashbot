@@ -1,5 +1,6 @@
 package com.palantir.stash.stashbothelper.hooks;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,15 +21,19 @@ import com.atlassian.stash.scm.pull.MergeRequestCheck;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.atlassian.stash.util.PageRequestImpl;
+import com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbothelper.config.RepositoryConfiguration;
 
 public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
     private static final Logger log = Logger.getLogger(PullRequestBuildSuccessMergeCheck.class.toString());
 
     private final PullRequestService prs;
+    private final ConfigurationPersistenceManager cpm;
 
-    public PullRequestBuildSuccessMergeCheck(PullRequestService prs) {
+    public PullRequestBuildSuccessMergeCheck(PullRequestService prs, ConfigurationPersistenceManager cpm) {
         this.prs = prs;
+        this.cpm = cpm;
     }
 
     public class CustomPullRequestActivityVisitor implements PullRequestActivityVisitor {
@@ -90,6 +95,16 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
     public void check(@Nonnull MergeRequest mr) {
         PullRequest pr = mr.getPullRequest();
         Repository repo = pr.getToRef().getRepository();
+
+        RepositoryConfiguration rc;
+        try {
+            rc = cpm.getRepositoryConfigurationForRepository(repo);
+        } catch (SQLException e) {
+            throw new RuntimeException("Unable to get RepositoryConfiguration", e);
+        }
+        if (!rc.getCiEnabled()) {
+            return;
+        }
 
         PageRequest pageReq = new PageRequestImpl(0, 500);
         Page<? extends PullRequestActivity> p = prs.getActivities(repo.getId(), pr.getId(), pageReq);
