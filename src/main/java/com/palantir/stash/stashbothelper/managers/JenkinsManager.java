@@ -45,7 +45,7 @@ public class JenkinsManager {
     // Tacking this onto the end of the build command makes it print out "BUILD SUCCESS0" on success and
     // "BUILD FAILURE1" on failure.
     private static final String BUILD_COMMAND_POSTFIX =
-        "&& echo \"BUILD SUCCESS$?\" || /bin/false || echo \"BUILD FAILURE$?\"";
+        "&& echo \"BUILD SUCCESS$?\" || /bin/false || (echo \"BUILD FAILURE$?\" && /bin/false)";
 
     private final NavBuilder navBuilder;
     private final ConfigurationPersistenceManager cpm;
