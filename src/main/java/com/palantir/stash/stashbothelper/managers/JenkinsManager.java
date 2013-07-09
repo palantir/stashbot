@@ -125,7 +125,7 @@ public class JenkinsManager {
             buildCommand = "/bin/true";
         }
 
-        buildCommand = "$(" + buildCommand + ") " + BUILD_COMMAND_POSTFIX;
+        buildCommand = "(" + buildCommand + ") " + BUILD_COMMAND_POSTFIX;
 
         // URL looks like: "BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
         Collection<JenkinsBuildParam> params =
