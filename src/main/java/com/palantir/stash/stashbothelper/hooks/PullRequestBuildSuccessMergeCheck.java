@@ -112,7 +112,9 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             return;
         }
         if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
-
+            log.debug("Pull Request " + pr.toString() + " ignored, branch " + pr.getToRef().getId()
+                + " doesn't match verify regex");
+            return;
         }
 
         PageRequest pageReq = new PageRequestImpl(0, 500);
