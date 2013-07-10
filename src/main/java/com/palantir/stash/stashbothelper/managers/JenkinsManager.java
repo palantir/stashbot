@@ -223,9 +223,11 @@ public class JenkinsManager {
             builder.put("repoId", repo.getId().toString());
             builder.put("type", type.toString());
             if (hashToMerge != null) {
+                log.debug("Determined merge head " + hashToMerge);
                 builder.put("mergeHead", hashToMerge);
             }
             if (pullRequestId != null) {
+                log.debug("Determined pullRequestId " + pullRequestId);
                 builder.put("pullRequestId", pullRequestId);
             }
 

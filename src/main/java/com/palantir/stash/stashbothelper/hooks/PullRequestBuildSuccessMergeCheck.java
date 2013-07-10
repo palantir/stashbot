@@ -24,6 +24,12 @@ import com.atlassian.stash.util.PageRequestImpl;
 import com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbothelper.config.RepositoryConfiguration;
 
+/**
+ * This class is a MergeRequestCheck to disable merging where the target repo has CI enabled and no comments which
+ * 
+ * @author cmyers
+ * 
+ */
 public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
     private static final Logger log = Logger.getLogger(PullRequestBuildSuccessMergeCheck.class.toString());

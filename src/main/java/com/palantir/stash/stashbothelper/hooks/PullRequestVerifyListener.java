@@ -13,6 +13,13 @@ import com.palantir.stash.stashbothelper.config.RepositoryConfiguration;
 import com.palantir.stash.stashbothelper.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbothelper.managers.JenkinsManager;
 
+/**
+ * This class listens for new pull requests and triggers a verify build if the target repository has CI enabled and the
+ * target ref matches the verify regex.
+ * 
+ * @author cmyers
+ * 
+ */
 public class PullRequestVerifyListener {
 
     private static final Logger log = Logger.getLogger(PullRequestVerifyListener.class.toString());
