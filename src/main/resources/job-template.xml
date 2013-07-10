@@ -54,7 +54,7 @@ $$PARAMETER_DEFINITIONS$$
         <command>$$STARTED_COMMAND$$</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <command>if [ -z $mergeHead ]; then echo "Merge Head unset, not merging"; else echo "Merge Head detected: $mergeHead"; git merge $mergeHead -m"VERIFYING $buildHead merged into $mergeHead for pull request $pullRequestId in repo $repoId"; fi</command>
+        <command>(echo "Checking out build head $buildHead" &amp;&amp; git checkout $buildHead || (echo "Checkout FAILED: $?" &amp;&amp; exit 1)) &amp;&amp; if [ -z $mergeHead ]; then echo "Merge Head unset, not merging"; else echo "Merge Head detected: $mergeHead"; git merge $mergeHead -m"VERIFYING $buildHead merged into $mergeHead for pull request $pullRequestId in repo $repoId"; fi</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$$PREBUILD_COMMAND$$</command>
