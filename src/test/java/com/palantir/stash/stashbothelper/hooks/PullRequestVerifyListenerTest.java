@@ -20,9 +20,9 @@ import com.palantir.stash.stashbothelper.managers.JenkinsManager;
 public class PullRequestVerifyListenerTest {
 
     private static final String HEAD = "38356e8abe0e97648dd1007278ecc02c3bf3d2cb";
-    private static final String HEAD_BR = "feature";
+    private static final String HEAD_BR = "refs/heads/feature";
     private static final String MERGE_HEAD = "cac9954e06013073c1bf9e17b2c1c919095817dc";
-    private static final String MERGE_BR = "master";
+    private static final String MERGE_BR = "refs/heads/master";
     private static final int REPO_ID = 1;
     private static final long PULL_REQUEST_ID = 1234L;
 
@@ -57,10 +57,10 @@ public class PullRequestVerifyListenerTest {
         Mockito.when(pr.getToRef()).thenReturn(toRef);
 
         Mockito.when(fromRef.getRepository()).thenReturn(repo);
-        Mockito.when(fromRef.getDisplayId()).thenReturn(HEAD_BR);
+        Mockito.when(fromRef.getId()).thenReturn(HEAD_BR);
         Mockito.when(fromRef.getLatestChangeset()).thenReturn(HEAD);
         Mockito.when(toRef.getRepository()).thenReturn(repo);
-        Mockito.when(toRef.getDisplayId()).thenReturn(MERGE_BR);
+        Mockito.when(toRef.getId()).thenReturn(MERGE_BR);
         Mockito.when(toRef.getLatestChangeset()).thenReturn(MERGE_HEAD);
 
         Mockito.when(proEvent.getPullRequest()).thenReturn(pr);
