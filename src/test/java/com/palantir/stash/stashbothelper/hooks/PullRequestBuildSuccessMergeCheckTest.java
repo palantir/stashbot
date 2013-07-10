@@ -30,6 +30,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
     private static final int REPO_ID = 1;
     private static final long PULL_REQUEST_ID = 1234L;
+    private static final String TO_SHA = "refs/heads/master";
+    private static final String VERIFY_REGEX = ".*master";
 
     @Mock
     private PullRequestService prs;
@@ -70,6 +72,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
+        Mockito.when(rc.getVerifyBranchRegex()).thenReturn(VERIFY_REGEX);
         Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
 
         Mockito.when(mr.getPullRequest()).thenReturn(pr);
@@ -80,6 +83,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
         Mockito.when(fromRef.getRepository()).thenReturn(repo);
         Mockito.when(toRef.getRepository()).thenReturn(repo);
+        Mockito.when(toRef.getId()).thenReturn(TO_SHA);
 
         activityList = new ArrayList<PullRequestActivity>();
         activityList.add(prca);

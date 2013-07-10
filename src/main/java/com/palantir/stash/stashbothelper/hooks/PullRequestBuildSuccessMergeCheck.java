@@ -111,6 +111,9 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
         if (!rc.getCiEnabled()) {
             return;
         }
+        if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
+
+        }
 
         PageRequest pageReq = new PageRequestImpl(0, 500);
         Page<? extends PullRequestActivity> p = prs.getActivities(repo.getId(), pr.getId(), pageReq);
