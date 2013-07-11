@@ -1,0 +1,86 @@
+{namespace plugin.page.stashbot}
+
+/**
+ * @param repository
+ * @param ciEnabled
+ * @param publishBranchRegex
+ * @param publishBuildCommand
+ * @param verifyBranchRegex
+ * @param verifyBuildCommand
+ * @param prebuildCommand
+ * @param 
+ **/
+{template .repositoryConfigurationPanel}
+<html>
+<head>
+    <meta name="decorator" content="stash.repository.settings">
+    <meta name="projectKey" content="{$repository.project.key}">
+    <meta name="repositorySlug" content="{$repository.slug}">
+    <meta name="activeTab" content="repository-settings-git-ops-panel">
+    <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot settings for {0} / {1}', $repository.project.name, $repository.name)}}</title>
+</head>
+<body>
+{call widget.aui.group.group}
+    {param contents}
+        {call widget.aui.group.item}
+            {param contents}
+                <h2>{stash_i18n('stash.web.repository.stashbot.heading', 'Stashbot Settings')}</h2>
+            {/param}
+        {/call}
+    {/param}
+{/call}
+{call widget.aui.group.group}
+    {param contents}
+      {call widget.aui.form.form}
+        {param action: '' /}
+        {param contents}
+          {call widget.aui.form.checkbox}
+            {param id: 'ciEnabled' /}
+            {param labelHtml: stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled') /}
+            {param checked: $ciEnabled /}
+            {param description: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Enables Stashbot to do CI builds for this repo') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'prebuildCommand' /}
+            {param labelHtml: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before the build') /}
+            {param initialValue: $prebuildCommand /}
+            {param description: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before the build') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'publishBranchRegex' /}
+            {param labelHtml: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Regex for branches to publish') /}
+            {param initialValue: $publishBranchRegex /}
+            {param description: stash_i18n('stash.web.stash.publishBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the publish build command run on them by jenkins') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'publishBuildCommand' /}
+            {param labelHtml: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command to run for a publish build') /}
+            {param initialValue: $publishBuildCommand /}
+            {param description: stash_i18n('stash.web.stash.publishBuildCommand.description', 'Command to run for a publish build') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'verifyBranchRegex' /}
+            {param labelHtml: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex for branches to verify') /}
+            {param initialValue: $verifyBranchRegex /}
+            {param description: stash_i18n('stash.web.stash.verifyBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the verify build command run on them by jenkins') /}
+          {/call}
+          {call widget.aui.form.text}
+            {param id: 'verifyBuildCommand' /}
+            {param labelHtml: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command to run for a verify build') /}
+            {param initialValue: $verifyBuildCommand /}
+            {param description: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'Command to run for a verify build') /}
+          {/call}
+          {call widget.aui.form.input}
+            {param id: 'stash.web.stash.ci-prefs.submit' /}
+            {param labelHtml: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
+            {param value: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
+            {param type: 'submit' /}
+          {/call}
+        {/param}
+      {/call}
+    {/param}
+{/call}
+</body>
+</html>
+{/template}
+
