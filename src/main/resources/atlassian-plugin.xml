@@ -8,38 +8,38 @@
     </plugin-info>
 
     <!-- add our i18n resource -->
-    <resource type="i18n" name="i18n" location="stashbot-helper"/>
+    <resource type="i18n" name="i18n" location="stashbot"/>
 
     <!-- add our web resources -->
-    <web-resource key="stashbot-helper-resources" name="stashbot-helper Web Resources">
+    <web-resource key="stashbot-resources" name="Stashbot Web Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
 
-        <resource type="download" name="stashbot-helper.css" location="/css/stashbot-helper.css"/>
-        <resource type="download" name="stashbot-helper.js" location="/js/stashbot-helper.js"/>
+        <resource type="download" name="stashbot.css" location="/css/stashbot.css"/>
+        <resource type="download" name="stashbot.js" location="/js/stashbot.js"/>
         <resource type="download" name="images/" location="/images"/>
 
-        <context>stashbot-helper</context>
+        <context>stashbot</context>
     </web-resource>
 
     <!-- AO resources to persiste configuration data -->
     <ao key="ao-module">
         <description>The AO module for this plugin.</description>
-        <entity>com.palantir.stash.stashbothelper.config.JenkinsServerConfiguration</entity>
-        <entity>com.palantir.stash.stashbothelper.config.RepositoryConfiguration</entity>
+        <entity>com.palantir.stash.stashbot.config.JenkinsServerConfiguration</entity>
+        <entity>com.palantir.stash.stashbot.config.RepositoryConfiguration</entity>
         <!-- unneeded - yet:
            <upgradeTask>com <dot> palantir.stash.stashbothelper.upgrade.Version1UpgradeTask</upgradeTask>
         -->
     </ao>
 
-    <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.stashbothelper.admin.RepoConfigurationServlet">
+    <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.stashbot.admin.RepoConfigurationServlet">
         <url-pattern>/stashbot/repo-admin/*</url-pattern>
     </servlet>
 
-    <servlet key="jenkinsConfigurationAdmin" name="Jenkins Administration Servlet" class="com.palantir.stash.stashbothelper.admin.JenkinsConfigurationServlet">
+    <servlet key="jenkinsConfigurationAdmin" name="Jenkins Administration Servlet" class="com.palantir.stash.stashbot.admin.JenkinsConfigurationServlet">
         <url-pattern>/stashbot/jenkins-admin</url-pattern>
     </servlet>
 
-    <servlet key="buildSuccessReporting" name="Build Success Reporting Servlet" class="com.palantir.stash.stashbothelper.admin.BuildSuccessReportingServlet">
+    <servlet key="buildSuccessReporting" name="Build Success Reporting Servlet" class="com.palantir.stash.stashbot.admin.BuildSuccessReportingServlet">
         <url-pattern>/stashbot/build-reporting/*</url-pattern>
     </servlet>
 
@@ -86,22 +86,22 @@
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
     <component-import key="webResourceManager" interface="com.atlassian.plugin.webresource.WebResourceManager"/>
 
-    <component key="configurationPersistenceManager" class="com.palantir.stash.stashbothelper.config.ConfigurationPersistenceManager" />
-    <component key="jenkinsClientManager" class="com.palantir.stash.stashbothelper.managers.JenkinsClientManager" />
-    <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbothelper.jenkins.JenkinsJobXmlFormatter" />
-    <component key="jenkinsManager" class="com.palantir.stash.stashbothelper.managers.JenkinsManager" />
-    <component key="pullRequestVerifyListener" class="com.palantir.stash.stashbothelper.hooks.PullRequestVerifyListener" />
+    <component key="configurationPersistenceManager" class="com.palantir.stash.stashbot.config.ConfigurationPersistenceManager" />
+    <component key="jenkinsClientManager" class="com.palantir.stash.stashbot.managers.JenkinsClientManager" />
+    <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter" />
+    <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
+    <component key="pullRequestVerifyListener" class="com.palantir.stash.stashbot.hooks.PullRequestVerifyListener" />
     <!--
-    <component key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbothelper.hooks.PullRequestBuildSuccessMergeCheck" />
+    <component key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
     -->
 
-    <merge-check key="myMergeCheck" class="com.palantir.stash.stashbothelper.hooks.PullRequestBuildSuccessMergeCheck" />
-    <!--  <repository-hook key="pullRequestBuildSuccessMergeCheck" name="Pull Request Build Success Merge Check" class="com.palantir.stash.stashbothelper.hooks.PullRequestBuildSuccessMergeCheck">
+    <merge-check key="myMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
+    <!--  <repository-hook key="pullRequestBuildSuccessMergeCheck" name="Pull Request Build Success Merge Check" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck">
         <description>Hook for checking Pull Requests have a successful build first</description>
     </repository-hook>-->
     
     <!-- note: the key below must be the same as the constant in JenkinsManager.java -->
-    <repository-hook key="triggerJenkinsBuildHook" name="Jenkins Build Trigger Hook" class="com.palantir.stash.stashbothelper.hooks.TriggerJenkinsBuildHook">
+    <repository-hook key="triggerJenkinsBuildHook" name="Jenkins Build Trigger Hook" class="com.palantir.stash.stashbot.hooks.TriggerJenkinsBuildHook">
         <description>Hook for triggering verification builds in jenkins when pushes occur</description>
         <icon>icons/example.png</icon>
     </repository-hook>
