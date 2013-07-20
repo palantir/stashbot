@@ -165,6 +165,7 @@
                             <version>${stash.version}</version>
                             <dataVersion>${stash.data.version}</dataVersion>
                             <log4jProperties>${basedir}/log4j.properties</log4jProperties>
+                            <productDataPath>${basedir}/home-data/generated-test-resources.zip</productDataPath>
                         </product>
                     </products>
                 </configuration>
