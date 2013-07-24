@@ -51,6 +51,10 @@ $$PARAMETER_DEFINITIONS$$
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
+        <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
+        <command>git clean -fdx</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
         <command>$$STARTED_COMMAND$$</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
