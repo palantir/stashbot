@@ -19,7 +19,6 @@ import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.admin.RepoConfigurationServlet;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
@@ -124,6 +123,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(req.getParameter("verifyBranchRegex")).thenReturn(VBR + "2");
         Mockito.when(req.getParameter("verifyBuildCommand")).thenReturn(VBC + "2");
         Mockito.when(req.getParameter("prebuildCommand")).thenReturn(PREBC + "2");
+        Mockito.when(req.getParameter("jenkinsServerName")).thenReturn("default");
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
 
@@ -131,7 +131,7 @@ public class RepoConfigurationServletTest {
 
         // Verify it persists
         Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", PBR + "2",
-            PBC + "2", PREBC + "2");
+            PBC + "2", PREBC + "2", "default");
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");

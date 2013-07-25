@@ -130,6 +130,17 @@ public class ConfigurationPersistenceManager {
     public void setRepositoryConfigurationForRepository(Repository repo, boolean isCiEnabled, String verifyBranchRegex,
         String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand, String prebuildCommand)
         throws SQLException, IllegalArgumentException {
+        setRepositoryConfigurationForRepository(repo, isCiEnabled, verifyBranchRegex, verifyBuildCommand,
+            publishBranchRegex, publishBuildCommand, prebuildCommand, null);
+    }
+
+    public void setRepositoryConfigurationForRepository(Repository repo, boolean isCiEnabled, String verifyBranchRegex,
+        String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand, String prebuildCommand,
+        String jenkinsServerName)
+        throws SQLException, IllegalArgumentException {
+        if (jenkinsServerName == null) {
+            jenkinsServerName = JENKINS_SERVER_CONFIG_KEY;
+        }
         RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
@@ -141,7 +152,8 @@ public class ConfigurationPersistenceManager {
                 new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
                 new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
                 new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
-                new DBParam("PREBUILD_COMMAND", prebuildCommand)
+                new DBParam("PREBUILD_COMMAND", prebuildCommand),
+                new DBParam("JENKINS_SERVER_NAME", jenkinsServerName)
                 );
             rc.save();
             return;
@@ -152,6 +164,7 @@ public class ConfigurationPersistenceManager {
         repos[0].setPublishBranchRegex(publishBranchRegex);
         repos[0].setPublishBuildCommand(publishBuildCommand);
         repos[0].setPrebuildCommand(prebuildCommand);
+        repos[0].setJenkinsServerName(jenkinsServerName);
         repos[0].save();
     }
 

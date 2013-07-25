@@ -1,6 +1,7 @@
 package com.palantir.stash.stashbot.admin;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,6 +59,7 @@ public class JenkinsConfigurationServletTest {
 
         Mockito.when(res.getWriter()).thenReturn(writer);
         Mockito.when(req.getRequestURL()).thenReturn(new StringBuffer(REQUEST_URI));
+        Mockito.when(req.getPathInfo()).thenReturn("");
 
         Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
         Mockito.when(cpm.getJenkinsServerConfiguration(JN)).thenReturn(jsc);
@@ -99,10 +101,9 @@ public class JenkinsConfigurationServletTest {
 
         Map<String, Object> map = mapCaptor.getValue();
 
-        Assert.assertEquals(JN, map.get("name"));
-        Assert.assertEquals(JURL, map.get("url"));
-        Assert.assertEquals(JU, map.get("username"));
-        Assert.assertEquals(JP, map.get("password"));
+        @SuppressWarnings("unchecked")
+        List<JenkinsServerConfiguration> jscs = (List<JenkinsServerConfiguration>) map.get("jenkinsConfigs");
+        Assert.assertEquals(jsc, jscs.get(0));
     }
 
     @Test
@@ -139,11 +140,8 @@ public class JenkinsConfigurationServletTest {
         Map<String, Object> map = mapCaptor.getValue();
 
         // Except the details are now changed
-        Assert.assertEquals(JN + "2", map.get("name"));
-        Assert.assertEquals(JURL + "2", map.get("url"));
-        Assert.assertEquals(JU + "2", map.get("username"));
-        Assert.assertEquals(JP + "2", map.get("password"));
-        Assert.assertEquals(SU + "2", map.get("stashUsername"));
-        Assert.assertEquals(SP + "2", map.get("stashPassword"));
+        @SuppressWarnings("unchecked")
+        List<JenkinsServerConfiguration> jscs = (List<JenkinsServerConfiguration>) map.get("jenkinsConfigs");
+        Assert.assertEquals(jsc, jscs.get(0));
     }
 }

@@ -103,10 +103,11 @@ public class RepoConfigurationServlet extends HttpServlet {
         String verifyBranchRegex = req.getParameter("verifyBranchRegex");
         String verifyBuildCommand = req.getParameter("verifyBuildCommand");
         String prebuildCommand = req.getParameter("prebuildCommand");
+        String jenkinsServerName = req.getParameter("jenkinsServerName");
 
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
-                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand);
+                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName);
             // ensure hook is enabled, jobs exist
             jenkinsManager.updateRepo(rep);
 

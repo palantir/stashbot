@@ -8,7 +8,8 @@
  * @param verifyBranchRegex
  * @param verifyBuildCommand
  * @param prebuildCommand
- * @param 
+ * @param jenkinsServerName
+ * @param allJenkinsServerNames
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -39,6 +40,18 @@
             {param labelHtml: stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled') /}
             {param checked: $ciEnabled /}
             {param description: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Enables Stashbot to do CI builds for this repo') /}
+          {/call}
+          <h3>Jenkins Server Names:</h3>
+          <ul>
+          {foreach $name in $allJenkinsServerNames}
+            <li>{$name}</li>
+          {/foreach}
+          </ul>
+          {call widget.aui.form.text}
+            {param id: 'jenkinsServerName' /}
+            {param labelHtml: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server to use') /}
+            {param initialValue: $jenkinsServerName /}
+            {param description: stash_i18n('stash.web.stash.jenkinsServerName.description', 'Jenkins Server to use') /}
           {/call}
           {call widget.aui.form.text}
             {param id: 'prebuildCommand' /}
