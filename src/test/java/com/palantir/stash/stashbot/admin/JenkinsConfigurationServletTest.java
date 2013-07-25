@@ -1,6 +1,7 @@
 package com.palantir.stash.stashbot.admin;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +17,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
-import com.palantir.stash.stashbot.admin.JenkinsConfigurationServlet;
+import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 
@@ -49,13 +50,21 @@ public class JenkinsConfigurationServletTest {
     private static final String SU = "StashUsername";
     private static final String SP = "StashPassword";
 
+    private static final String REQUEST_URI = "http://someuri.example.com/blah";
+
     @Before
     public void setUp() throws Exception {
 
         MockitoAnnotations.initMocks(this);
 
         Mockito.when(res.getWriter()).thenReturn(writer);
-        Mockito.when(cpm.getJenkinsServerConfiguration()).thenReturn(jsc);
+        Mockito.when(req.getRequestURL()).thenReturn(new StringBuffer(REQUEST_URI));
+        Mockito.when(req.getPathInfo()).thenReturn("");
+
+        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
+        Mockito.when(cpm.getJenkinsServerConfiguration(JN)).thenReturn(jsc);
+        Mockito.when(cpm.getJenkinsServerConfiguration(JN + "2")).thenReturn(jsc2);
+        Mockito.when(cpm.getAllJenkinsServerConfigurations()).thenReturn(ImmutableList.of(jsc));
 
         Mockito.when(jsc.getName()).thenReturn(JN);
         Mockito.when(jsc.getUrl()).thenReturn(JURL);
@@ -92,10 +101,9 @@ public class JenkinsConfigurationServletTest {
 
         Map<String, Object> map = mapCaptor.getValue();
 
-        Assert.assertEquals(JN, map.get("name"));
-        Assert.assertEquals(JURL, map.get("url"));
-        Assert.assertEquals(JU, map.get("username"));
-        Assert.assertEquals(JP, map.get("password"));
+        @SuppressWarnings("unchecked")
+        List<JenkinsServerConfiguration> jscs = (List<JenkinsServerConfiguration>) map.get("jenkinsConfigs");
+        Assert.assertEquals(jsc, jscs.get(0));
     }
 
     @Test
@@ -109,12 +117,13 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(req.getParameter("stashUsername")).thenReturn(SU + "2");
         Mockito.when(req.getParameter("stashPassword")).thenReturn(SP + "2");
 
-        Mockito.when(cpm.getJenkinsServerConfiguration()).thenReturn(jsc2);
+        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc2);
+        Mockito.when(cpm.getJenkinsServerConfiguration(JN + "2")).thenReturn(jsc2);
 
         jcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setJenkinsServerConfiguration(JURL + "2", JU + "2", JP + "2", SU + "2", SP + "2");
+        Mockito.verify(cpm).setJenkinsServerConfiguration(JN + "2", JURL + "2", JU + "2", JP + "2", SU + "2", SP + "2");
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
@@ -131,11 +140,8 @@ public class JenkinsConfigurationServletTest {
         Map<String, Object> map = mapCaptor.getValue();
 
         // Except the details are now changed
-        Assert.assertEquals(JN + "2", map.get("name"));
-        Assert.assertEquals(JURL + "2", map.get("url"));
-        Assert.assertEquals(JU + "2", map.get("username"));
-        Assert.assertEquals(JP + "2", map.get("password"));
-        Assert.assertEquals(SU + "2", map.get("stashUsername"));
-        Assert.assertEquals(SP + "2", map.get("stashPassword"));
+        @SuppressWarnings("unchecked")
+        List<JenkinsServerConfiguration> jscs = (List<JenkinsServerConfiguration>) map.get("jenkinsConfigs");
+        Assert.assertEquals(jsc, jscs.get(0));
     }
 }

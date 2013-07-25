@@ -172,7 +172,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     }
 
     private String getJenkinsUrl(Repository repo, JenkinsBuildTypes type, long buildNumber) throws SQLException {
-        JenkinsServerConfiguration jsc = configurationPersistanceManager.getJenkinsServerConfiguration();
+        JenkinsServerConfiguration jsc = configurationPersistanceManager.getDefaultJenkinsServerConfiguration();
         String key = type.getBuildNameFor(repo);
         String url = jsc.getUrl() + "/job/" + key + "/" + Long.toString(buildNumber);
         return url;

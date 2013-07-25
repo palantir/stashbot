@@ -75,7 +75,7 @@ public class BuildSuccessReportingServletTest {
     public void setUp() throws IOException, SQLException {
         MockitoAnnotations.initMocks(this);
 
-        Mockito.when(cpm.getJenkinsServerConfiguration()).thenReturn(jsc);
+        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(Mockito.any(Repository.class))).thenReturn(rc);
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
         Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);

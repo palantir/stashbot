@@ -72,6 +72,8 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("verifyBranchRegex", rc.getVerifyBranchRegex())
                     .put("verifyBuildCommand", rc.getVerifyBuildCommand())
                     .put("prebuildCommand", rc.getPrebuildCommand())
+                    .put("jenkinsServerName", rc.getJenkinsServerName())
+                    .put("allJenkinsServerNames", configurationPersistanceManager.getAllJenkinsServerNames())
                     .build()
                 );
         } catch (SoyException e) {
@@ -81,6 +83,8 @@ public class RepoConfigurationServlet extends HttpServlet {
             } else {
                 throw new ServletException(e);
             }
+        } catch (SQLException e) {
+            throw new ServletException(e);
         }
     }
 
@@ -99,10 +103,11 @@ public class RepoConfigurationServlet extends HttpServlet {
         String verifyBranchRegex = req.getParameter("verifyBranchRegex");
         String verifyBuildCommand = req.getParameter("verifyBuildCommand");
         String prebuildCommand = req.getParameter("prebuildCommand");
+        String jenkinsServerName = req.getParameter("jenkinsServerName");
 
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
-                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand);
+                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName);
             // ensure hook is enabled, jobs exist
             jenkinsManager.updateRepo(rep);
 

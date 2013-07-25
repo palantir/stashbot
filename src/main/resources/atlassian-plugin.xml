@@ -36,7 +36,7 @@
     </servlet>
 
     <servlet key="jenkinsConfigurationAdmin" name="Jenkins Administration Servlet" class="com.palantir.stash.stashbot.admin.JenkinsConfigurationServlet">
-        <url-pattern>/stashbot/jenkins-admin</url-pattern>
+        <url-pattern>/stashbot/jenkins-admin*</url-pattern>
     </servlet>
 
     <servlet key="buildSuccessReporting" name="Build Success Reporting Servlet" class="com.palantir.stash.stashbot.admin.BuildSuccessReportingServlet">

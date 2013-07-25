@@ -11,12 +11,14 @@ import javax.servlet.http.HttpServletResponse;
 import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 
 public class JenkinsConfigurationServlet extends HttpServlet {
 
+    private final String PATH_PREFIX = "/stashbot/jenkins-admin";
     /**
      * 
      */
@@ -36,27 +38,31 @@ public class JenkinsConfigurationServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        JenkinsServerConfiguration jsc;
-        try {
-            jsc = configurationPersistanceManager.getJenkinsServerConfiguration();
-        } catch (SQLException e1) {
-            throw new ServletException(e1);
+        // Handle deletes
+        String pathInfo = req.getPathInfo();
+        String relUrl = req.getRequestURL().toString().replaceAll("/delete/.*$", "").replaceAll("/+$", "");
+
+        String[] parts = pathInfo.replaceFirst(PATH_PREFIX, "").split("/");
+
+        if (parts.length == 3) {
+            if (parts[1].equals("delete")) {
+                configurationPersistanceManager.deleteJenkinsServerConfiguration(parts[2]);
+                res.sendRedirect(relUrl);
+                return;
+            }
         }
 
         res.setContentType("text/html;charset=UTF-8");
-
         try {
             webResourceManager.requireResourcesForContext("plugin.page.stashbot");
+            ImmutableCollection<JenkinsServerConfiguration> jenkinsConfigs =
+                configurationPersistanceManager.getAllJenkinsServerConfigurations();
             soyTemplateRenderer.render(res.getWriter(),
                 "com.palantir.stash.stashbot:stashbotConfigurationResources",
                 "plugin.page.stashbot.jenkinsConfigurationPanel",
                 ImmutableMap.<String, Object> builder()
-                    .put("name", jsc.getName())
-                    .put("url", jsc.getUrl())
-                    .put("username", jsc.getUsername())
-                    .put("password", jsc.getPassword())
-                    .put("stashUsername", jsc.getStashUsername())
-                    .put("stashPassword", jsc.getStashPassword())
+                    .put("relUrl", relUrl)
+                    .put("jenkinsConfigs", jenkinsConfigs)
                     .build()
                 );
         } catch (SoyException e) {
@@ -66,12 +72,15 @@ public class JenkinsConfigurationServlet extends HttpServlet {
             } else {
                 throw new ServletException(e);
             }
+        } catch (SQLException e) {
+            throw new ServletException(e);
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
+        String name = req.getParameter("name");
         String url = req.getParameter("url");
         String username = req.getParameter("username");
         String password = req.getParameter("password");
@@ -79,7 +88,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
         String stashPassword = req.getParameter("stashPassword");
 
         try {
-            configurationPersistanceManager.setJenkinsServerConfiguration(url, username, password, stashUsername,
+            configurationPersistanceManager.setJenkinsServerConfiguration(name, url, username, password, stashUsername,
                 stashPassword);
         } catch (SQLException e) {
             res.sendError(500, e.getMessage());
