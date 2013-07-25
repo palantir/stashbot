@@ -112,7 +112,7 @@ public class ConfigurationTest {
         int size = ao.count(RepositoryConfiguration.class);
 
         cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
-            "publishBranchRegex", "publishBuildCommand", "prebuildCommand");
+            "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "default");
 
         RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
 
@@ -121,9 +121,27 @@ public class ConfigurationTest {
         Assert.assertEquals("verifyBranchRegex", rc.getVerifyBranchRegex());
         Assert.assertEquals("verifyBuildCommand", rc.getVerifyBuildCommand());
         Assert.assertEquals("prebuildCommand", rc.getPrebuildCommand());
+        Assert.assertEquals("default", rc.getJenkinsServerName());
         Assert.assertTrue(rc.getCiEnabled());
 
         Assert.assertEquals(size + 1, ao.count(RepositoryConfiguration.class));
+    }
+
+    @Test
+    public void failsWithBadData() throws Exception {
+        Repository repo = Mockito.mock(Repository.class);
+        Mockito.when(repo.getId()).thenReturn(1);
+        Mockito.when(repo.getName()).thenReturn("repoName");
+
+        int size = ao.count(RepositoryConfiguration.class);
+
+        try {
+            cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
+                "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "BADNAME");
+            Assert.fail("Should have thrown exception");
+        } catch (Exception e) {
+            // success
+        }
     }
 
     @Test

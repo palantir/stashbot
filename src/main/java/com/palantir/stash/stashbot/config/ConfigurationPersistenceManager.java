@@ -62,6 +62,7 @@ public class ConfigurationPersistenceManager {
 
     public void setJenkinsServerConfiguration(String name, String url, String username, String password,
         String stashUsername, String stashPassword) throws SQLException {
+        validateName(name);
         JenkinsServerConfiguration[] configs =
             ao.find(JenkinsServerConfiguration.class,
                 Query.select().where("name = ?", name));
@@ -144,7 +145,7 @@ public class ConfigurationPersistenceManager {
         RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
-            validateName(repo.getName());
+            validateNameExists(jenkinsServerName);
             RepositoryConfiguration rc = ao.create(RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()),
                 new DBParam("CI_ENABLED", isCiEnabled),
@@ -194,5 +195,18 @@ public class ConfigurationPersistenceManager {
         if (!name.matches("[a-zA-Z0-9]+")) {
             throw new IllegalArgumentException("Name must match [a-zA-Z0-9]+");
         }
+    }
+
+    public void validateNameExists(String name) throws IllegalArgumentException {
+        if (name.equals(JENKINS_SERVER_CONFIG_KEY)) {
+            return;
+        }
+        JenkinsServerConfiguration[] allConfigs = ao.find(JenkinsServerConfiguration.class);
+        for (JenkinsServerConfiguration jsc : allConfigs) {
+            if (jsc.getName().equals(name)) {
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Jenkins Server name " + name + " does not exist");
     }
 }
