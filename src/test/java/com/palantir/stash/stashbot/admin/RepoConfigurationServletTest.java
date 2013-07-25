@@ -18,6 +18,7 @@ import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.admin.RepoConfigurationServlet;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -56,6 +57,7 @@ public class RepoConfigurationServletTest {
     private static final String PBC = "publishBranchCommandString";
     private static final String VBC = "verifyBranchCommandString";
     private static final String PREBC = "prebuildCommandString";
+    private static final String JSN = "default";
 
     @Before
     public void setUp() throws Exception {
@@ -66,6 +68,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(req.getPathInfo()).thenReturn("/projectName/repoName");
         Mockito.when(repositoryService.findBySlug("projectName", "repoName")).thenReturn(mockRepo);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc);
+        Mockito.when(cpm.getAllJenkinsServerNames()).thenReturn(ImmutableList.of("default"));
 
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getPublishBranchRegex()).thenReturn(PBR);
@@ -73,11 +76,13 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(VBR);
         Mockito.when(rc.getVerifyBuildCommand()).thenReturn(VBC);
         Mockito.when(rc.getPrebuildCommand()).thenReturn(PREBC);
+        Mockito.when(rc.getJenkinsServerName()).thenReturn(JSN);
         Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
         Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
         Mockito.when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
         Mockito.when(rc2.getVerifyBuildCommand()).thenReturn(VBC + "2");
         Mockito.when(rc2.getPrebuildCommand()).thenReturn(PREBC + "2");
+        Mockito.when(rc2.getJenkinsServerName()).thenReturn(JSN + "2");
 
         rcs =
             new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, webResourceManager, cpm,

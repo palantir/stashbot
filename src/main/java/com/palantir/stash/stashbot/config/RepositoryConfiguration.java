@@ -52,4 +52,10 @@ public interface RepositoryConfiguration extends Entity {
     public String getPrebuildCommand();
 
     public void setPrebuildCommand(String prebuildCommand);
+
+    @NotNull
+    @Default("default")
+    public String getJenkinsServerName();
+
+    public void setJenkinsServerName(String jenkinsServerName);
 }

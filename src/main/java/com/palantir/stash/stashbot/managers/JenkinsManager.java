@@ -76,7 +76,7 @@ public class JenkinsManager {
 
     public void createJob(Repository repo, JenkinsBuildTypes buildType) {
         try {
-            final JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
+            final JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
             final RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
             final JenkinsServer jenkinsServer = jenkinsClientManager.getJenkinsServer(jsc, rc);
             final String jobName = buildType.getBuildNameFor(repo);
@@ -161,7 +161,7 @@ public class JenkinsManager {
      */
     public void updateJob(Repository repo, JenkinsBuildTypes buildType) {
         try {
-            final JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
+            final JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
             final RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
             final JenkinsServer jenkinsServer = jenkinsClientManager.getJenkinsServer(jsc, rc);
             final String jobName = buildType.getBuildNameFor(repo);
@@ -199,7 +199,7 @@ public class JenkinsManager {
         }
 
         try {
-            JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
+            JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
             RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
 
             String jenkinsBuildId = type.getBuildNameFor(repo);
@@ -278,7 +278,7 @@ public class JenkinsManager {
         public Void call() throws Exception {
             RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(r);
             // may someday require repo also...
-            JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
+            JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
 
             if (!rc.getCiEnabled())
                 return null;

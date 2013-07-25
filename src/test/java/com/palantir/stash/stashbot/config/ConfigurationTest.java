@@ -1,5 +1,9 @@
 package com.palantir.stash.stashbot.config;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import junit.framework.Assert;
 import net.java.ao.DBParam;
 import net.java.ao.EntityManager;
@@ -17,9 +21,6 @@ import org.mockito.Mockito;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.stash.repository.Repository;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
@@ -51,8 +52,8 @@ public class ConfigurationTest {
 
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
-        cpm.setJenkinsServerConfiguration(url, username, password, stashUsername, stashPassword);
-        JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
+        cpm.setDefaultJenkinsServerConfiguration(url, username, password, stashUsername, stashPassword);
+        JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
         Assert.assertEquals("default", jsc.getName());
         Assert.assertEquals(url, jsc.getUrl());
         Assert.assertEquals(username, jsc.getUsername());
@@ -64,7 +65,7 @@ public class ConfigurationTest {
     @Test
     public void getsDefaultjenkinsServerConfiguration() throws Exception {
 
-        JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration();
+        JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
         Assert.assertEquals("default", jsc.getName());
         Assert.assertEquals("empty", jsc.getUrl());
         Assert.assertEquals("empty", jsc.getUsername());
@@ -72,9 +73,41 @@ public class ConfigurationTest {
     }
 
     @Test
+    public void getsAllJenkinsServerConfigurationsEmpty() throws Exception {
+
+        Collection<JenkinsServerConfiguration> jscs = cpm.getAllJenkinsServerConfigurations();
+        Assert.assertEquals(jscs.size(), 1);
+        JenkinsServerConfiguration jsc = jscs.iterator().next();
+        Assert.assertEquals("default", jsc.getName());
+        Assert.assertEquals("empty", jsc.getUrl());
+        Assert.assertEquals("empty", jsc.getUsername());
+        Assert.assertEquals("empty", jsc.getPassword());
+    }
+
+    @Test
+    public void getsAllJenkinsServerConfigurationsNotEmpty() throws Exception {
+
+        cpm.setDefaultJenkinsServerConfiguration("url1", "yuser", "pw", "stashuser", "stashpw");
+        cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw", "stashuser", "stashpw");
+
+        Collection<JenkinsServerConfiguration> jscs = cpm.getAllJenkinsServerConfigurations();
+        Assert.assertEquals(jscs.size(), 2);
+        Map<String, JenkinsServerConfiguration> configs = new HashMap<String, JenkinsServerConfiguration>();
+
+        for (JenkinsServerConfiguration jsc : jscs) {
+            configs.put(jsc.getName(), jsc);
+        }
+        Assert.assertEquals("default", configs.get("default").getName());
+        Assert.assertEquals("url1", configs.get("default").getUrl());
+        Assert.assertEquals("foo", configs.get("foo").getName());
+        Assert.assertEquals("url2", configs.get("foo").getUrl());
+    }
+
+    @Test
     public void storesRepoData() throws Exception {
         Repository repo = Mockito.mock(Repository.class);
         Mockito.when(repo.getId()).thenReturn(1);
+        Mockito.when(repo.getName()).thenReturn("repoName");
 
         int size = ao.count(RepositoryConfiguration.class);
 

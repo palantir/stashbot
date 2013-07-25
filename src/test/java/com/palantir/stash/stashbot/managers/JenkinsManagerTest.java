@@ -94,7 +94,7 @@ public class JenkinsManagerTest {
         Mockito.when(nbRepo.clone(Mockito.anyString())).thenReturn(nbRepoClone);
         Mockito.when(nbRepoClone.buildAbsoluteWithoutUsername()).thenReturn(ABSOLUTE_PATH);
 
-        Mockito.when(cpm.getJenkinsServerConfiguration()).thenReturn(jsc);
+        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
         Mockito.when(jsc.getStashUsername()).thenReturn("stash_username");
         Mockito.when(jsc.getStashPassword()).thenReturn("stash_password");

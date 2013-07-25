@@ -72,6 +72,8 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("verifyBranchRegex", rc.getVerifyBranchRegex())
                     .put("verifyBuildCommand", rc.getVerifyBuildCommand())
                     .put("prebuildCommand", rc.getPrebuildCommand())
+                    .put("jenkinsServerName", rc.getJenkinsServerName())
+                    .put("allJenkinsServerNames", configurationPersistanceManager.getAllJenkinsServerNames())
                     .build()
                 );
         } catch (SoyException e) {
@@ -81,6 +83,8 @@ public class RepoConfigurationServlet extends HttpServlet {
             } else {
                 throw new ServletException(e);
             }
+        } catch (SQLException e) {
+            throw new ServletException(e);
         }
     }
 
