@@ -142,10 +142,10 @@ public class ConfigurationPersistenceManager {
         if (jenkinsServerName == null) {
             jenkinsServerName = JENKINS_SERVER_CONFIG_KEY;
         }
+        validateNameExists(jenkinsServerName);
         RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
-            validateNameExists(jenkinsServerName);
             RepositoryConfiguration rc = ao.create(RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()),
                 new DBParam("CI_ENABLED", isCiEnabled),
@@ -198,6 +198,7 @@ public class ConfigurationPersistenceManager {
     }
 
     public void validateNameExists(String name) throws IllegalArgumentException {
+        System.out.println("Verifying JSN: " + name + "\n\n\n");
         if (name.equals(JENKINS_SERVER_CONFIG_KEY)) {
             return;
         }

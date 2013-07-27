@@ -9,7 +9,7 @@
  * @param verifyBuildCommand
  * @param prebuildCommand
  * @param jenkinsServerName
- * @param allJenkinsServerNames
+ * @param jenkinsServersData
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -21,73 +21,73 @@
     <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot settings for {0} / {1}', $repository.project.name, $repository.name)}}</title>
 </head>
 <body>
-{call widget.aui.group.group}
-    {param contents}
-        {call widget.aui.group.item}
-            {param contents}
+{call aui.group.group}
+    {param content}
+        {call aui.group.item}
+            {param content}
                 <h2>{stash_i18n('stash.web.repository.stashbot.heading', 'Stashbot Settings')}</h2>
             {/param}
         {/call}
     {/param}
 {/call}
-{call widget.aui.group.group}
-    {param contents}
-      {call widget.aui.form.form}
+{call aui.group.group}
+    {param content}
+      {call aui.form.form}
         {param action: '' /}
-        {param contents}
-          {call widget.aui.form.checkbox}
-            {param id: 'ciEnabled' /}
-            {param labelHtml: stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled') /}
-            {param checked: $ciEnabled /}
-            {param description: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Enables Stashbot to do CI builds for this repo') /}
+        {param content}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Enables CI Builds') /}
+            {param fields: [[
+              'id': 'ciEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $ciEnabled
+              ]] /}
           {/call}
-          <h3>Jenkins Server Names:</h3>
-          <ul>
-          {foreach $name in $allJenkinsServerNames}
-            <li>{$name}</li>
-          {/foreach}
-          </ul>
-          {call widget.aui.form.text}
+          {call aui.form.selectField}
             {param id: 'jenkinsServerName' /}
-            {param labelHtml: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server to use') /}
-            {param initialValue: $jenkinsServerName /}
-            {param description: stash_i18n('stash.web.stash.jenkinsServerName.description', 'Jenkins Server to use') /}
+            {param labelContent: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server') /}
+            {param options: $jenkinsServersData /}
+            {param value: $jenkinsServerName /}
+            {param descriptionText: stash_i18n('stash.web.stash.jenkinsServerName.description', 'Jenkins Server') /}
           {/call}
-          {call widget.aui.form.text}
+          {call aui.form.textField}
             {param id: 'prebuildCommand' /}
-            {param labelHtml: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before the build') /}
-            {param initialValue: $prebuildCommand /}
-            {param description: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before the build') /}
+            {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before the build') /}
+            {param value: $prebuildCommand /}
+            {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before the build') /}
           {/call}
-          {call widget.aui.form.text}
+          {call aui.form.textField}
             {param id: 'publishBranchRegex' /}
-            {param labelHtml: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Regex for branches to publish') /}
-            {param initialValue: $publishBranchRegex /}
-            {param description: stash_i18n('stash.web.stash.publishBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the publish build command run on them by jenkins') /}
+            {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Regex for branches to publish') /}
+            {param value: $publishBranchRegex /}
+            {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the publish build command run on them by jenkins') /}
           {/call}
-          {call widget.aui.form.text}
+          {call aui.form.textField}
             {param id: 'publishBuildCommand' /}
-            {param labelHtml: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command to run for a publish build') /}
-            {param initialValue: $publishBuildCommand /}
-            {param description: stash_i18n('stash.web.stash.publishBuildCommand.description', 'Command to run for a publish build') /}
+            {param labelContent: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command to run for a publish build') /}
+            {param value: $publishBuildCommand /}
+            {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'Command to run for a publish build') /}
           {/call}
-          {call widget.aui.form.text}
+          {call aui.form.textField}
             {param id: 'verifyBranchRegex' /}
-            {param labelHtml: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex for branches to verify') /}
-            {param initialValue: $verifyBranchRegex /}
-            {param description: stash_i18n('stash.web.stash.verifyBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the verify build command run on them by jenkins') /}
+            {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex for branches to verify') /}
+            {param value: $verifyBranchRegex /}
+            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the verify build command run on them by jenkins') /}
           {/call}
-          {call widget.aui.form.text}
+          {call aui.form.textField}
             {param id: 'verifyBuildCommand' /}
-            {param labelHtml: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command to run for a verify build') /}
-            {param initialValue: $verifyBuildCommand /}
-            {param description: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'Command to run for a verify build') /}
+            {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command to run for a verify build') /}
+            {param value: $verifyBuildCommand /}
+            {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'Command to run for a verify build') /}
           {/call}
-          {call widget.aui.form.input}
-            {param id: 'stash.web.stash.ci-prefs.submit' /}
-            {param labelHtml: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
-            {param value: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
-            {param type: 'submit' /}
+          {call aui.form.buttons}
+            {param content}
+	          {call aui.form.submit}
+	            {param id: 'submit' /}
+	            {param text: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
+	            {param type: 'submit' /}
+	          {/call}
+	        {/param}
           {/call}
         {/param}
       {/call}
