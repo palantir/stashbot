@@ -2,6 +2,10 @@ package com.palantir.stash.stashbot.admin;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -15,6 +19,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -57,9 +62,21 @@ public class RepoConfigurationServlet extends HttpServlet {
             throw new ServletException(e1);
         }
 
+        System.out.println("Got existing setting for JSNL: " + rc.getJenkinsServerName() + "\n\n\n");
         res.setContentType("text/html;charset=UTF-8");
 
         try {
+            List<Map<String, String>> jenkinsServersData = new ArrayList<Map<String, String>>();
+            for (JenkinsServerConfiguration jsc : configurationPersistanceManager.getAllJenkinsServerConfigurations()) {
+                HashMap<String, String> m = new HashMap<String, String>();
+                m.put("text", jsc.getName());
+                m.put("value", jsc.getName());
+                if (rc.getJenkinsServerName().equals(jsc.getName())) {
+                    System.out.println("name " + jsc.getName() + " is selected");
+                    m.put("selected", "true");
+                }
+                jenkinsServersData.add(m);
+            }
             webResourceManager.requireResourcesForContext("plugin.page.stashbot");
             soyTemplateRenderer.render(res.getWriter(),
                 "com.palantir.stash.stashbot:stashbotConfigurationResources",
@@ -73,7 +90,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("verifyBuildCommand", rc.getVerifyBuildCommand())
                     .put("prebuildCommand", rc.getPrebuildCommand())
                     .put("jenkinsServerName", rc.getJenkinsServerName())
-                    .put("allJenkinsServerNames", configurationPersistanceManager.getAllJenkinsServerNames())
+                    .put("jenkinsServersData", jenkinsServersData)
                     .build()
                 );
         } catch (SoyException e) {
@@ -105,6 +122,7 @@ public class RepoConfigurationServlet extends HttpServlet {
         String prebuildCommand = req.getParameter("prebuildCommand");
         String jenkinsServerName = req.getParameter("jenkinsServerName");
 
+        System.out.println("JSN: " + jenkinsServerName + "\n\n\n");
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
                 verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName);

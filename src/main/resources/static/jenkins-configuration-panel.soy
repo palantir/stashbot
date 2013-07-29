@@ -11,64 +11,67 @@
     <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot Jenkins Server Configuration')}}</title>
 </head>
 <body>
-{call widget.aui.group.group}
-    {param contents}
-        {call widget.aui.group.item}
-            {param contents}
+{call aui.group.group}
+    {param content}
+        {call aui.group.item}
+            {param content}
                 <h2>{{stash_i18n('stash.web.repository.stashbot.heading', 'Stashbot Jenkins Settings')}}</h2>
             {/param}
         {/call}
     {/param}
 {/call}
-{call widget.aui.group.group}
-    {param contents}
+{call aui.group.group}
+    {param content}
       {foreach $jenkinsConfig in $jenkinsConfigs}
         <h3>{$jenkinsConfig.name}</h3>
-        {call widget.aui.form.form}
+        {call aui.form.form}
           {param action: '' /}
-          {param contents}
-            {call widget.aui.form.text}
+          {param content}
+            {call aui.form.textField}
               {param id: 'name' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
-              {param initialValue: $jenkinsConfig.name /}
-              {param description: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
+              {param value: $jenkinsConfig.name /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'url' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
-              {param initialValue: $jenkinsConfig.url /}
-              {param description: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
+              {param value: $jenkinsConfig.url /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'username' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
-              {param initialValue: $jenkinsConfig.username /}
-              {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
+              {param value: $jenkinsConfig.username /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
             {/call}
             /** TODO: don't actually show the passwords, LOLOLOLz **/
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'password' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
-              {param initialValue: $jenkinsConfig.password /}
-              {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
+              {param value: $jenkinsConfig.password /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'stashUsername' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
-              {param initialValue: $jenkinsConfig.stashUsername /}
-              {param description: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
+              {param value: $jenkinsConfig.stashUsername /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'stashPassword' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
-              {param initialValue: $jenkinsConfig.stashPassword /}
-              {param description: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
+              {param value: $jenkinsConfig.stashPassword /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
             {/call}
-            {call widget.aui.form.input}
-              {param id: 'submit' /}
-              {param labelHtml: 'Save' /}
-              {param value: 'save' /}
-              {param type: 'submit' /}
+            {call aui.form.buttons}
+              {param content}
+                {call aui.form.submit}
+	              {param id: 'submit' /}
+	              {param text: 'Save' /}
+	              {param type: 'submit' /}
+	            {/call}
+	          {/param}
             {/call}
 		    {call stash.buttons.button}
               {param id: 'delete' /}
@@ -79,51 +82,54 @@
         {/call}
       {/foreach}
         <h3>New Jenkins Server</h3>
-        {call widget.aui.form.form}
+        {call aui.form.form}
           {param action: '' /}
-          {param contents}
-            {call widget.aui.form.text}
+          {param content}
+            {call aui.form.textField}
               {param id: 'name' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
-              {param initialValue: 'enter name here [a-zA-Z0-9]+' /}
-              {param description: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
+              {param value: 'enter name here [a-zA-Z0-9]+' /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'url' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
-              {param initialValue: 'http://jenkins.example.com:8080/' /}
-              {param description: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
+              {param value: 'http://jenkins.example.com:8080/' /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'username' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
-              {param initialValue: 'jenkins_user' /}
-              {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
+              {param value: 'jenkins_user' /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
             {/call}
             /** TODO: don't actually show the passwords, LOLOLOLz **/
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'password' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
-              {param initialValue: 'jenkins_password' /}
-              {param description: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
+              {param value: 'jenkins_password' /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'stashUsername' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
-              {param initialValue: 'stash_username' /}
-              {param description: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
+              {param value: 'stash_user' /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
             {/call}
-            {call widget.aui.form.text}
+            {call aui.form.textField}
               {param id: 'stashPassword' /}
-              {param labelHtml: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
-              {param initialValue: 'stash_password' /}
-              {param description: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
+              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
+              {param value: 'stash_password' /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
             {/call}
-            {call widget.aui.form.input}
-              {param id: 'submit' /}
-              {param labelHtml: 'Save' /}
-              {param value: 'save' /}
-              {param type: 'submit' /}
+            {call aui.form.buttons}
+              {param content}
+                {call aui.form.submit}
+	              {param id: 'submit' /}
+	              {param text: 'Save' /}
+	              {param type: 'submit' /}
+	            {/call}
+	          {/param}
             {/call}
           {/param}
         {/call}
