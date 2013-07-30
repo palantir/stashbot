@@ -22,6 +22,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.managers.PluginUserManager;
 
 public class RepoConfigurationServlet extends HttpServlet {
 
@@ -35,15 +36,17 @@ public class RepoConfigurationServlet extends HttpServlet {
     private final WebResourceManager webResourceManager;
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final JenkinsManager jenkinsManager;
+    private final PluginUserManager pluginUserManager;
 
     public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
         WebResourceManager webResourceManager, ConfigurationPersistenceManager configurationPersistenceManager,
-        JenkinsManager jenkinsManager) {
+        JenkinsManager jenkinsManager, PluginUserManager pluginUserManager) {
         this.repositoryService = repositoryService;
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.webResourceManager = webResourceManager;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.jenkinsManager = jenkinsManager;
+        this.pluginUserManager = pluginUserManager;
     }
 
     @Override
@@ -123,6 +126,11 @@ public class RepoConfigurationServlet extends HttpServlet {
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
                 verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName);
+            // add permission to the requisite user
+            JenkinsServerConfiguration jsc =
+                configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
+            pluginUserManager.addUserToRepoForReading(jsc.getStashUsername(), rep);
+
             // ensure hook is enabled, jobs exist
             jenkinsManager.updateRepo(rep);
 
