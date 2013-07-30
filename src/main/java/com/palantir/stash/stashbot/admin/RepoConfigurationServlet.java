@@ -62,7 +62,6 @@ public class RepoConfigurationServlet extends HttpServlet {
             throw new ServletException(e1);
         }
 
-        System.out.println("Got existing setting for JSNL: " + rc.getJenkinsServerName() + "\n\n\n");
         res.setContentType("text/html;charset=UTF-8");
 
         try {
@@ -72,7 +71,6 @@ public class RepoConfigurationServlet extends HttpServlet {
                 m.put("text", jsc.getName());
                 m.put("value", jsc.getName());
                 if (rc.getJenkinsServerName().equals(jsc.getName())) {
-                    System.out.println("name " + jsc.getName() + " is selected");
                     m.put("selected", "true");
                 }
                 jenkinsServersData.add(m);
@@ -122,7 +120,6 @@ public class RepoConfigurationServlet extends HttpServlet {
         String prebuildCommand = req.getParameter("prebuildCommand");
         String jenkinsServerName = req.getParameter("jenkinsServerName");
 
-        System.out.println("JSN: " + jenkinsServerName + "\n\n\n");
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
                 verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName);
