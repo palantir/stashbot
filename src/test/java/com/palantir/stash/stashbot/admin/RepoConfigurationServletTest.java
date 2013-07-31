@@ -18,10 +18,13 @@ import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.managers.PluginUserManager;
 
 public class RepoConfigurationServletTest {
 
@@ -35,6 +38,8 @@ public class RepoConfigurationServletTest {
     private SoyTemplateRenderer soyTemplateRenderer;
     @Mock
     private JenkinsManager jenkinsManager;
+    @Mock
+    private PluginUserManager pum;
 
     @Mock
     private HttpServletRequest req;
@@ -48,6 +53,12 @@ public class RepoConfigurationServletTest {
     private RepositoryConfiguration rc2;
     @Mock
     private Repository mockRepo;
+    @Mock
+    private JenkinsServerConfiguration jsc;
+    @Mock
+    private JenkinsServerConfiguration jsc2;
+
+    private ImmutableCollection<JenkinsServerConfiguration> allServers;
 
     private RepoConfigurationServlet rcs;
 
@@ -83,9 +94,19 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc2.getPrebuildCommand()).thenReturn(PREBC + "2");
         Mockito.when(rc2.getJenkinsServerName()).thenReturn(JSN + "2");
 
+        Mockito.when(jsc.getName()).thenReturn(JSN);
+        Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
+        Mockito.when(jsc2.getName()).thenReturn(JSN + "2");
+        Mockito.when(jsc2.getStashUsername()).thenReturn("someuser");
+
+        allServers = ImmutableList.of(jsc, jsc2);
+        Mockito.when(cpm.getAllJenkinsServerConfigurations()).thenReturn(allServers);
+        Mockito.when(cpm.getJenkinsServerConfiguration(JSN)).thenReturn(jsc);
+        Mockito.when(cpm.getJenkinsServerConfiguration(JSN + "2")).thenReturn(jsc2);
+
         rcs =
             new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, webResourceManager, cpm,
-                jenkinsManager);
+                jenkinsManager, pum);
     }
 
     @Test
@@ -103,6 +124,9 @@ public class RepoConfigurationServletTest {
         Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
             Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
             Mockito.eq("plugin.page.stashbot.repositoryConfigurationPanel"), mapCaptor.capture());
+
+        Mockito.verify(pum, Mockito.never())
+            .addUserToRepoForReading(Mockito.anyString(), Mockito.any(Repository.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 
@@ -144,6 +168,9 @@ public class RepoConfigurationServletTest {
         Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
             Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
             Mockito.eq("plugin.page.stashbot.repositoryConfigurationPanel"), mapCaptor.capture());
+
+        Mockito.verify(pum, Mockito.atLeastOnce()).addUserToRepoForReading(Mockito.anyString(),
+            Mockito.any(Repository.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 

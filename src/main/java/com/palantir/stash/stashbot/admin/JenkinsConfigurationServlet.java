@@ -15,6 +15,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.managers.PluginUserManager;
 
 public class JenkinsConfigurationServlet extends HttpServlet {
 
@@ -27,12 +28,14 @@ public class JenkinsConfigurationServlet extends HttpServlet {
     private final SoyTemplateRenderer soyTemplateRenderer;
     private final WebResourceManager webResourceManager;
     private final ConfigurationPersistenceManager configurationPersistanceManager;
+    private final PluginUserManager pluginUserManager;
 
     public JenkinsConfigurationServlet(SoyTemplateRenderer soyTemplateRenderer, WebResourceManager webResourceManager,
-        ConfigurationPersistenceManager configurationPersistenceManager) {
+        ConfigurationPersistenceManager configurationPersistenceManager, PluginUserManager pluginUserManager) {
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.webResourceManager = webResourceManager;
         this.configurationPersistanceManager = configurationPersistenceManager;
+        this.pluginUserManager = pluginUserManager;
     }
 
     @Override
@@ -90,6 +93,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
         try {
             configurationPersistanceManager.setJenkinsServerConfiguration(name, url, username, password, stashUsername,
                 stashPassword);
+            pluginUserManager.createStashbotUser(configurationPersistanceManager.getJenkinsServerConfiguration(name));
         } catch (SQLException e) {
             res.sendError(500, e.getMessage());
         }

@@ -91,6 +91,7 @@
     <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter" />
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
     <component key="pullRequestVerifyListener" class="com.palantir.stash.stashbot.hooks.PullRequestVerifyListener" />
+    <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <!--
     <component key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
     -->

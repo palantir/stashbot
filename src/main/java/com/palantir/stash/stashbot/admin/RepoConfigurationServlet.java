@@ -22,6 +22,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.managers.PluginUserManager;
 
 public class RepoConfigurationServlet extends HttpServlet {
 
@@ -35,15 +36,17 @@ public class RepoConfigurationServlet extends HttpServlet {
     private final WebResourceManager webResourceManager;
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final JenkinsManager jenkinsManager;
+    private final PluginUserManager pluginUserManager;
 
     public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
         WebResourceManager webResourceManager, ConfigurationPersistenceManager configurationPersistenceManager,
-        JenkinsManager jenkinsManager) {
+        JenkinsManager jenkinsManager, PluginUserManager pluginUserManager) {
         this.repositoryService = repositoryService;
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.webResourceManager = webResourceManager;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.jenkinsManager = jenkinsManager;
+        this.pluginUserManager = pluginUserManager;
     }
 
     @Override
@@ -62,7 +65,6 @@ public class RepoConfigurationServlet extends HttpServlet {
             throw new ServletException(e1);
         }
 
-        System.out.println("Got existing setting for JSNL: " + rc.getJenkinsServerName() + "\n\n\n");
         res.setContentType("text/html;charset=UTF-8");
 
         try {
@@ -72,7 +74,6 @@ public class RepoConfigurationServlet extends HttpServlet {
                 m.put("text", jsc.getName());
                 m.put("value", jsc.getName());
                 if (rc.getJenkinsServerName().equals(jsc.getName())) {
-                    System.out.println("name " + jsc.getName() + " is selected");
                     m.put("selected", "true");
                 }
                 jenkinsServersData.add(m);
@@ -122,10 +123,14 @@ public class RepoConfigurationServlet extends HttpServlet {
         String prebuildCommand = req.getParameter("prebuildCommand");
         String jenkinsServerName = req.getParameter("jenkinsServerName");
 
-        System.out.println("JSN: " + jenkinsServerName + "\n\n\n");
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
                 verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName);
+            // add permission to the requisite user
+            JenkinsServerConfiguration jsc =
+                configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
+            pluginUserManager.addUserToRepoForReading(jsc.getStashUsername(), rep);
+
             // ensure hook is enabled, jobs exist
             jenkinsManager.updateRepo(rep);
 

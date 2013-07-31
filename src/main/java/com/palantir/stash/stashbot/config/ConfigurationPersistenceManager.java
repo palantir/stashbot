@@ -198,7 +198,6 @@ public class ConfigurationPersistenceManager {
     }
 
     public void validateNameExists(String name) throws IllegalArgumentException {
-        System.out.println("Verifying JSN: " + name + "\n\n\n");
         if (name.equals(JENKINS_SERVER_CONFIG_KEY)) {
             return;
         }

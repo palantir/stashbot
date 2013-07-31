@@ -17,9 +17,11 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
+import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.managers.PluginUserManager;
 
 public class JenkinsConfigurationServletTest {
 
@@ -40,6 +42,8 @@ public class JenkinsConfigurationServletTest {
     private JenkinsServerConfiguration jsc;
     @Mock
     private JenkinsServerConfiguration jsc2;
+    @Mock
+    private PluginUserManager pum;
 
     private JenkinsConfigurationServlet jcs;
 
@@ -80,7 +84,7 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(jsc2.getStashUsername()).thenReturn(SU + "2");
         Mockito.when(jsc2.getStashPassword()).thenReturn(SP + "2");
 
-        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, webResourceManager, cpm);
+        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, webResourceManager, cpm, pum);
     }
 
     @Test
@@ -98,6 +102,10 @@ public class JenkinsConfigurationServletTest {
         Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
             Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
             Mockito.eq("plugin.page.stashbot.jenkinsConfigurationPanel"), mapCaptor.capture());
+
+        Mockito.verify(pum, Mockito.never()).addUserToRepoForReading(Mockito.any(String.class),
+            Mockito.any(Repository.class));
+        Mockito.verify(pum, Mockito.never()).createStashbotUser(Mockito.any(JenkinsServerConfiguration.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 
@@ -136,6 +144,8 @@ public class JenkinsConfigurationServletTest {
         Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
             Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
             Mockito.eq("plugin.page.stashbot.jenkinsConfigurationPanel"), mapCaptor.capture());
+
+        Mockito.verify(pum, Mockito.atLeastOnce()).createStashbotUser(Mockito.any(JenkinsServerConfiguration.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 
