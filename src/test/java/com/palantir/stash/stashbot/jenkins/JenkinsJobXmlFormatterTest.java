@@ -21,7 +21,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter.JenkinsBuildParam;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter.JenkinsBuildParamType;
 
@@ -35,6 +34,8 @@ public class JenkinsJobXmlFormatterTest {
     private final String startedCommand = "command to say a build started";
     private final String successCommand = "command to say a build is successful";
     private final String failureCommand = "command to say a build failed";
+    private final String repositoryLink = "repo link";
+    private final String repositoryName = "repositoryName";
     private final List<JenkinsBuildParam> params = new ArrayList<JenkinsBuildParam>();
 
     @Before
@@ -50,7 +51,7 @@ public class JenkinsJobXmlFormatterTest {
     public void testJJXF() {
         String jobXml =
             jjxf.getJobXml(repositoryUrl, prebuildCommand, buildCommand, startedCommand, successCommand,
-                failureCommand, params);
+                failureCommand, repositoryLink, repositoryName, params);
         Assert.assertTrue(jobXml.contains("parameterOne"));
         Assert.assertTrue(jobXml.contains("parameterTwo"));
         Assert.assertTrue(jobXml.contains("SOME DEFAULT"));

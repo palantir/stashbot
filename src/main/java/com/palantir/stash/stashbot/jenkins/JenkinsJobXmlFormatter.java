@@ -56,11 +56,14 @@ public class JenkinsJobXmlFormatter {
      * $$STARTED_COMMAND$$ - the command to run as soon as the build starts<br/>
      * $$SUCCESS_COMMAND$$ - the command to run if the build is successful<br/>
      * $$FAILURE_COMMAND$$ - the command to run if the build fails<br/>
+     * $$REPOSITORY_LINK$$ - the link back to the repository for web browsers<br/>
+     * $$REPOSITORY_NAME$$ - the human-readable repository name to use for the link<br/>
      * 
      * @return
      */
     public String getJobXml(String repositoryUrl, String prebuildCommand, String buildCommand, String startedCommand,
-        String successCommand, String failureCommand, Collection<JenkinsBuildParam> params) {
+        String successCommand, String failureCommand, String repositoryLink, String repositoryName,
+        Collection<JenkinsBuildParam> params) {
         String newXmlText = jobTemplate;
 
         newXmlText = newXmlText.replace("$$REPOSITORY_URL$$", escapeXml(repositoryUrl));
@@ -69,6 +72,8 @@ public class JenkinsJobXmlFormatter {
         newXmlText = newXmlText.replace("$$STARTED_COMMAND$$", escapeXml(startedCommand));
         newXmlText = newXmlText.replace("$$SUCCESS_COMMAND$$", escapeXml(successCommand));
         newXmlText = newXmlText.replace("$$FAILURE_COMMAND$$", escapeXml(failureCommand));
+        newXmlText = newXmlText.replace("$$REPOSITORY_LINK$$", escapeXml(repositoryLink));
+        newXmlText = newXmlText.replace("$$REPOSITORY_NAME$$", escapeXml(repositoryName));
 
         StringBuffer paramXml = new StringBuffer();
 
