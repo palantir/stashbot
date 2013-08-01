@@ -90,17 +90,11 @@
     <component key="jenkinsClientManager" class="com.palantir.stash.stashbot.managers.JenkinsClientManager" />
     <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter" />
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
-    <component key="pullRequestVerifyListener" class="com.palantir.stash.stashbot.hooks.PullRequestVerifyListener" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
-    <!--
-    <component key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
-    -->
+    <component key="pullRequestVerifyListener" class="com.palantir.stash.stashbot.hooks.PullRequestVerifyListener" />
 
-    <merge-check key="myMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
-    <!--  <repository-hook key="pullRequestBuildSuccessMergeCheck" name="Pull Request Build Success Merge Check" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck">
-        <description>Hook for checking Pull Requests have a successful build first</description>
-    </repository-hook>-->
-    
+    <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
+
     <!-- note: the key below must be the same as the constant in JenkinsManager.java -->
     <repository-hook key="triggerJenkinsBuildHook" name="Jenkins Build Trigger Hook" class="com.palantir.stash.stashbot.hooks.TriggerJenkinsBuildHook">
         <description>Hook for triggering verification builds in jenkins when pushes occur</description>
