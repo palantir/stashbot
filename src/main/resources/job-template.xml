@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description>This is a job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$$REPOSITORY_LINK$$"&gt;$$REPOSITORY_NAME$$&lt;/a&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties>
 $$PARAMETER_DEFINITIONS$$

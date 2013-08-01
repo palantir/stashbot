@@ -30,6 +30,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.nav.NavBuilder;
+import com.atlassian.stash.nav.NavBuilder.BrowseRepoResource;
 import com.atlassian.stash.nav.NavBuilder.Repo;
 import com.atlassian.stash.nav.NavBuilder.RepoClone;
 import com.atlassian.stash.project.Project;
@@ -42,9 +43,6 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter.JenkinsBuildParam;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
-import com.palantir.stash.stashbot.managers.JenkinsClientManager;
-import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 public class JenkinsManagerTest {
 
@@ -54,6 +52,7 @@ public class JenkinsManagerTest {
 
     private static final String XML_STRING = "<some xml here/>";
     private static final String ABSOLUTE_PATH = "http://www.example.com/stash";
+    private static final String ABSOLUTE_PATH2 = "http://www.example.com/stash/browse";
 
     @Mock
     private NavBuilder navBuilder;
@@ -82,6 +81,8 @@ public class JenkinsManagerTest {
     private Repo nbRepo;
     @Mock
     private RepoClone nbRepoClone;
+    @Mock
+    private BrowseRepoResource nbRepoBrowse;
 
     @Mock
     private RepositoryConfiguration rc;
@@ -98,14 +99,19 @@ public class JenkinsManagerTest {
             jenkinsClientManager.getJenkinsServer(Mockito.any(JenkinsServerConfiguration.class),
                 Mockito.any(RepositoryConfiguration.class))).thenReturn(jenkinsServer);
 
-        Mockito.when(xmlFormatter.getJobXml(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-            Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(List.class))).thenReturn(
-            XML_STRING);
+        Mockito.when(
+            xmlFormatter.getJobXml(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+                Mockito.anyString(), Mockito.any(List.class)))
+            .thenReturn(
+                XML_STRING);
 
         Mockito.when(navBuilder.repo(Mockito.any(Repository.class))).thenReturn(nbRepo);
         Mockito.when(navBuilder.buildAbsolute()).thenReturn(ABSOLUTE_PATH);
         Mockito.when(nbRepo.clone(Mockito.anyString())).thenReturn(nbRepoClone);
+        Mockito.when(nbRepo.browse()).thenReturn(nbRepoBrowse);
         Mockito.when(nbRepoClone.buildAbsoluteWithoutUsername()).thenReturn(ABSOLUTE_PATH);
+        Mockito.when(nbRepoBrowse.buildAbsolute()).thenReturn(ABSOLUTE_PATH2);
 
         Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
@@ -135,7 +141,8 @@ public class JenkinsManagerTest {
         ArgumentCaptor<List<JenkinsBuildParam>> paramCaptor = ArgumentCaptor.forClass(forClass);
 
         Mockito.verify(xmlFormatter).getJobXml(Mockito.eq(urlWithCreds), Mockito.anyString(), Mockito.anyString(),
-            Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), paramCaptor.capture());
+            Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+            paramCaptor.capture());
 
         Mockito.verify(jenkinsServer).createJob(Mockito.eq(repoName), xmlCaptor.capture());
 
@@ -174,7 +181,8 @@ public class JenkinsManagerTest {
         ArgumentCaptor<List<JenkinsBuildParam>> paramCaptor = ArgumentCaptor.forClass(forClass);
 
         Mockito.verify(xmlFormatter).getJobXml(Mockito.eq(urlWithCreds), Mockito.anyString(), Mockito.anyString(),
-            Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), paramCaptor.capture());
+            Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
+            paramCaptor.capture());
 
         Mockito.verify(jenkinsServer).updateJob(Mockito.eq(jobName), xmlCaptor.capture());
 

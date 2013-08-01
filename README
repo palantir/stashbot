@@ -60,6 +60,7 @@ Currently planned features:
 Future features:
 
 * Add authenticator to auth chain to allow dynamic credentials per-repo
+* Supposedly jenkins supports groovy scripting.  We could possibly expose more functionality via arbitrary groovy by plugging into this.
 
 # LICENSE
 

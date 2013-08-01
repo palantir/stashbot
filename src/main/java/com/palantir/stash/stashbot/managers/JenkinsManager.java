@@ -159,9 +159,11 @@ public class JenkinsManager {
                     JenkinsJobXmlFormatter.JenkinsBuildParamType.StringParameterDefinition,
                     "stash pull request id", ""));
 
+        String repositoryLink = navBuilder.repo(repo).browse().buildAbsolute();
+        String repositoryName = repo.getProject().getName() + " " + repo.getName();
         String xml =
             xmlFormatter.getJobXml(repositoryUrl, prebuildCommand, buildCommand, startedCommand, successCommand,
-                failedCommand, params);
+                failedCommand, repositoryLink, repositoryName, params);
         return xml;
     }
 
