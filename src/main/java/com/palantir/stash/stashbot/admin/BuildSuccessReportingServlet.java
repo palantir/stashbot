@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.text.DateFormat;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -176,11 +177,15 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 
     private BuildStatus getSuccessStatus(Repository repo, JenkinsBuildTypes type, State state, long buildNumber,
         String buildHead) throws SQLException {
+        Date now = new Date(java.lang.System.currentTimeMillis());
+
+        DateFormat df = DateFormat.getDateInstance();
         // key will be the jenkins name
         String key = type.getBuildNameFor(repo);
-        Date now = new Date(java.lang.System.currentTimeMillis());
+        String name = key + " (build " + Long.toString(buildNumber) + ")";
+        String description = "Build " + Long.toString(buildNumber) + " " + state.toString() + " at " + df.format(now);
         String url = getJenkinsUrl(repo, type, buildNumber);
-        BuildStatus bs = new InternalBuildStatus(state, key, type.toString(), url, type.toString() + " build", now);
+        BuildStatus bs = new InternalBuildStatus(state, key, name, url, description, now);
         return bs;
     }
 

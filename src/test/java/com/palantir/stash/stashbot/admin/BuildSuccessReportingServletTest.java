@@ -39,7 +39,6 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
-import com.palantir.stash.stashbot.admin.BuildSuccessReportingServlet;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -122,7 +121,7 @@ public class BuildSuccessReportingServletTest {
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), SUCCESSFUL);
         Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
-        Assert.assertEquals(bs.getName(), JenkinsBuildTypes.VERIFICATION.toString());
+        Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 
     @Test
@@ -143,7 +142,7 @@ public class BuildSuccessReportingServletTest {
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), INPROGRESS);
         Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
-        Assert.assertEquals(bs.getName(), JenkinsBuildTypes.VERIFICATION.toString());
+        Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 
     @Test
@@ -164,7 +163,7 @@ public class BuildSuccessReportingServletTest {
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), FAILED);
         Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
-        Assert.assertEquals(bs.getName(), JenkinsBuildTypes.VERIFICATION.toString());
+        Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 
     @Test
