@@ -44,20 +44,24 @@ accepted our patches, so the current version is maven is all that is required.
 If you are adding features which require patches to the library, however, you
 can do something like this to easily build your own copy and use it:
 
-git clone https://github.com/RisingOak/jenkins-client.git $REPO_PATH
-# make modifications, build jar using maven
-atlas-mvn install:install-file -Dfile=$REPO_PATH/target/jenkins-client-0.1.5-SNAPSHOT.jar -DgroupId=com.offbytwo.jenkins -DartifactId=jenkins-client -Dversion=0.1.5-SNAPSHOT -Dpackaging=jar -DpomFile=$REPO_PATH/pom.xml
+    git clone https://github.com/RisingOak/jenkins-client.git $REPO_PATH
+    # make modifications, build jar using maven
+    atlas-mvn install:install-file -Dfile=$REPO_PATH/target/jenkins-client-0.1.5-SNAPSHOT.jar -DgroupId=com.offbytwo.jenkins -DartifactId=jenkins-client -Dversion=0.1.5-SNAPSHOT -Dpackaging=jar -DpomFile=$REPO_PATH/pom.xml
 
 # TODO
 
-Currently planned features:
+## KNOWN BUGS
+* Updated pull requests do not re-trigger a build
+* Deleted references trigger a build
 
+## PLANNED FEATURES
+
+* Implement git-flow (https://bitbucket.org/atlassian/maven-jgitflow-plugin is a candidate, but doesn't work with the atlassian plugin SDK at this time, see https://bitbucket.org/atlassian/maven-jgitflow-plugin/issue/56/requires-maven-221-doesnt-work-with)
 * Better Test coverage - especially integration tests
 * Error checking - validate hashes sent to build status, etc.
 * Any commit can be built (or retriggered) with a single click
-* Updated pull requests re-trigger a build
 
-Future features:
+## POSSIBLE FUTURE FEATURES
 
 * Add authenticator to auth chain to allow dynamic credentials per-repo
 * Supposedly jenkins supports groovy scripting.  We could possibly expose more functionality via arbitrary groovy by plugging into this.
