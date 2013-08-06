@@ -65,6 +65,7 @@ can do something like this to easily build your own copy and use it:
 
 * Add authenticator to auth chain to allow dynamic credentials per-repo
 * Supposedly jenkins supports groovy scripting.  We could possibly expose more functionality via arbitrary groovy by plugging into this.
+* Add support for using Bamboo for CI (or other CI tools)
 
 # LICENSE
 
