@@ -46,7 +46,7 @@
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
             {/call}
             /** TODO: don't actually show the passwords, LOLOLOLz **/
-            {call aui.form.textField}
+            {call aui.form.passwordField}
               {param id: 'password' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
               {param value: $jenkinsConfig.password /}
@@ -58,7 +58,7 @@
               {param value: $jenkinsConfig.stashUsername /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
             {/call}
-            {call aui.form.textField}
+            {call aui.form.passwordField}
               {param id: 'stashPassword' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
               {param value: $jenkinsConfig.stashPassword /}
