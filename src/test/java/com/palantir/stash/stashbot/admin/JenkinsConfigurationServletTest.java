@@ -97,7 +97,7 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(jsc2.getStashUsername()).thenReturn(SU + "2");
         Mockito.when(jsc2.getStashPassword()).thenReturn(SP + "2");
 
-        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, webResourceManager, cpm, pum);
+        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, webResourceManager, cpm, pum, null);
     }
 
     @Test
