@@ -15,6 +15,19 @@
     {param content}
         {call aui.group.item}
             {param content}
+                <h2>Stashbot Administrative Tasks</h2>
+                <ul>
+                <li>Create any plans that don't already exist <a href="{$relUrl}/create-new/.">HERE</a></li>
+                <li>Update/Create all plans <a href="{$relUrl}/reload-all/.">HERE</a></li>
+                </ul>
+            {/param}
+        {/call}
+    {/param}
+{/call}
+{call aui.group.group}
+    {param content}
+        {call aui.group.item}
+            {param content}
                 <h2>{{stash_i18n('stash.web.repository.stashbot.heading', 'Stashbot Jenkins Settings')}}</h2>
             {/param}
         {/call}

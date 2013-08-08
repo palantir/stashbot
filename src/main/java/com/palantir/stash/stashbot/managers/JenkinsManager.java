@@ -80,7 +80,7 @@ public class JenkinsManager {
 
     public void updateRepo(Repository repo) {
         try {
-            Callable<Void> visit = new RepositoryVisitor(rhs, jenkinsClientManager, cpm, repo);
+            Callable<Void> visit = new CreateMissingRepositoryVisitor(rhs, jenkinsClientManager, cpm, repo);
             visit.call();
         } catch (Exception e) {
             log.error("Exception while attempting to create missing jobs for a repo: ", e);
@@ -268,20 +268,18 @@ public class JenkinsManager {
     /**
      * Code to ensure a given repository has plans that exist in jenkins.
      * 
-     * TODO: verify plans are correct / update plans too?
-     * 
      * @author cmyers
      */
-    class RepositoryVisitor implements Callable<Void> {
+    class CreateMissingRepositoryVisitor implements Callable<Void> {
 
-        private final Logger log = Logger.getLogger(RepositoryVisitor.class.toString());
+        private final Logger log = Logger.getLogger(CreateMissingRepositoryVisitor.class.toString());
 
         private final RepositoryHookService rhs;
         private final JenkinsClientManager jcm;
         private final ConfigurationPersistenceManager cpm;
         private final Repository r;
 
-        public RepositoryVisitor(RepositoryHookService rhs, JenkinsClientManager jcm,
+        public CreateMissingRepositoryVisitor(RepositoryHookService rhs, JenkinsClientManager jcm,
             ConfigurationPersistenceManager cpm, Repository r) {
             this.rhs = rhs;
             this.jcm = jcm;
@@ -312,6 +310,85 @@ public class JenkinsManager {
                 if (!jobs.containsKey(type.getBuildNameFor(r))) {
                     log.info("Creating " + type.toString() + " job for repo " + r.toString());
                     createJob(r, type);
+                }
+            }
+            return null;
+        }
+    }
+
+    public void createMissingJobs() {
+
+        ExecutorService es = Executors.newCachedThreadPool();
+        List<Future<Void>> futures = new LinkedList<Future<Void>>();
+
+        PageRequest pageReq = new PageRequestImpl(0, 500);
+        Page<? extends Repository> p = repositoryService.findAll(pageReq);
+        while (true) {
+            for (Repository r : p.getValues()) {
+                Future<Void> f = es.submit(new CreateMissingRepositoryVisitor(rhs, jenkinsClientManager, cpm, r));
+                futures.add(f);
+            }
+            if (p.getIsLastPage())
+                break;
+            pageReq = p.getNextPageRequest();
+            p = repositoryService.findAll(pageReq);
+        }
+        for (Future<Void> f : futures) {
+            try {
+                f.get(); // don't care about return, just catch exceptions
+            } catch (ExecutionException e) {
+                log.error("Exception while attempting to create missing jobs for a repo: ", e);
+            } catch (InterruptedException e) {
+                log.error("Interrupted: this shouldn't happen", e);
+            }
+        }
+    }
+
+    /**
+     * Code to ensure a given repository has plans that exist in jenkins.
+     * 
+     * @author cmyers
+     */
+    class UpdateAllRepositoryVisitor implements Callable<Void> {
+
+        private final Logger log = Logger.getLogger(CreateMissingRepositoryVisitor.class.toString());
+
+        private final RepositoryHookService rhs;
+        private final JenkinsClientManager jcm;
+        private final ConfigurationPersistenceManager cpm;
+        private final Repository r;
+
+        public UpdateAllRepositoryVisitor(RepositoryHookService rhs, JenkinsClientManager jcm,
+            ConfigurationPersistenceManager cpm, Repository r) {
+            this.rhs = rhs;
+            this.jcm = jcm;
+            this.cpm = cpm;
+            this.r = r;
+        }
+
+        @Override
+        public Void call() throws Exception {
+            RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(r);
+            // may someday require repo also...
+            JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
+
+            if (!rc.getCiEnabled())
+                return null;
+
+            // Ensure hook is enabled
+            try {
+                rhs.enable(r, TRIGGER_JENKINS_BUILD_HOOK_KEY);
+            } catch (Exception e) {
+                log.error("Exception thrown while trying to enable hook", e);
+            }
+
+            // make sure jobs are up to date
+            JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+            Map<String, Job> jobs = js.getJobs();
+            for (JenkinsBuildTypes type : ImmutableList.of(JenkinsBuildTypes.VERIFICATION, JenkinsBuildTypes.PUBLISH)) {
+                if (!jobs.containsKey(type.getBuildNameFor(r))) {
+                    log.info("Creating " + type.toString() + " job for repo " + r.toString());
+                    createJob(r, type);
                 } else {
                     // update job
                     log.info("Updating " + type.toString() + " job for repo " + r.toString());
@@ -322,7 +399,7 @@ public class JenkinsManager {
         }
     }
 
-    public void createAllMissingJobs() {
+    public void updateAllJobs() {
 
         ExecutorService es = Executors.newCachedThreadPool();
         List<Future<Void>> futures = new LinkedList<Future<Void>>();
@@ -331,7 +408,7 @@ public class JenkinsManager {
         Page<? extends Repository> p = repositoryService.findAll(pageReq);
         while (true) {
             for (Repository r : p.getValues()) {
-                Future<Void> f = es.submit(new RepositoryVisitor(rhs, jenkinsClientManager, cpm, r));
+                Future<Void> f = es.submit(new UpdateAllRepositoryVisitor(rhs, jenkinsClientManager, cpm, r));
                 futures.add(f);
             }
             if (p.getIsLastPage())

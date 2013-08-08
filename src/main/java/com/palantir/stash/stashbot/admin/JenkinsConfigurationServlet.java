@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 
 public class JenkinsConfigurationServlet extends HttpServlet {
@@ -42,13 +43,16 @@ public class JenkinsConfigurationServlet extends HttpServlet {
     private final WebResourceManager webResourceManager;
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final PluginUserManager pluginUserManager;
+    private final JenkinsManager jenkinsManager;
 
     public JenkinsConfigurationServlet(SoyTemplateRenderer soyTemplateRenderer, WebResourceManager webResourceManager,
-        ConfigurationPersistenceManager configurationPersistenceManager, PluginUserManager pluginUserManager) {
+        ConfigurationPersistenceManager configurationPersistenceManager, PluginUserManager pluginUserManager,
+        JenkinsManager jenkinsManager) {
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.webResourceManager = webResourceManager;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.pluginUserManager = pluginUserManager;
+        this.jenkinsManager = jenkinsManager;
     }
 
     @Override
@@ -56,15 +60,28 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
         // Handle deletes
         String pathInfo = req.getPathInfo();
-        String relUrl = req.getRequestURL().toString().replaceAll("/delete/.*$", "").replaceAll("/+$", "");
+        String relUrl = req.getRequestURL().toString();
+        relUrl = relUrl
+            .replaceAll("/+$", "")
+            .replaceAll("/delete/?.*$", "")
+            .replaceAll("/reload-all/?.*$", "")
+            .replaceAll("/create-new/?.*$", "");
 
         String[] parts = pathInfo.replaceFirst(PATH_PREFIX, "").split("/");
 
-        if (parts.length == 3) {
+        if (parts.length >= 2) {
             if (parts[1].equals("delete")) {
                 configurationPersistanceManager.deleteJenkinsServerConfiguration(parts[2]);
                 res.sendRedirect(relUrl);
                 return;
+            }
+            if (parts[1].equals("reload-all")) {
+                jenkinsManager.updateAllJobs();
+                res.sendRedirect(relUrl);
+            }
+            if (parts[1].equals("create-new")) {
+                jenkinsManager.createMissingJobs();
+                res.sendRedirect(relUrl);
             }
         }
 

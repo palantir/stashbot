@@ -53,6 +53,7 @@ can do something like this to easily build your own copy and use it:
 ## KNOWN BUGS
 * Updated pull requests do not re-trigger a build
 * Deleted references trigger a build
+* JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
 
 ## PLANNED FEATURES
 
