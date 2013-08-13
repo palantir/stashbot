@@ -80,7 +80,7 @@ public class JenkinsManager {
 
     public void updateRepo(Repository repo) {
         try {
-            Callable<Void> visit = new CreateMissingRepositoryVisitor(rhs, jenkinsClientManager, cpm, repo);
+            Callable<Void> visit = new UpdateAllRepositoryVisitor(rhs, jenkinsClientManager, cpm, repo);
             visit.call();
         } catch (Exception e) {
             log.error("Exception while attempting to create missing jobs for a repo: ", e);
