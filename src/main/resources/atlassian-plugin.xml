@@ -25,6 +25,7 @@
     <ao key="ao-module">
         <description>The AO module for this plugin.</description>
         <entity>com.palantir.stash.stashbot.config.JenkinsServerConfiguration</entity>
+        <entity>com.palantir.stash.stashbot.config.PluginAuthenticationConfiguration</entity>
         <entity>com.palantir.stash.stashbot.config.RepositoryConfiguration</entity>
         <!-- unneeded - yet:
            <upgradeTask>com <dot> palantir.stash.stashbothelper.upgrade.Version1UpgradeTask</upgradeTask>
