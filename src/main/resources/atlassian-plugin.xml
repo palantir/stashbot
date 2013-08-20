@@ -26,6 +26,7 @@
         <description>The AO module for this plugin.</description>
         <entity>com.palantir.stash.stashbot.config.JenkinsServerConfiguration</entity>
         <entity>com.palantir.stash.stashbot.config.PluginAuthenticationConfiguration</entity>
+        <entity>com.palantir.stash.stashbot.config.PullRequestMetadata</entity>
         <entity>com.palantir.stash.stashbot.config.RepositoryConfiguration</entity>
         <!-- unneeded - yet:
            <upgradeTask>com <dot> palantir.stash.stashbothelper.upgrade.Version1UpgradeTask</upgradeTask>
@@ -92,7 +93,7 @@
     <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter" />
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
-    <component key="pullRequestVerifyListener" class="com.palantir.stash.stashbot.hooks.PullRequestVerifyListener" />
+    <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
 
     <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
 

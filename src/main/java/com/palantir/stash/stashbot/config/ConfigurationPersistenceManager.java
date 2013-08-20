@@ -21,6 +21,7 @@ import net.java.ao.DBParam;
 import net.java.ao.Query;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -221,5 +222,36 @@ public class ConfigurationPersistenceManager {
             }
         }
         throw new IllegalArgumentException("Jenkins Server name " + name + " does not exist");
+    }
+
+    public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
+        Long id = pr.getId();
+
+        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class, "PULL_REQUEST_ID = ?", id);
+        if (prms.length == 0) {
+            // new PR, create a new object
+            PullRequestMetadata prm = ao.create(PullRequestMetadata.class,
+                new DBParam("PULL_REQUEST_ID", id),
+                new DBParam("TO_SHA", pr.getToRef().getLatestChangeset()),
+                new DBParam("FROM_SHA", pr.getFromRef().getLatestChangeset())
+                );
+            prm.save();
+            return prm;
+
+        }
+        return prms[0];
+    }
+
+    public void setPullRequestMetadata(PullRequest pr, Boolean success, Boolean override) {
+        PullRequestMetadata prm = getPullRequestMetadata(pr);
+        prm.setFromSha(pr.getFromRef().getLatestChangeset());
+        prm.setToSha(pr.getToRef().getLatestChangeset());
+        if (success != null) {
+            prm.setSuccess(success);
+        }
+        if (override != null) {
+            prm.setOverride(override);
+        }
+        prm.save();
     }
 }

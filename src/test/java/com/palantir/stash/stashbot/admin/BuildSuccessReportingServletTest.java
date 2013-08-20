@@ -41,6 +41,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 
@@ -78,6 +79,8 @@ public class BuildSuccessReportingServletTest {
     private Project proj;
     @Mock
     private PullRequest pr;
+    @Mock
+    private PullRequestMetadata prm;
 
     private StringWriter mockWriter;
 
@@ -89,6 +92,7 @@ public class BuildSuccessReportingServletTest {
 
         Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(Mockito.any(Repository.class))).thenReturn(rc);
+        Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
         Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
         Mockito.when(pr.getId()).thenReturn(PULL_REQUEST_ID);
@@ -178,6 +182,7 @@ public class BuildSuccessReportingServletTest {
 
         Mockito.verify(prs).addComment(Mockito.eq(REPO_ID), Mockito.eq(PULL_REQUEST_ID), stringCaptor.capture());
         Mockito.verify(res).setStatus(200);
+        Mockito.verify(cpm).setPullRequestMetadata(pr, true, null);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Status Updated"));

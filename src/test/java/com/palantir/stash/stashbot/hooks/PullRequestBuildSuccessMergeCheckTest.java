@@ -14,31 +14,20 @@
 package com.palantir.stash.stashbot.hooks;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
-import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestActivity;
-import com.atlassian.stash.pull.PullRequestActivityVisitor;
-import com.atlassian.stash.pull.PullRequestCommentActivity;
 import com.atlassian.stash.pull.PullRequestRef;
-import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.pull.MergeRequest;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck;
 
 public class PullRequestBuildSuccessMergeCheckTest {
 
@@ -47,8 +36,6 @@ public class PullRequestBuildSuccessMergeCheckTest {
     private static final String TO_SHA = "refs/heads/master";
     private static final String VERIFY_REGEX = ".*master";
 
-    @Mock
-    private PullRequestService prs;
     @Mock
     private ConfigurationPersistenceManager cpm;
 
@@ -66,18 +53,9 @@ public class PullRequestBuildSuccessMergeCheckTest {
     private RepositoryConfiguration rc;
 
     private PullRequestBuildSuccessMergeCheck prmc;
+    @Mock
+    private PullRequestMetadata prm;
 
-    // Page stuff
-    @SuppressWarnings("rawtypes")
-    @Mock
-    private Page activities;
-    @Mock
-    private PullRequestCommentActivity prca;
-    @Mock
-    private Comment comment;
-    private List<PullRequestActivity> activityList;
-
-    @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws SQLException {
         MockitoAnnotations.initMocks(this);
@@ -87,7 +65,6 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(VERIFY_REGEX);
-        Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
 
         Mockito.when(mr.getPullRequest()).thenReturn(pr);
 
@@ -99,33 +76,15 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(toRef.getRepository()).thenReturn(repo);
         Mockito.when(toRef.getId()).thenReturn(TO_SHA);
 
-        activityList = new ArrayList<PullRequestActivity>();
-        activityList.add(prca);
-        Mockito.when(activities.getValues()).thenReturn(activityList);
-        Mockito.when(activities.getIsLastPage()).thenReturn(true);
-        Mockito.when(prca.getComment()).thenReturn(comment);
+        Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
-        Mockito.when(
-            prs.getActivities(Mockito.eq(REPO_ID), Mockito.eq(PULL_REQUEST_ID), Mockito.any(PageRequest.class)))
-            .thenReturn(activities);
-
-        prmc = new PullRequestBuildSuccessMergeCheck(prs, cpm);
-
-        Mockito.doAnswer(new Answer<Void>() {
-
-            @Override
-            public Void answer(InvocationOnMock invocation) throws Throwable {
-                PullRequestActivityVisitor prav = (PullRequestActivityVisitor) invocation.getArguments()[0];
-                prav.visit(prca);
-                return null;
-            }
-
-        }).when(prca).accept(Mockito.any(PullRequestActivityVisitor.class));
+        prmc = new PullRequestBuildSuccessMergeCheck(cpm);
     }
 
     @Test
     public void testSuccessMergeCheckTest() {
-        Mockito.when(comment.getText()).thenReturn("This text contains ==SUCCESSFUL== inside it.");
+        Mockito.when(prm.getSuccess()).thenReturn(true);
+        Mockito.when(prm.getOverride()).thenReturn(false);
 
         prmc.check(mr);
 
@@ -134,7 +93,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
     @Test
     public void testOverrideMergeCheckTest() {
-        Mockito.when(comment.getText()).thenReturn("This text contains ==OVERRIDE== inside it.");
+        Mockito.when(prm.getSuccess()).thenReturn(false);
+        Mockito.when(prm.getOverride()).thenReturn(true);
 
         prmc.check(mr);
 
@@ -143,7 +103,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
     @Test
     public void testFailsMergeCheckTest() {
-        Mockito.when(comment.getText()).thenReturn("This text contains nothing good inside it.");
+        Mockito.when(prm.getSuccess()).thenReturn(false);
+        Mockito.when(prm.getOverride()).thenReturn(false);
 
         prmc.check(mr);
 

@@ -153,6 +153,7 @@ public class RepoConfigurationServlet extends HttpServlet {
         doGet(req, res);
     }
 
+    @SuppressWarnings("deprecation")
     private Repository getRepository(HttpServletRequest req) {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) {

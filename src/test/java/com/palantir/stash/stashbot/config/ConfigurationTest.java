@@ -29,10 +29,14 @@ import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 
@@ -41,12 +45,31 @@ import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 @Data(DataStuff.class)
 public class ConfigurationTest {
 
+    private static final Long PR_ID = 1234L;
+    private static final String FROM_HASH = "8e57a8b77501710fe1e30a3500102c0968763107";
+    private static final String TO_HASH = "296d73382b433cf0b14fbd8ba0e6a8491156a3c9";
+
     private EntityManager entityManager;
     private ActiveObjects ao;
     private ConfigurationPersistenceManager cpm;
 
+    @Mock
+    private PullRequestRef fromRef;
+    @Mock
+    private PullRequestRef toRef;
+    @Mock
+    private PullRequest pr;
+
     @Before
     public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+
+        Mockito.when(pr.getToRef()).thenReturn(toRef);
+        Mockito.when(pr.getFromRef()).thenReturn(fromRef);
+        Mockito.when(pr.getId()).thenReturn(PR_ID);
+        Mockito.when(fromRef.getLatestChangeset()).thenReturn(FROM_HASH);
+        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_HASH);
+
         // ensure our runner sets this for us
         Assert.assertNotNull(entityManager);
 
@@ -146,8 +169,6 @@ public class ConfigurationTest {
         Mockito.when(repo.getId()).thenReturn(1);
         Mockito.when(repo.getName()).thenReturn("repoName");
 
-        int size = ao.count(RepositoryConfiguration.class);
-
         try {
             cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
                 "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "BADNAME");
@@ -176,7 +197,8 @@ public class ConfigurationTest {
         @SuppressWarnings("unchecked")
         @Override
         public void update(EntityManager entityManager) throws Exception {
-            entityManager.migrate(JenkinsServerConfiguration.class, RepositoryConfiguration.class);
+            entityManager.migrate(JenkinsServerConfiguration.class, RepositoryConfiguration.class,
+                PullRequestMetadata.class);
 
             RepositoryConfiguration rc = entityManager.create(RepositoryConfiguration.class,
                 new DBParam("REPO_ID", new Integer(10)));
@@ -189,5 +211,16 @@ public class ConfigurationTest {
             rc.save();
         }
 
+    }
+
+    @Test
+    public void testPullRequestMetadata() throws Exception {
+        Assert.assertEquals(0, ao.count(PullRequestMetadata.class));
+        PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
+
+        Assert.assertEquals(1, ao.count(PullRequestMetadata.class));
+        Assert.assertEquals(PR_ID, prm.getPullRequestId());
+        Assert.assertEquals(TO_HASH, prm.getToSha());
+        Assert.assertEquals(FROM_HASH, prm.getFromSha());
     }
 }
