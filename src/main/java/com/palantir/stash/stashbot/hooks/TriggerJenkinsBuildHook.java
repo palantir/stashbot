@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import com.atlassian.stash.hook.repository.AsyncPostReceiveRepositoryHook;
 import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.repository.RefChange;
+import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -60,6 +61,13 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
 
         for (RefChange refChange : changes) {
             String refName = refChange.getRefId();
+
+            // deletes have a tohash of "0000000000000000000000000000000000000000"
+            // but it seems more reliable to use RefChangeType
+            if (refChange.getType().equals(RefChangeType.DELETE)) {
+                log.debug("Detected delete, not triggering a build for this change");
+                continue;
+            }
 
             // if matches publication regex...
             if (refName.matches(rc.getPublishBranchRegex())) {

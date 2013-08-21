@@ -24,10 +24,10 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.repository.RefChange;
+import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.hooks.TriggerJenkinsBuildHook;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -73,6 +73,7 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(change.getFromHash()).thenReturn(FROM_HEAD);
         Mockito.when(change.getToHash()).thenReturn(HEAD);
         Mockito.when(change.getRefId()).thenReturn(HEAD_BR);
+        Mockito.when(change.getType()).thenReturn(RefChangeType.UPDATE);
 
         changes = new ArrayList<RefChange>();
         changes.add(change);
@@ -91,6 +92,14 @@ public class TriggerJenkinsBuildHookTest {
     @Test
     public void testNoBuildOnDisabled() {
         Mockito.when(rc.getCiEnabled()).thenReturn(false);
+        tjbh.postReceive(rhc, changes);
+
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+    }
+
+    @Test
+    public void testNoBuildOnDelete() {
+        Mockito.when(change.getType()).thenReturn(RefChangeType.DELETE);
         tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
