@@ -18,10 +18,14 @@ import java.sql.SQLException;
 import org.apache.log4j.Logger;
 
 import com.atlassian.event.api.EventListener;
+import com.atlassian.stash.comment.Comment;
+import com.atlassian.stash.event.pull.PullRequestCommentEvent;
+import com.atlassian.stash.event.pull.PullRequestEvent;
 import com.atlassian.stash.event.pull.PullRequestOpenedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
@@ -33,36 +37,72 @@ import com.palantir.stash.stashbot.managers.JenkinsManager;
  * @author cmyers
  * 
  */
-public class PullRequestVerifyListener {
+public class PullRequestListener {
 
-    private static final Logger log = Logger.getLogger(PullRequestVerifyListener.class.toString());
+    private static final Logger log = Logger.getLogger(PullRequestListener.class.toString());
+
+    private static final String OVERRIDE_STRING = "==OVERRIDE==";
 
     private final ConfigurationPersistenceManager cpm;
     private final JenkinsManager jenkinsManager;
 
-    public PullRequestVerifyListener(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager) {
+    public PullRequestListener(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager) {
         this.cpm = cpm;
         this.jenkinsManager = jenkinsManager;
     }
 
     @EventListener
-    public void listen(PullRequestOpenedEvent event) {
+    public void listen(PullRequestEvent event) {
         try {
+            // First, update pull request metadata
             final PullRequest pr = event.getPullRequest();
-            // Presently, stash only supports inter-repo pull requests, so there is only one repo involved. If they ever
-            // add
-            // cross-repo pull requests, it is uncertain which this would return.
-            final Repository repo = pr.getFromRef().getRepository();
+            final PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
 
+            // More correct to use the "to ref" to find the repo - this is the destination repo.
+            final Repository repo = pr.getToRef().getRepository();
             final RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+
             if (!rc.getCiEnabled()) {
-                log.debug("Pull Request " + pr.toString() + " ignored, CI not enabled for repo " + repo.toString());
+                log.debug("Pull Request " + pr.toString() + " ignored, CI not enabled for target repo "
+                    + repo.toString());
                 return;
             }
 
+            // Ensure target branch is a verified branch
             if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
                 log.debug("Pull Request " + pr.toString() + " ignored, branch " + pr.getToRef().getId()
                     + " doesn't match verify regex");
+                return;
+            }
+
+            // If the event is creating a pull request, we need to trigger a build
+            boolean needsBuild = false;
+            if (event instanceof PullRequestOpenedEvent) {
+                log.debug("New Pull Request Opened");
+                needsBuild = true;
+            }
+
+            if (event instanceof PullRequestCommentEvent) {
+                Comment c = ((PullRequestCommentEvent) event).getComment();
+                if (c.getText().contains(OVERRIDE_STRING)) {
+                    log.debug("Pull Request override set to true");
+                    cpm.setPullRequestMetadata(pr, null, true);
+                }
+            }
+
+            // If either hash is updated, needs build
+            if (!pr.getFromRef().getLatestChangeset().equals(prm.getFromSha())) {
+                log.debug("Pull Request From SHA updated");
+                needsBuild = true;
+                cpm.setPullRequestMetadata(pr, false, false);
+            }
+            if (!pr.getToRef().getLatestChangeset().equals(prm.getToSha())) {
+                log.debug("Pull Request To SHA updated");
+                needsBuild = true;
+                cpm.setPullRequestMetadata(pr, false, false);
+            }
+
+            if (!needsBuild) {
                 return;
             }
 

@@ -158,7 +158,15 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             sb.append(" <a href=\"" + url + "\">Link</a>");
 
             log.debug("Registering comment on pr for buildHead " + buildHead + " mergeHead " + mergeHead);
+            // Still make comment so users can see links to build
             pullRequestService.addComment(repo.getId(), pullRequest.getId(), sb.toString());
+            // but also update metadata
+
+            if (state.equals(State.SUCCESSFUL)) {
+                configurationPersistanceManager.setPullRequestMetadata(pullRequest, true, null);
+            } else {
+                configurationPersistanceManager.setPullRequestMetadata(pullRequest, false, null);
+            }
 
             printOutput(req, res);
         } catch (SQLException e) {

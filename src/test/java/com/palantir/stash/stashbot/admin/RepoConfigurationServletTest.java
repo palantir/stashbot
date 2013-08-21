@@ -82,6 +82,7 @@ public class RepoConfigurationServletTest {
     private static final String PREBC = "prebuildCommandString";
     private static final String JSN = "default";
 
+    @SuppressWarnings("deprecation")
     @Before
     public void setUp() throws Exception {
 
