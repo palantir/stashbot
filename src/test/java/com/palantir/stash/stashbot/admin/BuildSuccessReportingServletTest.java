@@ -127,7 +127,7 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), SUCCESSFUL);
-        Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
+        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
         Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 
@@ -148,7 +148,7 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), INPROGRESS);
-        Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
+        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
         Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 
@@ -169,7 +169,7 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), FAILED);
-        Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
+        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
         Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 

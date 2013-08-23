@@ -194,7 +194,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         String name = key + " (build " + Long.toString(buildNumber) + ")";
         String description = "Build " + Long.toString(buildNumber) + " " + state.toString() + " at " + df.format(now);
         String url = getJenkinsUrl(repo, type, buildNumber);
-        BuildStatus bs = new InternalBuildStatus(state, key, name, url, description, now);
+        BuildStatus bs = new InternalBuildStatus(state, name, name, url, description, now);
         return bs;
     }
 
