@@ -30,6 +30,7 @@ import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatus.State;
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.internal.build.InternalBuildStatus;
+import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
@@ -59,16 +60,18 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final RepositoryService repositoryService;
     private final BuildStatusService buildStatusService;
     private final PullRequestService pullRequestService;
+    private final NavBuilder navBuilder;
 
     // private final PullRequestCommentService pullRequestCommentService;
 
     public BuildSuccessReportingServlet(ConfigurationPersistenceManager configurationPersistenceManager,
         RepositoryService repositoryService, BuildStatusService buildStatusService,
-        PullRequestService pullRequestService) {
+        PullRequestService pullRequestService, NavBuilder navBuilder) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
         this.pullRequestService = pullRequestService;
+        this.navBuilder = navBuilder;
     }
 
     @Override
@@ -120,6 +123,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             final long pullRequestId;
             final PullRequest pullRequest;
 
+            final String retUrl;
             if (parts.length == 8 && !parts[6].isEmpty() && !parts[7].isEmpty()) {
                 mergeHead = parts[6];
                 try {
@@ -133,10 +137,12 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 } catch (NumberFormatException e) {
                     throw new IllegalArgumentException("Unable to parse pull request id " + parts[7], e);
                 }
+                retUrl = getJenkinsTriggerUrl(repo, type, buildHead, pullRequestId, mergeHead);
             } else {
                 mergeHead = null;
                 pullRequestId = 0;
                 pullRequest = null;
+                retUrl = getJenkinsTriggerUrl(repo, type, buildHead, null, null);
             }
 
             if (mergeHead == null) {
@@ -157,6 +163,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             sb.append(" for hash " + buildHead);
             sb.append(" merged into head " + mergeHead);
             sb.append(" <a href=\"" + url + "\">Link</a>");
+            sb.append(" (<a href=\"" + retUrl + "\">Retrigger</a>)");
 
             log.debug("Registering comment on pr for buildHead " + buildHead + " mergeHead " + mergeHead);
             // Still make comment so users can see links to build
@@ -205,6 +212,20 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         String key = type.getBuildNameFor(repo);
         String url = jsc.getUrl() + "/job/" + key + "/" + Long.toString(buildNumber);
         return url;
+    }
+
+    private String getJenkinsTriggerUrl(Repository repo, JenkinsBuildTypes type, String buildHead,
+        Long pullRequestId, String mergeHead) throws SQLException {
+        StringBuffer urlB = new StringBuffer(navBuilder.buildAbsolute());
+        urlB.append("/plugins/servlet/stashbot/build-trigger/");
+        urlB.append(repo.getId().toString()).append("/");
+        urlB.append(type.toString()).append("/");
+        urlB.append(buildHead).append("/");
+        if (pullRequestId != null && mergeHead != null) {
+            urlB.append(mergeHead).append("/");
+            urlB.append(pullRequestId.toString());
+        }
+        return urlB.toString();
     }
 
     private static String bsToString(BuildStatus bs) {

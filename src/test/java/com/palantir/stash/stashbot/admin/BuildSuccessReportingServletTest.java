@@ -34,6 +34,7 @@ import org.mockito.MockitoAnnotations;
 import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatus.State;
 import com.atlassian.stash.build.BuildStatusService;
+import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
@@ -81,6 +82,8 @@ public class BuildSuccessReportingServletTest {
     private PullRequest pr;
     @Mock
     private PullRequestMetadata prm;
+    @Mock
+    private NavBuilder navBuilder;
 
     private StringWriter mockWriter;
 
@@ -103,11 +106,12 @@ public class BuildSuccessReportingServletTest {
         Mockito.when(repo.getSlug()).thenReturn("slug");
         Mockito.when(repo.getProject()).thenReturn(proj);
         Mockito.when(proj.getKey()).thenReturn("projectKey");
+        Mockito.when(navBuilder.buildAbsolute()).thenReturn(ABSOLUTE_URL);
 
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
-        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs);
+        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, navBuilder);
     }
 
     @Test
