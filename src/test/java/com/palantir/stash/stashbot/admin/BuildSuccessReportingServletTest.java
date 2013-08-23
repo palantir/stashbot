@@ -86,12 +86,15 @@ public class BuildSuccessReportingServletTest {
 
     private BuildSuccessReportingServlet bsrs;
 
+    private static final String ABSOLUTE_URL = "http://example.com/blah/foo";
+
     @Before
     public void setUp() throws IOException, SQLException {
         MockitoAnnotations.initMocks(this);
 
-        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
+        Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(Mockito.any(Repository.class))).thenReturn(rc);
+        Mockito.when(jsc.getUrl()).thenReturn(ABSOLUTE_URL);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
         Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);

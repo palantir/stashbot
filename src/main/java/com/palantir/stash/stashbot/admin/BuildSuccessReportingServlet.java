@@ -36,6 +36,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 
 public class BuildSuccessReportingServlet extends HttpServlet {
@@ -198,7 +199,9 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     }
 
     private String getJenkinsUrl(Repository repo, JenkinsBuildTypes type, long buildNumber) throws SQLException {
-        JenkinsServerConfiguration jsc = configurationPersistanceManager.getDefaultJenkinsServerConfiguration();
+        RepositoryConfiguration rc = configurationPersistanceManager.getRepositoryConfigurationForRepository(repo);
+        JenkinsServerConfiguration jsc =
+            configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
         String key = type.getBuildNameFor(repo);
         String url = jsc.getUrl() + "/job/" + key + "/" + Long.toString(buildNumber);
         return url;
