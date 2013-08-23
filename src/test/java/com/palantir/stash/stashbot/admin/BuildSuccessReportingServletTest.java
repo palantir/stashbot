@@ -34,7 +34,6 @@ import org.mockito.MockitoAnnotations;
 import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatus.State;
 import com.atlassian.stash.build.BuildStatusService;
-import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
@@ -45,6 +44,7 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
+import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
 public class BuildSuccessReportingServletTest {
 
@@ -83,7 +83,7 @@ public class BuildSuccessReportingServletTest {
     @Mock
     private PullRequestMetadata prm;
     @Mock
-    private NavBuilder navBuilder;
+    private TriggerBuildUrlBuilder ub;
 
     private StringWriter mockWriter;
 
@@ -106,12 +106,14 @@ public class BuildSuccessReportingServletTest {
         Mockito.when(repo.getSlug()).thenReturn("slug");
         Mockito.when(repo.getProject()).thenReturn(proj);
         Mockito.when(proj.getKey()).thenReturn("projectKey");
-        Mockito.when(navBuilder.buildAbsolute()).thenReturn(ABSOLUTE_URL);
+        Mockito.when(
+            ub.getJenkinsTriggerUrl(Mockito.any(Repository.class), Mockito.any(JenkinsBuildTypes.class),
+                Mockito.anyString(), Mockito.anyLong(), Mockito.anyString())).thenReturn(ABSOLUTE_URL);
 
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
-        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, navBuilder);
+        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, ub);
     }
 
     @Test

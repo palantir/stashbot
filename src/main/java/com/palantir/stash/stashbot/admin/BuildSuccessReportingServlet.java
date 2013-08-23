@@ -30,7 +30,6 @@ import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatus.State;
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.internal.build.InternalBuildStatus;
-import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
@@ -39,6 +38,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
+import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
 public class BuildSuccessReportingServlet extends HttpServlet {
 
@@ -60,18 +60,18 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final RepositoryService repositoryService;
     private final BuildStatusService buildStatusService;
     private final PullRequestService pullRequestService;
-    private final NavBuilder navBuilder;
+    private final TriggerBuildUrlBuilder ub;
 
     // private final PullRequestCommentService pullRequestCommentService;
 
     public BuildSuccessReportingServlet(ConfigurationPersistenceManager configurationPersistenceManager,
         RepositoryService repositoryService, BuildStatusService buildStatusService,
-        PullRequestService pullRequestService, NavBuilder navBuilder) {
+        PullRequestService pullRequestService, TriggerBuildUrlBuilder ub) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
         this.pullRequestService = pullRequestService;
-        this.navBuilder = navBuilder;
+        this.ub = ub;
     }
 
     @Override
@@ -137,12 +137,12 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 } catch (NumberFormatException e) {
                     throw new IllegalArgumentException("Unable to parse pull request id " + parts[7], e);
                 }
-                retUrl = getJenkinsTriggerUrl(repo, type, buildHead, pullRequestId, mergeHead);
+                retUrl = ub.getJenkinsTriggerUrl(repo, type, buildHead, pullRequestId, mergeHead);
             } else {
                 mergeHead = null;
                 pullRequestId = 0;
                 pullRequest = null;
-                retUrl = getJenkinsTriggerUrl(repo, type, buildHead, null, null);
+                retUrl = ub.getJenkinsTriggerUrl(repo, type, buildHead, null, null);
             }
 
             if (mergeHead == null) {
@@ -212,20 +212,6 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         String key = type.getBuildNameFor(repo);
         String url = jsc.getUrl() + "/job/" + key + "/" + Long.toString(buildNumber);
         return url;
-    }
-
-    private String getJenkinsTriggerUrl(Repository repo, JenkinsBuildTypes type, String buildHead,
-        Long pullRequestId, String mergeHead) throws SQLException {
-        StringBuffer urlB = new StringBuffer(navBuilder.buildAbsolute());
-        urlB.append("/plugins/servlet/stashbot/build-trigger/");
-        urlB.append(repo.getId().toString()).append("/");
-        urlB.append(type.toString()).append("/");
-        urlB.append(buildHead).append("/");
-        if (pullRequestId != null && mergeHead != null) {
-            urlB.append(mergeHead).append("/");
-            urlB.append(pullRequestId.toString());
-        }
-        return urlB.toString();
     }
 
     private static String bsToString(BuildStatus bs) {

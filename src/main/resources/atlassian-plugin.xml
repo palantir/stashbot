@@ -98,6 +98,7 @@
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
+    <component key="triggerBuildUrlBuilder" class="com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder" />
 
     <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
 
