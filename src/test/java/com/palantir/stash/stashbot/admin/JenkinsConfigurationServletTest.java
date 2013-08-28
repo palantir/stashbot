@@ -78,7 +78,7 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(req.getRequestURL()).thenReturn(new StringBuffer(REQUEST_URI));
         Mockito.when(req.getPathInfo()).thenReturn("");
 
-        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
+        Mockito.when(cpm.getJenkinsServerConfiguration(null)).thenReturn(jsc);
         Mockito.when(cpm.getJenkinsServerConfiguration(JN)).thenReturn(jsc);
         Mockito.when(cpm.getJenkinsServerConfiguration(JN + "2")).thenReturn(jsc2);
         Mockito.when(cpm.getAllJenkinsServerConfigurations()).thenReturn(ImmutableList.of(jsc));
@@ -137,9 +137,6 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(req.getParameter("password")).thenReturn(JP + "2");
         Mockito.when(req.getParameter("stashUsername")).thenReturn(SU + "2");
         Mockito.when(req.getParameter("stashPassword")).thenReturn(SP + "2");
-
-        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc2);
-        Mockito.when(cpm.getJenkinsServerConfiguration(JN + "2")).thenReturn(jsc2);
 
         jcs.doPost(req, res);
 

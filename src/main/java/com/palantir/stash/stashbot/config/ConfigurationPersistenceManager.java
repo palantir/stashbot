@@ -30,7 +30,7 @@ public class ConfigurationPersistenceManager {
 
     private final ActiveObjects ao;
 
-    private static final String JENKINS_SERVER_CONFIG_KEY = "default";
+    private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
     public ConfigurationPersistenceManager(ActiveObjects ao) {
         this.ao = ao;
@@ -49,6 +49,9 @@ public class ConfigurationPersistenceManager {
     }
 
     public JenkinsServerConfiguration getJenkinsServerConfiguration(String name) throws SQLException {
+        if (name == null) {
+            name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
+        }
         JenkinsServerConfiguration[] configs =
             ao.find(JenkinsServerConfiguration.class,
                 Query.select().where("NAME = ?", name));
@@ -61,21 +64,11 @@ public class ConfigurationPersistenceManager {
         return configs[0];
     }
 
-    public JenkinsServerConfiguration getDefaultJenkinsServerConfiguration() throws SQLException {
-        JenkinsServerConfiguration[] configs =
-            ao.find(JenkinsServerConfiguration.class,
-                Query.select().where("NAME = ?", JENKINS_SERVER_CONFIG_KEY));
-        if (configs.length == 0) {
-            // just use the defaults
-            return ao.create(JenkinsServerConfiguration.class,
-                new DBParam("NAME", JENKINS_SERVER_CONFIG_KEY));
-        }
-
-        return configs[0];
-    }
-
     public void setJenkinsServerConfiguration(String name, String url, String username, String password,
         String stashUsername, String stashPassword) throws SQLException {
+        if (name == null) {
+            name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
+        }
         validateName(name);
         JenkinsServerConfiguration[] configs =
             ao.find(JenkinsServerConfiguration.class,
@@ -94,33 +87,6 @@ public class ConfigurationPersistenceManager {
         }
         // already exists, so update it
         configs[0].setName(name);
-        configs[0].setUrl(url);
-        configs[0].setUsername(username);
-        configs[0].setPassword(password);
-        configs[0].setStashUsername(stashUsername);
-        configs[0].setStashPassword(stashPassword);
-        configs[0].save();
-    }
-
-    public void setDefaultJenkinsServerConfiguration(String url, String username, String password,
-        String stashUsername,
-        String stashPassword) throws SQLException {
-        JenkinsServerConfiguration[] configs =
-            ao.find(JenkinsServerConfiguration.class,
-                Query.select().where("name = ?", JENKINS_SERVER_CONFIG_KEY));
-
-        if (configs.length == 0) {
-            ao.create(JenkinsServerConfiguration.class,
-                new DBParam("NAME", JENKINS_SERVER_CONFIG_KEY),
-                new DBParam("URL", url),
-                new DBParam("USERNAME", username),
-                new DBParam("PASSWORD", password),
-                new DBParam("STASH_USERNAME", stashUsername),
-                new DBParam("STASH_PASSWORD", stashPassword)
-                );
-            return;
-        }
-        // already exists, so update it
         configs[0].setUrl(url);
         configs[0].setUsername(username);
         configs[0].setPassword(password);
@@ -154,7 +120,7 @@ public class ConfigurationPersistenceManager {
         String jenkinsServerName)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
-            jenkinsServerName = JENKINS_SERVER_CONFIG_KEY;
+            jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
         validateNameExists(jenkinsServerName);
         RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
@@ -186,7 +152,7 @@ public class ConfigurationPersistenceManager {
     public ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations() throws SQLException {
         JenkinsServerConfiguration[] allConfigs = ao.find(JenkinsServerConfiguration.class);
         if (allConfigs.length == 0) {
-            return ImmutableList.of(getDefaultJenkinsServerConfiguration());
+            return ImmutableList.of(getJenkinsServerConfiguration(null));
         }
         return ImmutableList.copyOf(allConfigs);
     }
@@ -199,7 +165,7 @@ public class ConfigurationPersistenceManager {
             names.add(jsc.getName());
         }
         if (allConfigs.length == 0) {
-            return ImmutableList.of(getDefaultJenkinsServerConfiguration().getName());
+            return ImmutableList.of(getJenkinsServerConfiguration(null).getName());
         }
         return ImmutableList.copyOf(names);
 
@@ -212,7 +178,7 @@ public class ConfigurationPersistenceManager {
     }
 
     public void validateNameExists(String name) throws IllegalArgumentException {
-        if (name.equals(JENKINS_SERVER_CONFIG_KEY)) {
+        if (name.equals(DEFAULT_JENKINS_SERVER_CONFIG_KEY)) {
             return;
         }
         JenkinsServerConfiguration[] allConfigs = ao.find(JenkinsServerConfiguration.class);
