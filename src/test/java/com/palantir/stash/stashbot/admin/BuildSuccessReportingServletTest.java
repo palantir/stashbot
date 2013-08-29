@@ -44,6 +44,7 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
+import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
 public class BuildSuccessReportingServletTest {
 
@@ -81,17 +82,22 @@ public class BuildSuccessReportingServletTest {
     private PullRequest pr;
     @Mock
     private PullRequestMetadata prm;
+    @Mock
+    private TriggerBuildUrlBuilder ub;
 
     private StringWriter mockWriter;
 
     private BuildSuccessReportingServlet bsrs;
 
+    private static final String ABSOLUTE_URL = "http://example.com/blah/foo";
+
     @Before
     public void setUp() throws IOException, SQLException {
         MockitoAnnotations.initMocks(this);
 
-        Mockito.when(cpm.getDefaultJenkinsServerConfiguration()).thenReturn(jsc);
+        Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(Mockito.any(Repository.class))).thenReturn(rc);
+        Mockito.when(jsc.getUrl()).thenReturn(ABSOLUTE_URL);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
         Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
@@ -100,11 +106,14 @@ public class BuildSuccessReportingServletTest {
         Mockito.when(repo.getSlug()).thenReturn("slug");
         Mockito.when(repo.getProject()).thenReturn(proj);
         Mockito.when(proj.getKey()).thenReturn("projectKey");
+        Mockito.when(
+            ub.getJenkinsTriggerUrl(Mockito.any(Repository.class), Mockito.any(JenkinsBuildTypes.class),
+                Mockito.anyString(), Mockito.anyLong(), Mockito.anyString())).thenReturn(ABSOLUTE_URL);
 
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
-        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs);
+        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, ub);
     }
 
     @Test
@@ -124,7 +133,7 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), SUCCESSFUL);
-        Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
+        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
         Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 
@@ -145,7 +154,7 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), INPROGRESS);
-        Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
+        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
         Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 
@@ -166,7 +175,7 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), FAILED);
-        Assert.assertEquals(bs.getKey(), JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo));
+        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
         Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
     }
 

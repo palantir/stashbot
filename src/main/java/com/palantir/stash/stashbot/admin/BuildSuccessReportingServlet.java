@@ -36,7 +36,9 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
+import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
 public class BuildSuccessReportingServlet extends HttpServlet {
 
@@ -58,16 +60,18 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final RepositoryService repositoryService;
     private final BuildStatusService buildStatusService;
     private final PullRequestService pullRequestService;
+    private final TriggerBuildUrlBuilder ub;
 
     // private final PullRequestCommentService pullRequestCommentService;
 
     public BuildSuccessReportingServlet(ConfigurationPersistenceManager configurationPersistenceManager,
         RepositoryService repositoryService, BuildStatusService buildStatusService,
-        PullRequestService pullRequestService) {
+        PullRequestService pullRequestService, TriggerBuildUrlBuilder ub) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
         this.pullRequestService = pullRequestService;
+        this.ub = ub;
     }
 
     @Override
@@ -119,6 +123,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             final long pullRequestId;
             final PullRequest pullRequest;
 
+            final String retUrl;
             if (parts.length == 8 && !parts[6].isEmpty() && !parts[7].isEmpty()) {
                 mergeHead = parts[6];
                 try {
@@ -132,10 +137,12 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 } catch (NumberFormatException e) {
                     throw new IllegalArgumentException("Unable to parse pull request id " + parts[7], e);
                 }
+                retUrl = ub.getJenkinsTriggerUrl(repo, type, buildHead, pullRequestId, mergeHead);
             } else {
                 mergeHead = null;
                 pullRequestId = 0;
                 pullRequest = null;
+                retUrl = ub.getJenkinsTriggerUrl(repo, type, buildHead, null, null);
             }
 
             if (mergeHead == null) {
@@ -156,6 +163,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             sb.append(" for hash " + buildHead);
             sb.append(" merged into head " + mergeHead);
             sb.append(" <a href=\"" + url + "\">Link</a>");
+            sb.append(" (<a href=\"" + retUrl + "\">Retrigger</a>)");
 
             log.debug("Registering comment on pr for buildHead " + buildHead + " mergeHead " + mergeHead);
             // Still make comment so users can see links to build
@@ -193,12 +201,14 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         String name = key + " (build " + Long.toString(buildNumber) + ")";
         String description = "Build " + Long.toString(buildNumber) + " " + state.toString() + " at " + df.format(now);
         String url = getJenkinsUrl(repo, type, buildNumber);
-        BuildStatus bs = new InternalBuildStatus(state, key, name, url, description, now);
+        BuildStatus bs = new InternalBuildStatus(state, name, name, url, description, now);
         return bs;
     }
 
     private String getJenkinsUrl(Repository repo, JenkinsBuildTypes type, long buildNumber) throws SQLException {
-        JenkinsServerConfiguration jsc = configurationPersistanceManager.getDefaultJenkinsServerConfiguration();
+        RepositoryConfiguration rc = configurationPersistanceManager.getRepositoryConfigurationForRepository(repo);
+        JenkinsServerConfiguration jsc =
+            configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
         String key = type.getBuildNameFor(repo);
         String url = jsc.getUrl() + "/job/" + key + "/" + Long.toString(buildNumber);
         return url;

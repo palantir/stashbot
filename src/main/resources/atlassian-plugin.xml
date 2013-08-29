@@ -45,6 +45,10 @@
         <url-pattern>/stashbot/build-reporting/*</url-pattern>
     </servlet>
 
+    <servlet key="buildTriggerServlet" name="Build Trigger Servlet" class="com.palantir.stash.stashbot.admin.BuildTriggerServlet">
+        <url-pattern>/stashbot/build-trigger/*</url-pattern>
+    </servlet>
+
     <stash-resource key="stashbotConfigurationResources" name="Stashbot Configuration Panel Resources">
         <directory location="/static/">
           <exclude>/**/*-min.*</exclude>
@@ -76,6 +80,17 @@
         <link>/plugins/servlet/stashbot/jenkins-admin</link>
     </web-item>
 
+
+    <web-section key="build-action-section"  name="Section for displaying build actions" weight="250" location="stash.commits.extras">
+        <label key="build-action-section-label">Build Actions</label>
+        <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
+    </web-section>
+
+    <web-panel key="build-retrigger-panel"  name="Panel to display per-commit retrigger links" location="build-action-section" class="com.palantir.stash.stashbot.webpanel.RetriggerLinkWebPanel">
+        <label key="build-retrigger-panel-label">Retrigger</label>
+        <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
+    </web-panel>
+
     <!-- import from the product container -->
     <component-import key="activeObjects" interface="com.atlassian.activeobjects.external.ActiveObjects" />
     <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
@@ -105,6 +120,7 @@
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
+    <component key="triggerBuildUrlBuilder" class="com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder" />
 
     <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
 
