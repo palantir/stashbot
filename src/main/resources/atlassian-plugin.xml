@@ -59,8 +59,8 @@
 
     <web-item key="repository-configuration-admin" name="Stashbot Repository Admin Panel" weight="20" section="stash.repository.settings.panel">
         <conditions type="OR">
-            <condition class="com.atlassian.stash.web.conditions.HasProjectPermissionCondition">
-                <param name="permission">PROJECT_ADMIN</param>
+            <condition class="com.atlassian.stash.web.conditions.HasRepositoryPermissionCondition">
+                <param name="permission">REPO_ADMIN</param>
             </condition>
             <condition class="com.atlassian.stash.web.conditions.HasGlobalPermissionCondition">
                 <param name="permission">SYS_ADMIN</param>
@@ -107,7 +107,7 @@
 
     <!--
     com.atlassian.stash.web.conditions.HasGlobalPermissionCondition
-    com.atlassian.stash.web.conditions.HasProjectPermissionCondition
+    com.atlassian.stash.web.conditions.HasRepositoryPermissionCondition
 
     These two classes are included as components automatically because they are used in the XML above
     However they depend upon PermissionService which is not included automatically as a transitive dependency, so we need this:
