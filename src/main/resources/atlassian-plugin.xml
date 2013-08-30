@@ -96,6 +96,7 @@
     <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
     <component-import key="buildStatusService" interface="com.atlassian.stash.build.BuildStatusService"/>
     <component-import key="navBuilder" interface="com.atlassian.stash.nav.NavBuilder" />
+    <component-import key="pageBuilderService" interface="com.atlassian.webresource.api.assembler.PageBuilderService"/>
     <component-import key="permissionAdminService" interface="com.atlassian.stash.user.PermissionAdminService"/>
     <component-import key="pullRequestService" interface="com.atlassian.stash.pull.PullRequestService"/>
     <component-import key="repositoryHookService" interface="com.atlassian.stash.hook.repository.RepositoryHookService"/>
@@ -103,7 +104,6 @@
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
     <component-import key="userAdminService" interface="com.atlassian.stash.user.UserAdminService"/>
     <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>
-    <component-import key="webResourceManager" interface="com.atlassian.plugin.webresource.WebResourceManager"/>
 
     <!--
     com.atlassian.stash.web.conditions.HasGlobalPermissionCondition

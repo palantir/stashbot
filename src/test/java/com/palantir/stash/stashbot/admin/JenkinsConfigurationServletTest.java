@@ -28,9 +28,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.webresource.api.assembler.PageBuilderService;
+import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
@@ -41,7 +42,9 @@ public class JenkinsConfigurationServletTest {
     @Mock
     private ConfigurationPersistenceManager cpm;
     @Mock
-    private WebResourceManager webResourceManager;
+    private PageBuilderService pageBuilderService;
+    @Mock
+    private RequiredResources rr;
     @Mock
     private SoyTemplateRenderer soyTemplateRenderer;
 
@@ -97,7 +100,9 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(jsc2.getStashUsername()).thenReturn(SU + "2");
         Mockito.when(jsc2.getStashPassword()).thenReturn(SP + "2");
 
-        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, webResourceManager, cpm, pum, null);
+        Mockito.when(pageBuilderService.resources()).thenReturn(rr);
+
+        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null);
     }
 
     @Test
@@ -106,7 +111,7 @@ public class JenkinsConfigurationServletTest {
         jcs.doGet(req, res);
 
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(webResourceManager).requireResourcesForContext("plugin.page.stashbot");
+        Mockito.verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, Object>> cls = (Class<Map<String, Object>>) (Class) Map.class;
@@ -145,7 +150,7 @@ public class JenkinsConfigurationServletTest {
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(webResourceManager).requireResourcesForContext("plugin.page.stashbot");
+        Mockito.verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, Object>> cls = (Class<Map<String, Object>>) (Class) Map.class;

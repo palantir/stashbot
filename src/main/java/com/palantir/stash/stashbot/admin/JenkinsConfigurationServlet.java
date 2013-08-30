@@ -21,9 +21,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
+import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -40,16 +40,17 @@ public class JenkinsConfigurationServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private final SoyTemplateRenderer soyTemplateRenderer;
-    private final WebResourceManager webResourceManager;
+    private final PageBuilderService pageBuilderService;
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final PluginUserManager pluginUserManager;
     private final JenkinsManager jenkinsManager;
 
-    public JenkinsConfigurationServlet(SoyTemplateRenderer soyTemplateRenderer, WebResourceManager webResourceManager,
+    public JenkinsConfigurationServlet(SoyTemplateRenderer soyTemplateRenderer,
+        PageBuilderService pageBuilderService,
         ConfigurationPersistenceManager configurationPersistenceManager, PluginUserManager pluginUserManager,
         JenkinsManager jenkinsManager) {
         this.soyTemplateRenderer = soyTemplateRenderer;
-        this.webResourceManager = webResourceManager;
+        this.pageBuilderService = pageBuilderService;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.pluginUserManager = pluginUserManager;
         this.jenkinsManager = jenkinsManager;
@@ -87,7 +88,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
         res.setContentType("text/html;charset=UTF-8");
         try {
-            webResourceManager.requireResourcesForContext("plugin.page.stashbot");
+            pageBuilderService.resources().requireContext("plugin.page.stashbot");
             ImmutableCollection<JenkinsServerConfiguration> jenkinsConfigs =
                 configurationPersistanceManager.getAllJenkinsServerConfigurations();
             soyTemplateRenderer.render(res.getWriter(),

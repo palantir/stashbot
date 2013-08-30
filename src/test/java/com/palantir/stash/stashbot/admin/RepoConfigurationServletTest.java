@@ -27,10 +27,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.webresource.api.assembler.PageBuilderService;
+import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -46,7 +47,9 @@ public class RepoConfigurationServletTest {
     @Mock
     private RepositoryService repositoryService;
     @Mock
-    private WebResourceManager webResourceManager;
+    private PageBuilderService pageBuilderService;
+    @Mock
+    private RequiredResources rr;
     @Mock
     private SoyTemplateRenderer soyTemplateRenderer;
     @Mock
@@ -118,8 +121,9 @@ public class RepoConfigurationServletTest {
         Mockito.when(cpm.getJenkinsServerConfiguration(JSN)).thenReturn(jsc);
         Mockito.when(cpm.getJenkinsServerConfiguration(JSN + "2")).thenReturn(jsc2);
 
+        Mockito.when(pageBuilderService.resources()).thenReturn(rr);
         rcs =
-            new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, webResourceManager, cpm,
+            new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, pageBuilderService, cpm,
                 jenkinsManager, pum);
     }
 
@@ -129,7 +133,7 @@ public class RepoConfigurationServletTest {
         rcs.doGet(req, res);
 
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(webResourceManager).requireResourcesForContext("plugin.page.stashbot");
+        Mockito.verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, Object>> cls = (Class<Map<String, Object>>) (Class) Map.class;
@@ -173,7 +177,7 @@ public class RepoConfigurationServletTest {
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(webResourceManager).requireResourcesForContext("plugin.page.stashbot");
+        Mockito.verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, Object>> cls = (Class<Map<String, Object>>) (Class) Map.class;

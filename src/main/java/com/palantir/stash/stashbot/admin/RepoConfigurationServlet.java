@@ -25,11 +25,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.atlassian.plugin.webresource.WebResourceManager;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
@@ -46,17 +46,17 @@ public class RepoConfigurationServlet extends HttpServlet {
 
     private final RepositoryService repositoryService;
     private final SoyTemplateRenderer soyTemplateRenderer;
-    private final WebResourceManager webResourceManager;
+    private final PageBuilderService pageBuilderService;
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final JenkinsManager jenkinsManager;
     private final PluginUserManager pluginUserManager;
 
     public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
-        WebResourceManager webResourceManager, ConfigurationPersistenceManager configurationPersistenceManager,
+        PageBuilderService pageBuilderService, ConfigurationPersistenceManager configurationPersistenceManager,
         JenkinsManager jenkinsManager, PluginUserManager pluginUserManager) {
         this.repositoryService = repositoryService;
         this.soyTemplateRenderer = soyTemplateRenderer;
-        this.webResourceManager = webResourceManager;
+        this.pageBuilderService = pageBuilderService;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.jenkinsManager = jenkinsManager;
         this.pluginUserManager = pluginUserManager;
@@ -91,7 +91,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                 }
                 jenkinsServersData.add(m);
             }
-            webResourceManager.requireResourcesForContext("plugin.page.stashbot");
+            pageBuilderService.resources().requireContext("plugin.page.stashbot");
             soyTemplateRenderer.render(res.getWriter(),
                 "com.palantir.stash.stashbot:stashbotConfigurationResources",
                 "plugin.page.stashbot.repositoryConfigurationPanel",
