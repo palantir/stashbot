@@ -35,6 +35,7 @@ import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 
 public class JenkinsConfigurationServletTest {
@@ -72,6 +73,8 @@ public class JenkinsConfigurationServletTest {
 
     private static final String REQUEST_URI = "http://someuri.example.com/blah";
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @Before
     public void setUp() throws Exception {
 
@@ -102,7 +105,7 @@ public class JenkinsConfigurationServletTest {
 
         Mockito.when(pageBuilderService.resources()).thenReturn(rr);
 
-        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null);
+        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null, lf);
     }
 
     @Test

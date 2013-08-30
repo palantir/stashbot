@@ -15,7 +15,7 @@ package com.palantir.stash.stashbot.hooks;
 
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.comment.Comment;
@@ -27,6 +27,7 @@ import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -39,16 +40,17 @@ import com.palantir.stash.stashbot.managers.JenkinsManager;
  */
 public class PullRequestListener {
 
-    private static final Logger log = Logger.getLogger(PullRequestListener.class.toString());
-
     private static final String OVERRIDE_STRING = "==OVERRIDE==";
 
     private final ConfigurationPersistenceManager cpm;
     private final JenkinsManager jenkinsManager;
+    private final Logger log;
 
-    public PullRequestListener(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager) {
+    public PullRequestListener(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
+        StashbotLoggerFactory lf) {
         this.cpm = cpm;
         this.jenkinsManager = jenkinsManager;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @EventListener

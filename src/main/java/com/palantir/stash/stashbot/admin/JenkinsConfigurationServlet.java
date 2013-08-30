@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
@@ -28,6 +30,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 
@@ -44,16 +47,18 @@ public class JenkinsConfigurationServlet extends HttpServlet {
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final PluginUserManager pluginUserManager;
     private final JenkinsManager jenkinsManager;
+    private final Logger log;
 
     public JenkinsConfigurationServlet(SoyTemplateRenderer soyTemplateRenderer,
         PageBuilderService pageBuilderService,
         ConfigurationPersistenceManager configurationPersistenceManager, PluginUserManager pluginUserManager,
-        JenkinsManager jenkinsManager) {
+        JenkinsManager jenkinsManager, StashbotLoggerFactory lf) {
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.pageBuilderService = pageBuilderService;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.pluginUserManager = pluginUserManager;
         this.jenkinsManager = jenkinsManager;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override
@@ -72,6 +77,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
         if (parts.length >= 2) {
             if (parts[1].equals("delete")) {
+                log.info("Deleting configuration " + parts[2]);
                 configurationPersistanceManager.deleteJenkinsServerConfiguration(parts[2]);
                 res.sendRedirect(relUrl);
                 return;

@@ -19,26 +19,28 @@ import java.io.Writer;
 import java.sql.SQLException;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.atlassian.plugin.web.model.WebPanel;
 import com.atlassian.stash.content.Changeset;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
 public class RetriggerLinkWebPanel implements WebPanel {
 
-    private static final Logger log = Logger.getLogger(RetriggerLinkWebPanel.class.toString());
-
     private final ConfigurationPersistenceManager cpm;
     private final TriggerBuildUrlBuilder ub;
+    private final Logger log;
 
-    public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm, TriggerBuildUrlBuilder ub) {
+    public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm, TriggerBuildUrlBuilder ub,
+        StashbotLoggerFactory lf) {
         this.cpm = cpm;
         this.ub = ub;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override

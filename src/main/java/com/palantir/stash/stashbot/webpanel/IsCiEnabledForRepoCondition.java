@@ -3,18 +3,23 @@ package com.palantir.stash.stashbot.webpanel;
 import java.sql.SQLException;
 import java.util.Map;
 
+import org.slf4j.Logger;
+
 import com.atlassian.plugin.PluginParseException;
 import com.atlassian.plugin.web.Condition;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class IsCiEnabledForRepoCondition implements Condition {
 
     private final ConfigurationPersistenceManager cpm;
+    private final Logger log;
 
-    public IsCiEnabledForRepoCondition(ConfigurationPersistenceManager cpm) {
+    public IsCiEnabledForRepoCondition(ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
         this.cpm = cpm;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override
@@ -34,7 +39,7 @@ public class IsCiEnabledForRepoCondition implements Condition {
             rc = cpm.getRepositoryConfigurationForRepository(repo);
         } catch (SQLException e) {
             rc = null;
-            // LOG?
+            log.error("Failed to get RepositoryConfiguration for repo: " + repo.toString(), e);
         }
 
         if (rc != null && rc.getCiEnabled()) {

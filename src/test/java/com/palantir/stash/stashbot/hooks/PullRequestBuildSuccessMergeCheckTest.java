@@ -28,6 +28,7 @@ import com.atlassian.stash.scm.pull.MergeRequest;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class PullRequestBuildSuccessMergeCheckTest {
 
@@ -56,6 +57,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
     @Mock
     private PullRequestMetadata prm;
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @Before
     public void setUp() throws SQLException {
         MockitoAnnotations.initMocks(this);
@@ -78,7 +81,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
-        prmc = new PullRequestBuildSuccessMergeCheck(cpm);
+        prmc = new PullRequestBuildSuccessMergeCheck(cpm, lf);
     }
 
     @Test

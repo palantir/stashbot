@@ -28,6 +28,7 @@ import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -57,6 +58,8 @@ public class TriggerJenkinsBuildHookTest {
 
     private ArrayList<RefChange> changes;
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @Before
     public void setUp() throws SQLException {
 
@@ -78,7 +81,7 @@ public class TriggerJenkinsBuildHookTest {
         changes = new ArrayList<RefChange>();
         changes.add(change);
 
-        tjbh = new TriggerJenkinsBuildHook(cpm, jenkinsManager);
+        tjbh = new TriggerJenkinsBuildHook(cpm, jenkinsManager, lf);
 
     }
 

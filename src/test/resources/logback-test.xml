@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+<!--  to above line, add debug="true" to see logback spew to test logger problems -->
+
+    <appender name="test-logger" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+	<!--  change this to DEBUG to change stashbot code output level -->
+    <logger name="com.palantir.stash.stashbot" level="OFF"/>
+
+	<!--  change this to DEBUG to change dependencies output level -->
+    <root level="OFF">
+        <appender-ref ref="test-logger" />
+    </root>
+</configuration>

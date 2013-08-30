@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+<!--  to above line, add debug="true" to see logback spew to test logger problems -->
+
+    <!-- It seems the filenames below are relative to stash-home in my testing -->
+    <appender name="stashbot" class="ch.qos.logback.core.FileAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <file>stashbot.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="stashbot-debug" class="ch.qos.logback.core.FileAppender">
+        <file>stashbot-debug.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="stashbot-console" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.palantir.stash.stashbot" level="DEBUG">
+        <appender-ref ref="stashbot" />
+        <appender-ref ref="stashbot-debug" />
+        <appender-ref ref="stashbot-console" />
+    </logger>
+
+
+    <!-- we probably don't want to change the root logger, should inherrit from existing config this way.
+    <root level="INFO"/>
+     -->
+</configuration>

@@ -125,6 +125,12 @@
             <version>1.8.0.7</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <!-- <version>1.0.11</version>  version from stash-parent/pom.xml -->
+            <scope>provided</scope>
+        </dependency>
         <!-- WIRED TEST RUNNER DEPENDENCIES -->
         <dependency>
             <groupId>com.atlassian.plugins</groupId>

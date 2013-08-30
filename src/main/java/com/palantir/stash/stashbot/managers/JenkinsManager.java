@@ -27,7 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.nav.NavBuilder;
@@ -46,10 +46,9 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter.JenkinsBuildParam;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class JenkinsManager {
-
-    private static final Logger log = Logger.getLogger(JenkinsManager.class.toString());
 
     // NOTE: this is the key used in the atlassian-plugin.xml
     private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY =
@@ -66,21 +65,25 @@ public class JenkinsManager {
     private final JenkinsClientManager jenkinsClientManager;
     private final RepositoryService repositoryService;
     private final RepositoryHookService rhs;
+    private final Logger log;
+    private final StashbotLoggerFactory lf;
 
     public JenkinsManager(NavBuilder navBuilder, RepositoryService repositoryService, RepositoryHookService rhs,
         ConfigurationPersistenceManager cpm, JenkinsJobXmlFormatter xmlFormatter,
-        JenkinsClientManager jenkisnClientManager) {
+        JenkinsClientManager jenkisnClientManager, StashbotLoggerFactory lf) {
         this.navBuilder = navBuilder;
         this.repositoryService = repositoryService;
         this.rhs = rhs;
         this.cpm = cpm;
         this.xmlFormatter = xmlFormatter;
         this.jenkinsClientManager = jenkisnClientManager;
+        this.lf = lf;
+        this.log = lf.getLoggerForThis(this);
     }
 
     public void updateRepo(Repository repo) {
         try {
-            Callable<Void> visit = new UpdateAllRepositoryVisitor(rhs, jenkinsClientManager, cpm, repo);
+            Callable<Void> visit = new UpdateAllRepositoryVisitor(rhs, jenkinsClientManager, cpm, repo, lf);
             visit.call();
         } catch (Exception e) {
             log.error("Exception while attempting to create missing jobs for a repo: ", e);
@@ -272,19 +275,19 @@ public class JenkinsManager {
      */
     class CreateMissingRepositoryVisitor implements Callable<Void> {
 
-        private final Logger log = Logger.getLogger(CreateMissingRepositoryVisitor.class.toString());
-
         private final RepositoryHookService rhs;
         private final JenkinsClientManager jcm;
         private final ConfigurationPersistenceManager cpm;
         private final Repository r;
+        private final Logger log;
 
         public CreateMissingRepositoryVisitor(RepositoryHookService rhs, JenkinsClientManager jcm,
-            ConfigurationPersistenceManager cpm, Repository r) {
+            ConfigurationPersistenceManager cpm, Repository r, StashbotLoggerFactory lf) {
             this.rhs = rhs;
             this.jcm = jcm;
             this.cpm = cpm;
             this.r = r;
+            this.log = lf.getLoggerForThis(this);
         }
 
         @Override
@@ -325,7 +328,7 @@ public class JenkinsManager {
         Page<? extends Repository> p = repositoryService.findAll(pageReq);
         while (true) {
             for (Repository r : p.getValues()) {
-                Future<Void> f = es.submit(new CreateMissingRepositoryVisitor(rhs, jenkinsClientManager, cpm, r));
+                Future<Void> f = es.submit(new CreateMissingRepositoryVisitor(rhs, jenkinsClientManager, cpm, r, lf));
                 futures.add(f);
             }
             if (p.getIsLastPage())
@@ -351,19 +354,19 @@ public class JenkinsManager {
      */
     class UpdateAllRepositoryVisitor implements Callable<Void> {
 
-        private final Logger log = Logger.getLogger(CreateMissingRepositoryVisitor.class.toString());
-
         private final RepositoryHookService rhs;
         private final JenkinsClientManager jcm;
         private final ConfigurationPersistenceManager cpm;
         private final Repository r;
+        private final Logger log;
 
         public UpdateAllRepositoryVisitor(RepositoryHookService rhs, JenkinsClientManager jcm,
-            ConfigurationPersistenceManager cpm, Repository r) {
+            ConfigurationPersistenceManager cpm, Repository r, StashbotLoggerFactory lf) {
             this.rhs = rhs;
             this.jcm = jcm;
             this.cpm = cpm;
             this.r = r;
+            this.log = lf.getLoggerForThis(this);
         }
 
         @Override
@@ -408,7 +411,7 @@ public class JenkinsManager {
         Page<? extends Repository> p = repositoryService.findAll(pageReq);
         while (true) {
             for (Repository r : p.getValues()) {
-                Future<Void> f = es.submit(new UpdateAllRepositoryVisitor(rhs, jenkinsClientManager, cpm, r));
+                Future<Void> f = es.submit(new UpdateAllRepositoryVisitor(rhs, jenkinsClientManager, cpm, r, lf));
                 futures.add(f);
             }
             if (p.getIsLastPage())

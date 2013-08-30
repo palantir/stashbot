@@ -21,12 +21,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -43,19 +44,20 @@ public class BuildTriggerServlet extends HttpServlet {
      * 
      */
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(BuildTriggerServlet.class.toString());
     // 1 => repoId, 2 => type, 3 => build_head, 4 => mergeHead, 5 => pullRequestId
     private static final String URL_FORMAT = "BASE_URL/REPO_ID/TYPE/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
 
     private final RepositoryService repositoryService;
     private final PullRequestService pullRequestService;
     private final JenkinsManager jenkinsManager;
+    private final Logger log;
 
     public BuildTriggerServlet(RepositoryService repositoryService, PullRequestService pullRequestService,
-        JenkinsManager jenkinsManager) {
+        JenkinsManager jenkinsManager, StashbotLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.pullRequestService = pullRequestService;
         this.jenkinsManager = jenkinsManager;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override

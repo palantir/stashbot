@@ -43,6 +43,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
@@ -91,6 +92,8 @@ public class BuildSuccessReportingServletTest {
 
     private static final String ABSOLUTE_URL = "http://example.com/blah/foo";
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @Before
     public void setUp() throws IOException, SQLException {
         MockitoAnnotations.initMocks(this);
@@ -113,7 +116,7 @@ public class BuildSuccessReportingServletTest {
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
-        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, ub);
+        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, ub, lf);
     }
 
     @Test
