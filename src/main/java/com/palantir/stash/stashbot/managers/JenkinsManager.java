@@ -89,8 +89,8 @@ public class JenkinsManager {
 
     public void createJob(Repository repo, JenkinsBuildTypes buildType) {
         try {
-            final JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
             final RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+            final JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
             final JenkinsServer jenkinsServer = jenkinsClientManager.getJenkinsServer(jsc, rc);
             final String jobName = buildType.getBuildNameFor(repo);
 
@@ -176,8 +176,8 @@ public class JenkinsManager {
      */
     public void updateJob(Repository repo, JenkinsBuildTypes buildType) {
         try {
-            final JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
             final RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+            final JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
             final JenkinsServer jenkinsServer = jenkinsClientManager.getJenkinsServer(jsc, rc);
             final String jobName = buildType.getBuildNameFor(repo);
 
@@ -214,8 +214,8 @@ public class JenkinsManager {
         }
 
         try {
-            JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
             RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+            JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
             String jenkinsBuildId = type.getBuildNameFor(repo);
             String url = jsc.getUrl();
@@ -291,7 +291,7 @@ public class JenkinsManager {
         public Void call() throws Exception {
             RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(r);
             // may someday require repo also...
-            JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
+            JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
             if (!rc.getCiEnabled())
                 return null;
@@ -370,7 +370,7 @@ public class JenkinsManager {
         public Void call() throws Exception {
             RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(r);
             // may someday require repo also...
-            JenkinsServerConfiguration jsc = cpm.getDefaultJenkinsServerConfiguration();
+            JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
             if (!rc.getCiEnabled())
                 return null;
