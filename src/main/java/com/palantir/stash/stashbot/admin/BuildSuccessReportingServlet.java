@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatus.State;
@@ -37,6 +37,7 @@ import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
@@ -54,7 +55,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
      * 
      */
     private static final long serialVersionUID = 1L;
-    private static final Logger log = Logger.getLogger(BuildSuccessReportingServlet.class.toString());
+    private final Logger log;
 
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final RepositoryService repositoryService;
@@ -66,12 +67,13 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 
     public BuildSuccessReportingServlet(ConfigurationPersistenceManager configurationPersistenceManager,
         RepositoryService repositoryService, BuildStatusService buildStatusService,
-        PullRequestService pullRequestService, TriggerBuildUrlBuilder ub) {
+        PullRequestService pullRequestService, TriggerBuildUrlBuilder ub, StashbotLoggerFactory lf) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
         this.pullRequestService = pullRequestService;
         this.ub = ub;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override

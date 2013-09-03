@@ -17,7 +17,7 @@ import java.sql.SQLException;
 
 import javax.annotation.Nonnull;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
@@ -26,6 +26,7 @@ import com.atlassian.stash.scm.pull.MergeRequestCheck;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 /**
  * This class is a MergeRequestCheck to disable merging where the target repo has CI enabled and no comments which
@@ -35,12 +36,12 @@ import com.palantir.stash.stashbot.config.RepositoryConfiguration;
  */
 public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
-    private static final Logger log = Logger.getLogger(PullRequestBuildSuccessMergeCheck.class.toString());
-
     private final ConfigurationPersistenceManager cpm;
+    private final Logger log;
 
-    public PullRequestBuildSuccessMergeCheck(ConfigurationPersistenceManager cpm) {
+    public PullRequestBuildSuccessMergeCheck(ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
         this.cpm = cpm;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override

@@ -43,6 +43,7 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter.JenkinsBuildParam;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class JenkinsManagerTest {
 
@@ -89,6 +90,8 @@ public class JenkinsManagerTest {
     @Mock
     private JenkinsServerConfiguration jsc;
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws URISyntaxException, SQLException {
@@ -123,7 +126,7 @@ public class JenkinsManagerTest {
         Mockito.when(proj.getKey()).thenReturn("project_key");
 
         jenkinsManager =
-            new JenkinsManager(navBuilder, repositoryService, rhs, cpm, xmlFormatter, jenkinsClientManager);
+            new JenkinsManager(navBuilder, repositoryService, rhs, cpm, xmlFormatter, jenkinsClientManager, lf);
     }
 
     @Test

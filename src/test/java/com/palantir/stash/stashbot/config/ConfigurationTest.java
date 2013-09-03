@@ -39,6 +39,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
 @Jdbc(DynamicJdbcConfiguration.class)
@@ -60,6 +61,8 @@ public class ConfigurationTest {
     @Mock
     private PullRequest pr;
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -75,7 +78,7 @@ public class ConfigurationTest {
 
         ao = new TestActiveObjects(entityManager);
 
-        cpm = new ConfigurationPersistenceManager(ao);
+        cpm = new ConfigurationPersistenceManager(ao, lf);
     }
 
     @Test

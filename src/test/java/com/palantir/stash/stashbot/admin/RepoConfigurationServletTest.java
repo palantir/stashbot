@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 
@@ -85,6 +86,8 @@ public class RepoConfigurationServletTest {
     private static final String PREBC = "prebuildCommandString";
     private static final String JSN = "default";
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @SuppressWarnings("deprecation")
     @Before
     public void setUp() throws Exception {
@@ -124,7 +127,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(pageBuilderService.resources()).thenReturn(rr);
         rcs =
             new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, pageBuilderService, cpm,
-                jenkinsManager, pum);
+                jenkinsManager, pum, lf);
     }
 
     @Test

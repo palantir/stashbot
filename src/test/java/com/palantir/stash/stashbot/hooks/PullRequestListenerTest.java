@@ -31,6 +31,7 @@ import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -76,6 +77,8 @@ public class PullRequestListenerTest {
     private static final String COMMENT_TEXT = "comment text";
     private static final String OVERRIDE_COMMENT_TEXT = "Comment added with ==OVERRIDE==";
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @Before
     public void setUp() throws SQLException {
 
@@ -109,7 +112,7 @@ public class PullRequestListenerTest {
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(".*master.*");
 
-        prl = new PullRequestListener(cpm, jenkinsManager);
+        prl = new PullRequestListener(cpm, jenkinsManager, lf);
 
     }
 

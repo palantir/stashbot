@@ -35,6 +35,7 @@ import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -67,6 +68,8 @@ public class BuildTriggerServletTest {
 
     private BuildTriggerServlet bsrs;
 
+    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+
     @Before
     public void setUp() throws IOException, SQLException {
         MockitoAnnotations.initMocks(this);
@@ -79,7 +82,7 @@ public class BuildTriggerServletTest {
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
-        bsrs = new BuildTriggerServlet(repositoryService, prs, jenkinsManager);
+        bsrs = new BuildTriggerServlet(repositoryService, prs, jenkinsManager, lf);
     }
 
     @Test

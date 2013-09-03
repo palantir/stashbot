@@ -25,6 +25,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
@@ -34,6 +36,7 @@ import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 
@@ -50,16 +53,18 @@ public class RepoConfigurationServlet extends HttpServlet {
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final JenkinsManager jenkinsManager;
     private final PluginUserManager pluginUserManager;
+    private final Logger log;
 
     public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
         PageBuilderService pageBuilderService, ConfigurationPersistenceManager configurationPersistenceManager,
-        JenkinsManager jenkinsManager, PluginUserManager pluginUserManager) {
+        JenkinsManager jenkinsManager, PluginUserManager pluginUserManager, StashbotLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.pageBuilderService = pageBuilderService;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.jenkinsManager = jenkinsManager;
         this.pluginUserManager = pluginUserManager;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override
@@ -124,6 +129,7 @@ public class RepoConfigurationServlet extends HttpServlet {
 
         Repository rep = getRepository(req);
         if (rep == null) {
+            log.error("Failed to get repo for request" + req.toString());
             res.sendError(404);
             return;
         }

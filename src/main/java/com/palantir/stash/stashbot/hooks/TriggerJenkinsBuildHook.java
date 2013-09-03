@@ -18,7 +18,7 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import com.atlassian.stash.hook.repository.AsyncPostReceiveRepositoryHook;
 import com.atlassian.stash.hook.repository.RepositoryHookContext;
@@ -27,6 +27,7 @@ import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
@@ -34,14 +35,15 @@ import com.palantir.stash.stashbot.managers.JenkinsManager;
 // SEE: https://developer.atlassian.com/stash/docs/latest/reference/plugin-module-types/post-receive-hook-plugin-module.html
 public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
 
-    private static final Logger log = Logger.getLogger(TriggerJenkinsBuildHook.class.toString());
-
     private final ConfigurationPersistenceManager cpm;
     private final JenkinsManager jenkinsManager;
+    private final Logger log;
 
-    public TriggerJenkinsBuildHook(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager) {
+    public TriggerJenkinsBuildHook(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
+        StashbotLoggerFactory lf) {
         this.cpm = cpm;
         this.jenkinsManager = jenkinsManager;
+        this.log = lf.getLoggerForThis(this);
     }
 
     @Override

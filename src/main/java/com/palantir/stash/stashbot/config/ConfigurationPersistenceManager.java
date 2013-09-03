@@ -20,20 +20,25 @@ import java.util.List;
 import net.java.ao.DBParam;
 import net.java.ao.Query;
 
+import org.slf4j.Logger;
+
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class ConfigurationPersistenceManager {
 
     private final ActiveObjects ao;
+    private final Logger log;
 
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
-    public ConfigurationPersistenceManager(ActiveObjects ao) {
+    public ConfigurationPersistenceManager(ActiveObjects ao, StashbotLoggerFactory lf) {
         this.ao = ao;
+        this.log = lf.getLoggerForThis(this);
     }
 
     public void deleteJenkinsServerConfiguration(String name) {
@@ -75,6 +80,7 @@ public class ConfigurationPersistenceManager {
                 Query.select().where("name = ?", name));
 
         if (configs.length == 0) {
+            log.info("Creating jenkins configuration: " + name);
             ao.create(JenkinsServerConfiguration.class,
                 new DBParam("NAME", name),
                 new DBParam("URL", url),
@@ -126,6 +132,7 @@ public class ConfigurationPersistenceManager {
         RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
+            log.info("Creating repository configuration for id: " + repo.getId().toString());
             RepositoryConfiguration rc = ao.create(RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()),
                 new DBParam("CI_ENABLED", isCiEnabled),
@@ -196,6 +203,7 @@ public class ConfigurationPersistenceManager {
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class, "PULL_REQUEST_ID = ?", id);
         if (prms.length == 0) {
             // new PR, create a new object
+            log.info("Creating PR Metadata for id: " + id.toString());
             PullRequestMetadata prm = ao.create(PullRequestMetadata.class,
                 new DBParam("PULL_REQUEST_ID", id),
                 new DBParam("TO_SHA", pr.getToRef().getLatestChangeset()),
