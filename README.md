@@ -51,8 +51,6 @@ can do something like this to easily build your own copy and use it:
 # TODO
 
 ## KNOWN BUGS
-* Updated pull requests do not re-trigger a build
-* Deleted references trigger a build
 * JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
 
 ## PLANNED FEATURES
@@ -60,7 +58,6 @@ can do something like this to easily build your own copy and use it:
 * Implement git-flow (https://bitbucket.org/atlassian/maven-jgitflow-plugin is a candidate, but doesn't work with the atlassian plugin SDK at this time, see https://bitbucket.org/atlassian/maven-jgitflow-plugin/issue/56/requires-maven-221-doesnt-work-with)
 * Better Test coverage - especially integration tests
 * Error checking - validate hashes sent to build status, etc.
-* Any commit can be built (or retriggered) with a single click
 
 ## POSSIBLE FUTURE FEATURES
 
