@@ -141,7 +141,7 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
                         + " because it already triggered a verify build");
                     continue;
                 }
-                if (isInAnotherRef(repo, cs, refChange.getRefId())) {
+                if (isInAnotherVerifiedRef(repo, rc, cs, refChange.getRefId())) {
                     log.info("NOT Triggering VERIFICATION build for commit " + cs
                         + " because it is already contained in another branch");
                     continue;
@@ -154,8 +154,22 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
         }
     }
 
-    // TODO: we need to implement this to prevent rebuilding existing refs every time we update a branch
-    private boolean isInAnotherRef(Repository repo, String sha1, String currentRef) {
+    private boolean isInAnotherVerifiedRef(Repository repo, RepositoryConfiguration rc, String sha1, String currentRef) {
+        GitScmCommandBuilder gcb = gcbf.builder(repo).command("branch").argument("--contains").argument(sha1);
+        CommandOutputHandler<Object> gboh = cohf.getBranchContainsOutputHandler();
+        gcb.build(gboh).call();
+        @SuppressWarnings("unchecked")
+        ImmutableList<String> branches = (ImmutableList<String>) gboh.getOutput();
+        for (String branch : branches) {
+            if (!branch.equals(currentRef)) {
+                // see if branch is currently configured to verify
+                if (branch.matches(rc.getVerifyBranchRegex())) {
+                    log.info("Found commit " + sha1 + " is contained in branch " + branch
+                        + " which matches verify regex so not triggering build");
+                    return true;
+                }
+            }
+        }
         return false;
     }
 }

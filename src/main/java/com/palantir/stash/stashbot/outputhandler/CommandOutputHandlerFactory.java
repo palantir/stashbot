@@ -61,4 +61,59 @@ public class CommandOutputHandlerFactory {
             }
         };
     }
+
+    /**
+     * Returns an output handler which provides an ImmutableList of branches in the form "refs/heads/foo" when the
+     * command prints out a list of the form "XXfoo\n" where X doesn't matter.
+     * 
+     * @return ImmutableList<String> branchNames
+     */
+    public CommandOutputHandler<Object> getBranchContainsOutputHandler() {
+        return new CommandOutputHandler<Object>() {
+
+            private ArrayList<String> branches;
+            private LineReader lr;
+            private boolean processed = false;
+
+            @Override
+            public void complete() throws ProcessException {
+            }
+
+            @Override
+            public void setWatchdog(Watchdog watchdog) {
+            }
+
+            @Override
+            @Nullable
+            public Object getOutput() {
+                if (processed == false) {
+                    throw new IllegalStateException("getOutput() called before process()");
+                }
+                return ImmutableList.copyOf(branches);
+            }
+
+            @Override
+            public void process(InputStream output) throws ProcessException {
+                processed = true;
+                if (branches == null) {
+                    branches = new ArrayList<String>();
+                    lr = new LineReader(new InputStreamReader(output));
+                }
+
+                String branch = "";
+                while (branch != null) {
+                    try {
+                        branch = lr.readLine();
+                    } catch (IOException e) {
+                        // dear god, why is this happening?
+                        throw new RuntimeException(e);
+                    }
+                    // format is "  somebranch\n* branchIamOn\n  someOtherBranch"
+                    if (branch != null) {
+                        branches.add("refs/heads/" + branch.substring(2));
+                    }
+                }
+            }
+        };
+    }
 }
