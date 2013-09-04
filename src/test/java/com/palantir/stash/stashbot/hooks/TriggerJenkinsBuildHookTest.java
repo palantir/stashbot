@@ -27,6 +27,7 @@ import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
+import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
@@ -40,6 +41,7 @@ public class TriggerJenkinsBuildHookTest {
     private static final String HEAD = "38356e8abe0e97648dd1007278ecc02c3bf3d2cb";
     private static final String HEAD_BR = "master";
     private static final String FROM_HEAD = "cac9954e06013073c1bf9e17b2c1c919095817dc";
+    private static final String HEAD_MINUS_ONE = "15e5e7272bec0e0c1093327b0e8e02deefa6d1e5";
     private static final int REPO_ID = 1;
 
     @Mock
@@ -91,8 +93,8 @@ public class TriggerJenkinsBuildHookTest {
 
         // MGC stuff
         mgc = new MockGitCommandBuilderFactory();
-        mgc.addChangeset(HEAD);
-        // mgc.addChangeset(FROM_HEAD);
+        mgc.getChangesets().add(HEAD);
+        mgc.getBranchMap().put(HEAD, ImmutableList.of("  otherbranch"));
 
         gcbf = mgc.getGitCommandBuilderFactory();
         cohf = new CommandOutputHandlerFactory();
@@ -138,5 +140,32 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.PUBLISH, HEAD);
+    }
+
+    @Test
+    public void testVerifyBuildsMultipleChanges() {
+        mgc.getChangesets().clear();
+        mgc.getChangesets().add(HEAD_MINUS_ONE);
+        mgc.getChangesets().add(HEAD);
+
+        tjbh.postReceive(rhc, changes);
+
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD_MINUS_ONE);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+    }
+
+    @Test
+    public void testVerifyIgnoresChangeAlreadyInPreviousBranch() {
+        mgc.getChangesets().clear();
+        mgc.getChangesets().add(HEAD_MINUS_ONE);
+        mgc.getChangesets().add(HEAD);
+        // HEAD_MINUS_ONE is already in branch master2, so don't verify it
+        mgc.getBranchMap().put(HEAD_MINUS_ONE, ImmutableList.of("  master2"));
+
+        tjbh.postReceive(rhc, changes);
+
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION,
+            HEAD_MINUS_ONE);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
     }
 }
