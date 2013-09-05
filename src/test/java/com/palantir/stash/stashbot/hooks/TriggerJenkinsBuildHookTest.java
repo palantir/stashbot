@@ -26,11 +26,14 @@ import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.mocks.MockGitCommandBuilderFactory;
+import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
 
 public class TriggerJenkinsBuildHookTest {
 
@@ -55,6 +58,11 @@ public class TriggerJenkinsBuildHookTest {
     private RepositoryHookContext rhc;
     @Mock
     private RefChange change;
+
+    // Stuff from MockGitCommandFactory class
+    MockGitCommandBuilderFactory mgc;
+    private GitCommandBuilderFactory gcbf;
+    private CommandOutputHandlerFactory cohf;
 
     private ArrayList<RefChange> changes;
 
@@ -81,8 +89,15 @@ public class TriggerJenkinsBuildHookTest {
         changes = new ArrayList<RefChange>();
         changes.add(change);
 
-        tjbh = new TriggerJenkinsBuildHook(cpm, jenkinsManager, lf);
+        // MGC stuff
+        mgc = new MockGitCommandBuilderFactory();
+        mgc.addChangeset(HEAD);
+        // mgc.addChangeset(FROM_HEAD);
 
+        gcbf = mgc.getGitCommandBuilderFactory();
+        cohf = new CommandOutputHandlerFactory();
+
+        tjbh = new TriggerJenkinsBuildHook(cpm, jenkinsManager, gcbf, cohf, lf);
     }
 
     @Test

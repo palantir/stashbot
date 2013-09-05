@@ -118,12 +118,12 @@ public class ConfigurationPersistenceManager {
         String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand, String prebuildCommand)
         throws SQLException, IllegalArgumentException {
         setRepositoryConfigurationForRepository(repo, isCiEnabled, verifyBranchRegex, verifyBuildCommand,
-            publishBranchRegex, publishBuildCommand, prebuildCommand, null);
+            publishBranchRegex, publishBuildCommand, prebuildCommand, null, null);
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo, boolean isCiEnabled, String verifyBranchRegex,
         String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand, String prebuildCommand,
-        String jenkinsServerName)
+        String jenkinsServerName, Integer maxVerifyChain)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -143,6 +143,9 @@ public class ConfigurationPersistenceManager {
                 new DBParam("PREBUILD_COMMAND", prebuildCommand),
                 new DBParam("JENKINS_SERVER_NAME", jenkinsServerName)
                 );
+            if (maxVerifyChain != null) {
+                rc.setMaxVerifyChain(maxVerifyChain);
+            }
             rc.save();
             return;
         }
@@ -153,6 +156,9 @@ public class ConfigurationPersistenceManager {
         repos[0].setPublishBuildCommand(publishBuildCommand);
         repos[0].setPrebuildCommand(prebuildCommand);
         repos[0].setJenkinsServerName(jenkinsServerName);
+        if (maxVerifyChain != null) {
+            repos[0].setMaxVerifyChain(maxVerifyChain);
+        }
         repos[0].save();
     }
 

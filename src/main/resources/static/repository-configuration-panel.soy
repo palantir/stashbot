@@ -10,6 +10,7 @@
  * @param prebuildCommand
  * @param jenkinsServerName
  * @param jenkinsServersData
+ * @param maxVerifyChain
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -79,6 +80,12 @@
             {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command to run for a verify build') /}
             {param value: $verifyBuildCommand /}
             {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'Command to run for a verify build') /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'maxVerifyChain' /}
+            {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+            {param value: $maxVerifyChain /}
+            {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
           {/call}
           {call aui.form.buttons}
             {param content}

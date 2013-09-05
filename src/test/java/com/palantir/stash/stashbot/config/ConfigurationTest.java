@@ -151,7 +151,7 @@ public class ConfigurationTest {
         int size = ao.count(RepositoryConfiguration.class);
 
         cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
-            "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "default");
+            "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "default", null);
 
         RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
 
@@ -174,7 +174,7 @@ public class ConfigurationTest {
 
         try {
             cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
-                "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "BADNAME");
+                "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "BADNAME", null);
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success

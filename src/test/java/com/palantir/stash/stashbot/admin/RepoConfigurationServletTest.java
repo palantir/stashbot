@@ -176,7 +176,7 @@ public class RepoConfigurationServletTest {
 
         // Verify it persists
         Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", PBR + "2",
-            PBC + "2", PREBC + "2", "default");
+            PBC + "2", PREBC + "2", "default", null);
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");

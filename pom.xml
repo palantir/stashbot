@@ -47,6 +47,12 @@
             <artifactId>stash-scm-git-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- this is needed for CallbackLineOutputHandler - no clue why it isn't included in stash-scm-git-api ... -->
+        <dependency>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-scm-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.atlassian.plugins</groupId>
             <artifactId>atlassian-plugins-webresource</artifactId>

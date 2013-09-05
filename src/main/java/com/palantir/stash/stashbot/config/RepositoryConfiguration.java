@@ -71,4 +71,15 @@ public interface RepositoryConfiguration extends Entity {
     public String getJenkinsServerName();
 
     public void setJenkinsServerName(String jenkinsServerName);
+
+    /**
+     * Maximum number of verify builds to trigger when pushed all at once. This limit makes it so that if you push a
+     * chain of 100 new commits all at once, instead of saturating your build hardware, only the N most recent commits
+     * are built. Set to "0" for infinite. Default is 10.
+     */
+    @NotNull
+    @Default("10")
+    public Integer getMaxVerifyChain();
+
+    public void setMaxVerifyChain(Integer max);
 }

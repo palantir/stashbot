@@ -109,6 +109,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("verifyBuildCommand", rc.getVerifyBuildCommand())
                     .put("prebuildCommand", rc.getPrebuildCommand())
                     .put("jenkinsServerName", rc.getJenkinsServerName())
+                    .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
                     .put("jenkinsServersData", jenkinsServersData)
                     .build()
                 );
@@ -141,10 +142,17 @@ public class RepoConfigurationServlet extends HttpServlet {
         String verifyBuildCommand = req.getParameter("verifyBuildCommand");
         String prebuildCommand = req.getParameter("prebuildCommand");
         String jenkinsServerName = req.getParameter("jenkinsServerName");
+        String maxVerifyChainStr = req.getParameter("maxVerifyChain");
+
+        Integer maxVerifyChain = null;
+        if (maxVerifyChainStr != null && !maxVerifyChainStr.isEmpty()) {
+            maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
+        }
 
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
-                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName);
+                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName,
+                maxVerifyChain);
             // add permission to the requisite user
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
