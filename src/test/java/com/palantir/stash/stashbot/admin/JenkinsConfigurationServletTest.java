@@ -70,6 +70,8 @@ public class JenkinsConfigurationServletTest {
     private static final String JP = "JenkinsPassword";
     private static final String SU = "StashUsername";
     private static final String SP = "StashPassword";
+    private static final String MVC_S = "10";
+    private static final Integer MVC = 10;
 
     private static final String REQUEST_URI = "http://someuri.example.com/blah";
 
@@ -95,6 +97,7 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(jsc.getPassword()).thenReturn(JP);
         Mockito.when(jsc.getStashUsername()).thenReturn(SU);
         Mockito.when(jsc.getStashPassword()).thenReturn(SP);
+        Mockito.when(jsc.getMaxVerifyChain()).thenReturn(MVC);
 
         Mockito.when(jsc2.getName()).thenReturn(JN + "2");
         Mockito.when(jsc2.getUrl()).thenReturn(JURL + "2");
@@ -102,6 +105,7 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(jsc2.getPassword()).thenReturn(JP + "2");
         Mockito.when(jsc2.getStashUsername()).thenReturn(SU + "2");
         Mockito.when(jsc2.getStashPassword()).thenReturn(SP + "2");
+        Mockito.when(jsc2.getMaxVerifyChain()).thenReturn(MVC);
 
         Mockito.when(pageBuilderService.resources()).thenReturn(rr);
 
@@ -145,11 +149,13 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(req.getParameter("password")).thenReturn(JP + "2");
         Mockito.when(req.getParameter("stashUsername")).thenReturn(SU + "2");
         Mockito.when(req.getParameter("stashPassword")).thenReturn(SP + "2");
+        Mockito.when(req.getParameter("maxVerifyChain")).thenReturn(MVC_S);
 
         jcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setJenkinsServerConfiguration(JN + "2", JURL + "2", JU + "2", JP + "2", SU + "2", SP + "2");
+        Mockito.verify(cpm).setJenkinsServerConfiguration(JN + "2", JURL + "2", JU + "2", JP + "2", SU + "2", SP + "2",
+            MVC);
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");

@@ -70,7 +70,7 @@ public class ConfigurationPersistenceManager {
     }
 
     public void setJenkinsServerConfiguration(String name, String url, String username, String password,
-        String stashUsername, String stashPassword) throws SQLException {
+        String stashUsername, String stashPassword, Integer maxVerifyChain) throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
@@ -87,7 +87,8 @@ public class ConfigurationPersistenceManager {
                 new DBParam("USERNAME", username),
                 new DBParam("PASSWORD", password),
                 new DBParam("STASH_USERNAME", stashUsername),
-                new DBParam("STASH_PASSWORD", stashPassword)
+                new DBParam("STASH_PASSWORD", stashPassword),
+                new DBParam("MAX_VERIFY_CHAIN", maxVerifyChain)
                 );
             return;
         }
@@ -98,6 +99,7 @@ public class ConfigurationPersistenceManager {
         configs[0].setPassword(password);
         configs[0].setStashUsername(stashUsername);
         configs[0].setStashPassword(stashPassword);
+        configs[0].setMaxVerifyChain(maxVerifyChain);
         configs[0].save();
     }
 

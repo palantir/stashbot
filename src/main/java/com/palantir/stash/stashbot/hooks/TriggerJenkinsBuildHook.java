@@ -33,6 +33,7 @@ import com.atlassian.stash.scm.git.GitScmCommandBuilder;
 import com.atlassian.stash.scm.git.revlist.GitRevListBuilder;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
@@ -118,8 +119,9 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
             GitRevListBuilder grlb = gscb.revList();
             grlb.revs("^" + refChange.getFromHash(), refChange.getToHash());
 
-            if (rc.getMaxVerifyChain() != 0) {
-                grlb.limit(rc.getMaxVerifyChain());
+            Integer maxVerifyChain = getMaxVerifyChain(rc);
+            if (maxVerifyChain != 0) {
+                grlb.limit(maxVerifyChain);
             }
             CommandOutputHandler<Object> rloh = cohf.getRevlistOutputHandler();
             grlb.build(rloh).call();
@@ -171,5 +173,31 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
             }
         }
         return false;
+    }
+
+    private Integer getMaxVerifyChain(RepositoryConfiguration rc) {
+        JenkinsServerConfiguration jsc;
+        try {
+            jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+        } catch (SQLException e) {
+            log.error("Error getting jenkins server configuration for repo id " + rc.getRepoId().toString(), e);
+            return rc.getMaxVerifyChain();
+        }
+        Integer serverMaxChain = jsc.getMaxVerifyChain();
+        Integer repoMaxChain = rc.getMaxVerifyChain();
+
+        if (serverMaxChain == 0) {
+            // no server limits, just use repo limit
+            return repoMaxChain;
+        }
+        if (repoMaxChain == 0) {
+            // repo unlimited, server limited, use server limit
+            return serverMaxChain;
+        }
+        // neither is unlimited, return lower limit
+        if (serverMaxChain < repoMaxChain) {
+            return serverMaxChain;
+        }
+        return repoMaxChain;
     }
 }
