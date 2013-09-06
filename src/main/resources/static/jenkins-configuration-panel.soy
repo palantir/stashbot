@@ -77,6 +77,12 @@
               {param value: $jenkinsConfig.stashPassword /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
             {/call}
+            {call aui.form.textField}
+              {param id: 'maxVerifyChain' /}
+              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+              {param value: ($jenkinsConfig.maxVerifyChain == 0 ? '0' : $jenkinsConfig.maxVerifyChain) /}
+              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+            {/call}
             {call aui.form.buttons}
               {param content}
                 {call aui.form.submit}
@@ -133,6 +139,12 @@
               {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
               {param value: 'stash_password' /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'maxVerifyChain' /}
+              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+              {param value: '10' /}
+              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
             {/call}
             {call aui.form.buttons}
               {param content}

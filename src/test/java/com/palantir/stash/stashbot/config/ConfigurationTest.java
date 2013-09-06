@@ -88,10 +88,11 @@ public class ConfigurationTest {
         String password = "jenkins_test_user_password";
         String stashUsername = "stash_test_user";
         String stashPassword = "stash_test_user_password";
+        Integer maxVerifyChain = 10;
 
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
-        cpm.setJenkinsServerConfiguration(null, url, username, password, stashUsername, stashPassword);
+        cpm.setJenkinsServerConfiguration(null, url, username, password, stashUsername, stashPassword, maxVerifyChain);
         JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(null);
         Assert.assertEquals("default", jsc.getName());
         Assert.assertEquals(url, jsc.getUrl());
@@ -126,8 +127,8 @@ public class ConfigurationTest {
     @Test
     public void getsAllJenkinsServerConfigurationsNotEmpty() throws Exception {
 
-        cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw", "stashuser", "stashpw");
-        cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw", "stashuser", "stashpw");
+        cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw", "stashuser", "stashpw", 10);
+        cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw", "stashuser", "stashpw", 10);
 
         Collection<JenkinsServerConfiguration> jscs = cpm.getAllJenkinsServerConfigurations();
         Assert.assertEquals(jscs.size(), 2);
@@ -140,6 +141,7 @@ public class ConfigurationTest {
         Assert.assertEquals("url1", configs.get("default").getUrl());
         Assert.assertEquals("foo", configs.get("foo").getName());
         Assert.assertEquals("url2", configs.get("foo").getUrl());
+        Assert.assertEquals(new Integer(10), configs.get("foo").getMaxVerifyChain());
     }
 
     @Test

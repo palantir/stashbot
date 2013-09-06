@@ -29,6 +29,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
@@ -43,6 +44,7 @@ public class TriggerJenkinsBuildHookTest {
     private static final String FROM_HEAD = "cac9954e06013073c1bf9e17b2c1c919095817dc";
     private static final String HEAD_MINUS_ONE = "15e5e7272bec0e0c1093327b0e8e02deefa6d1e5";
     private static final int REPO_ID = 1;
+    private static final Integer MVC = 10;
 
     @Mock
     private ConfigurationPersistenceManager cpm;
@@ -50,6 +52,8 @@ public class TriggerJenkinsBuildHookTest {
     private JenkinsManager jenkinsManager;
     @Mock
     private RepositoryConfiguration rc;
+    @Mock
+    private JenkinsServerConfiguration jsc;
 
     private TriggerJenkinsBuildHook tjbh;
 
@@ -78,9 +82,11 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
+        Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(".*master.*");
         Mockito.when(rc.getPublishBranchRegex()).thenReturn(".*release.*");
+        Mockito.when(jsc.getMaxVerifyChain()).thenReturn(MVC);
 
         Mockito.when(rhc.getRepository()).thenReturn(repo);
         Mockito.when(change.getFromHash()).thenReturn(FROM_HEAD);

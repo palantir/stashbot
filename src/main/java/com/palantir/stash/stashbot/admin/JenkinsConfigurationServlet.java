@@ -126,10 +126,11 @@ public class JenkinsConfigurationServlet extends HttpServlet {
         String password = req.getParameter("password");
         String stashUsername = req.getParameter("stashUsername");
         String stashPassword = req.getParameter("stashPassword");
+        Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
 
         try {
             configurationPersistanceManager.setJenkinsServerConfiguration(name, url, username, password, stashUsername,
-                stashPassword);
+                stashPassword, maxVerifyChain);
             pluginUserManager.createStashbotUser(configurationPersistanceManager.getJenkinsServerConfiguration(name));
         } catch (SQLException e) {
             res.sendError(500, e.getMessage());
