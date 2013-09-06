@@ -14,6 +14,7 @@
 package com.palantir.stash.stashbot.admin;
 
 import java.io.PrintWriter;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
@@ -61,6 +63,8 @@ public class JenkinsConfigurationServletTest {
     private JenkinsServerConfiguration jsc2;
     @Mock
     private PluginUserManager pum;
+    @Mock
+    private LoginUriProvider lup;
 
     private JenkinsConfigurationServlet jcs;
 
@@ -72,6 +76,8 @@ public class JenkinsConfigurationServletTest {
     private static final String SP = "StashPassword";
     private static final String MVC_S = "10";
     private static final Integer MVC = 10;
+    private static final String USER = "logged_in_user";
+    private static final URI LOGIN_URI = URI.create("https://stash.example.com/");
 
     private static final String REQUEST_URI = "http://someuri.example.com/blah";
 
@@ -85,6 +91,9 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(res.getWriter()).thenReturn(writer);
         Mockito.when(req.getRequestURL()).thenReturn(new StringBuffer(REQUEST_URI));
         Mockito.when(req.getPathInfo()).thenReturn("");
+        Mockito.when(req.getRemoteUser()).thenReturn(USER);
+
+        Mockito.when(lup.getLoginUri(Mockito.any(URI.class))).thenReturn(LOGIN_URI);
 
         Mockito.when(cpm.getJenkinsServerConfiguration(null)).thenReturn(jsc);
         Mockito.when(cpm.getJenkinsServerConfiguration(JN)).thenReturn(jsc);
@@ -109,7 +118,18 @@ public class JenkinsConfigurationServletTest {
 
         Mockito.when(pageBuilderService.resources()).thenReturn(rr);
 
-        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null, lf);
+        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null, lup, lf);
+    }
+
+    @Test
+    public void getTestWhenNotLoggedIn() throws Exception {
+
+        Mockito.when(req.getRemoteUser()).thenReturn(null);
+
+        jcs.doGet(req, res);
+
+        Mockito.verify(res).sendRedirect(Mockito.anyString());
+        Mockito.verify(res, Mockito.never()).getWriter();
     }
 
     @Test
