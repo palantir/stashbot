@@ -117,10 +117,18 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
             // We want to trigger a build for each new commit that was pushed
             GitScmCommandBuilder gscb = gcbf.builder(repo);
             GitRevListBuilder grlb = gscb.revList();
-            grlb.revs("^" + refChange.getFromHash(), refChange.getToHash());
+            if (refChange.getType().equals(RefChangeType.ADD)) {
+                // then we want to build all refs in the history that aren't already in another branch, up to the limit.
+                log.debug("Detected add, considering entire history for verification");
+                grlb.revs(refChange.getToHash());
+            } else {
+                log.debug("Detected update, considering new commits for verification");
+                grlb.revs("^" + refChange.getFromHash(), refChange.getToHash());
+            }
 
             Integer maxVerifyChain = getMaxVerifyChain(rc);
             if (maxVerifyChain != 0) {
+                log.debug("Limiting to " + maxVerifyChain.toString() + " commits for verification");
                 grlb.limit(maxVerifyChain);
             }
             CommandOutputHandler<Object> rloh = cohf.getRevlistOutputHandler();

@@ -174,4 +174,19 @@ public class TriggerJenkinsBuildHookTest {
             HEAD_MINUS_ONE);
         Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
     }
+
+    @Test
+    public void testVerifyNewBranch() {
+        mgc.getChangesets().clear();
+        mgc.getChangesets().add(HEAD_MINUS_ONE);
+        mgc.getChangesets().add(HEAD);
+        Mockito.when(change.getType()).thenReturn(RefChangeType.ADD);
+        Mockito.when(change.getFromHash()).thenReturn("0000000000000000000000000000000000000000");
+
+        tjbh.postReceive(rhc, changes);
+
+        // TODO: verify the git rev-list is invoked with proper args?
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD_MINUS_ONE);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+    }
 }
