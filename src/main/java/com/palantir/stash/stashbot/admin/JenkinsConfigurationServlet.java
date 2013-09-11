@@ -106,7 +106,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
         res.setContentType("text/html;charset=UTF-8");
         try {
-            pageBuilderService.resources().requireContext("plugin.page.stashbot");
+            pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             ImmutableCollection<JenkinsServerConfiguration> jenkinsConfigs =
                 configurationPersistanceManager.getAllJenkinsServerConfigurations();
             soyTemplateRenderer.render(res.getWriter(),

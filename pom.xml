@@ -187,8 +187,8 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>2.6.1</stash.version>
-        <stash.data.version>2.6.1</stash.data.version>
+        <stash.version>2.7.1</stash.version>
+        <stash.data.version>2.7.1</stash.data.version>
         <stash.containerId>tomcat7x</stash.containerId>
         <!--
         WARNING: manually sync this with the version in stash - variable in the

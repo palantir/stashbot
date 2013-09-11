@@ -96,7 +96,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                 }
                 jenkinsServersData.add(m);
             }
-            pageBuilderService.resources().requireContext("plugin.page.stashbot");
+            pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             soyTemplateRenderer.render(res.getWriter(),
                 "com.palantir.stash.stashbot:stashbotConfigurationResources",
                 "plugin.page.stashbot.repositoryConfigurationPanel",

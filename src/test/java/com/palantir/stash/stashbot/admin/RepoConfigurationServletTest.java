@@ -32,6 +32,7 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
+import com.atlassian.webresource.api.assembler.WebResourceAssembler;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -49,6 +50,8 @@ public class RepoConfigurationServletTest {
     private RepositoryService repositoryService;
     @Mock
     private PageBuilderService pageBuilderService;
+    @Mock
+    private WebResourceAssembler webResourceAssembler;
     @Mock
     private RequiredResources rr;
     @Mock
@@ -124,7 +127,9 @@ public class RepoConfigurationServletTest {
         Mockito.when(cpm.getJenkinsServerConfiguration(JSN)).thenReturn(jsc);
         Mockito.when(cpm.getJenkinsServerConfiguration(JSN + "2")).thenReturn(jsc2);
 
-        Mockito.when(pageBuilderService.resources()).thenReturn(rr);
+        Mockito.when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
+        Mockito.when(webResourceAssembler.resources()).thenReturn(rr);
+
         rcs =
             new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, pageBuilderService, cpm,
                 jenkinsManager, pum, lf);

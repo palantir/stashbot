@@ -34,6 +34,7 @@ import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
+import com.atlassian.webresource.api.assembler.WebResourceAssembler;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
@@ -46,6 +47,8 @@ public class JenkinsConfigurationServletTest {
     private ConfigurationPersistenceManager cpm;
     @Mock
     private PageBuilderService pageBuilderService;
+    @Mock
+    private WebResourceAssembler webResourceAssembler;
     @Mock
     private RequiredResources rr;
     @Mock
@@ -116,7 +119,8 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(jsc2.getStashPassword()).thenReturn(SP + "2");
         Mockito.when(jsc2.getMaxVerifyChain()).thenReturn(MVC);
 
-        Mockito.when(pageBuilderService.resources()).thenReturn(rr);
+        Mockito.when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
+        Mockito.when(webResourceAssembler.resources()).thenReturn(rr);
 
         jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null, lup, lf);
     }
