@@ -226,7 +226,7 @@ public class JenkinsManager {
             String password = jsc.getPassword();
 
             log.info("Triggering jenkins build id " + jenkinsBuildId + " on hash " + hashToBuild
-                + " (" + user + "@" + url + " pw: " + password + ")");
+                + " (" + user + "@" + url + " pw: " + password.replaceAll(".", "*") + ")");
 
             final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc, rc);
             Map<String, Job> jobMap = js.getJobs();

@@ -120,6 +120,7 @@ public class JenkinsManagerTest {
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
         Mockito.when(jsc.getStashUsername()).thenReturn("stash_username");
         Mockito.when(jsc.getStashPassword()).thenReturn("stash_password");
+        Mockito.when(jsc.getPassword()).thenReturn("jenkins_password");
 
         Mockito.when(repo.getSlug()).thenReturn("slug");
         Mockito.when(repo.getProject()).thenReturn(proj);
