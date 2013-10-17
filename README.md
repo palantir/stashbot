@@ -10,6 +10,94 @@ To work with Jenkins, you MUST install the following jenkins plugins first.
 
 If either of these are missing, shit won't work.
 
+# USER GUIDE
+
+Stashbot is designed to enable high quality code workflows, and make doing the
+easy things easy and the hard things possible.  Stashbot will create a build in
+a jenkins instance for verifying your code, as well as publishing it.
+Additionally, stashbot will trigger builds whenever matching pushes or pull
+requests are created.
+
+## INITIAL CONFIG
+
+After installing stashbot, you will need to configure your jenkins instance.
+Stashbot can be configured to use multiple jenkins servers (perhaps your
+company has different jenkins instances for different teams or projects), and
+the jenkins server is configured on a per-repository basis.  Configure jenkins
+servers by clicking on "Stashbot Jenkins Admin" under the Administration page.
+You will need to be a stash administrator.
+
+Enter a descriptive jenkins server name, the URL, the username/password if
+needed (if security is not enabled, you can leave the dummy values here), and
+the username/password of the user the jenkins job should use to connect to
+stash (this can be a read-only account and will automagically be given read
+access to each project that enables stashbot).  Finally, the "maximum commits
+to verify on a single push" setting lets you determine how many commits, at
+most, to enqueue due to a single push.  If you want to build every commit, no
+matter what, set this to zero, but if you want to guard against soemone pushing
+200 commits all at once and tying up your executors for a long time, you could
+set this to a safer value like N or 2N where N is the number of executors your
+jenkins instance has.
+
+## REPO CONFIG
+
+For each project you wish to configure using stashbot, go to the project and
+look under "Settings" for the "Stashbot CI Admin" page.  To configure this, you
+will need to be a project administrator, but not necessarily a stash admin.
+
+Click the checkbox to enable stashbot for this repository, and select the
+proper jenkins server from the dropdown box.  If any commands need to be run
+before the build, you can put them as the pre-build command, or just leave it
+as /bin/true.
+
+The "Regex for branches to publish" is a regular expression that, when refs
+matching it are pushed to, will trigger a publish build.  Publish builds are
+always performed ONLY on the actual ref pushed, not each commit in the history.
+This means if you push 3 commits, A depends upon B depends upon C depends upon
+the previous ref, commit A is published.  The regex is anchored and compared to
+"refs/heads/foo", for example, so you probably want a regular expression like
+`refs/heads/(master|develop)` or `.*feature.*`.
+
+The "Regex for branches to verify" works just like the publish regex, except
+things that match the verify regex trigger one or more verify builds.  The
+exact logic to trigger verify builds is as follows.  For each updated ref that
+matches the verify regex and are not a DELETE, a `rev-list` is performed to
+list all commits from the previous value to the new value.  If the change is an
+add, and there is no previous value, then all commits are listed.  The list is
+limited by the max verify chain length, considering newer commits first.  Next,
+for each commit in this list, the commit is built UNLESS it already triggered a
+publish build, a verify build (from some other ref already processed), or
+already exists in another ref which also matches the verify regex.  This
+ensures that if you have feature/A and feature/B and A is 200 commits behind B,
+and you push a merge between the two, these 200 commits (which theoretically
+were already verified) are not verified again.
+
+*NOTE:* When you click "Save" on a repository configuration, the build job in
+jenkins is created/updated.  Any manual changes to the job are overwritten by
+the defaults.  For this reason, making manual changes to jenkins jobs is not
+recommended.  Future plans may include more extension points for jobs.
+
+## NORMAL USAGE
+
+Once stashbot is configured correctly and enabled on a repository, usage is
+mostly automatic.  Any ref you push matching the verify or publish regex
+configured will trigger builds.  If the build fails for a transient reason, or
+is skipped due to maxVerifyChain limits, you can manually trigger a verify by
+clicking the "Retrigger" link listed on the Commits tab of any repository which
+has stashbot enabled.
+
+Any time a pull request is created whose target branch to be updated matches
+the verify regex, the pull request will trigger a special verify build which
+first merges the source and target branches, emulating the pull request being
+merged, before performing the build.  Since there is no commit listing to
+report the build status to, the build status is reported in comments on the
+pull request.  The pull request cannot be merged until this build succeeds, or
+a user overrides by adding the phrase `"==OVERRIDE=="` to a comment.
+
+If a pull request is updated (including if the target branch is updated)
+another verify build is automatically triggered, and the merge is again
+disallowed until that build has succeeded.
+
 # DEV GUIDE
 
 ## Eclipse
