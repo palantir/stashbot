@@ -77,7 +77,7 @@ public class ConfigurationPersistenceManager {
         validateName(name);
         JenkinsServerConfiguration[] configs =
             ao.find(JenkinsServerConfiguration.class,
-                Query.select().where("name = ?", name));
+                Query.select().where("NAME = ?", name));
 
         if (configs.length == 0) {
             log.info("Creating jenkins configuration: " + name);
