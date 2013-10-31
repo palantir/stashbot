@@ -52,7 +52,7 @@ $$PARAMETER_DEFINITIONS$$
   <builders>
     <hudson.tasks.Shell>
         <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
-        <command>git clean -fdx</command>
+        <command>git reset --hard HEAD &amp;&amp; git clean -fdx</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$$STARTED_COMMAND$$</command>
