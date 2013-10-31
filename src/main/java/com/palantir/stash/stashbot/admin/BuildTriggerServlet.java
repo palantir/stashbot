@@ -112,13 +112,21 @@ public class BuildTriggerServlet extends HttpServlet {
 
         if (mergeHead == null) {
             log.debug("Triggering build for buildHead " + buildHead);
-            jenkinsManager.triggerBuild(repo, type, buildHead);
-            printOutput(req, res);
-            return;
+            try {
+                jenkinsManager.triggerBuild(repo, type, buildHead);
+            } catch (Exception e) {
+                printErrorOutput(req, res, e);
+                return;
+            }
         }
 
         // mergeHead is not null *and* pullRequest is not null if we reach here.
-        jenkinsManager.triggerBuild(repo, type, buildHead, mergeHead, pullRequestId);
+        try {
+            jenkinsManager.triggerBuild(repo, type, buildHead, mergeHead, pullRequestId);
+        } catch (Exception e) {
+            printErrorOutput(req, res, e);
+            return;
+        }
         printOutput(req, res);
         return;
     }
@@ -129,6 +137,20 @@ public class BuildTriggerServlet extends HttpServlet {
         res.setContentType("text/plain;charset=UTF-8");
         Writer w = res.getWriter();
         w.append("Build Triggered");
+        w.close();
+    }
+
+    private void printErrorOutput(HttpServletRequest req, HttpServletResponse res, Exception e) throws IOException {
+        res.reset();
+        res.setStatus(500);
+        res.setContentType("text/plain;charset=UTF-8");
+        Writer w = res.getWriter();
+        w.append("Exception thrown during trigger: " + e.getMessage() + "\n");
+        w.append("Caused by: " + e.getCause() + "\n");
+        w.append("\n\nStacktrace:\n");
+        for (StackTraceElement elm : e.getStackTrace()) {
+            w.append(elm.toString() + "\n");
+        }
         w.close();
     }
 }
