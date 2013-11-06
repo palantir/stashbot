@@ -3,6 +3,8 @@
 /**
  * @param relUrl
  * @param jenkinsConfigs
+ * @param error
+ * @param notice
  **/
 {template .jenkinsConfigurationPanel}
 <html>
@@ -11,6 +13,13 @@
     <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot Jenkins Server Configuration')}}</title>
 </head>
 <body>
+{if $error}
+  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>ERROR:</b> {$error}</div></div>
+{/if}
+{if $notice}
+  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>NOTICE:</b> {$notice}</div></div>
+{/if}
+
 {call aui.group.group}
     {param content}
         {call aui.group.item}
@@ -38,7 +47,7 @@
       {foreach $jenkinsConfig in $jenkinsConfigs}
         <h3>{$jenkinsConfig.name}</h3>
         {call aui.form.form}
-          {param action: '' /}
+          {param action: $relUrl /}
           {param content}
             {call aui.form.textField}
               {param id: 'name' /}
@@ -58,7 +67,6 @@
               {param value: $jenkinsConfig.username /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
             {/call}
-            /** TODO: don't actually show the passwords, LOLOLOLz **/
             {call aui.form.passwordField}
               {param id: 'password' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
@@ -102,7 +110,7 @@
       {/foreach}
         <h3>New Jenkins Server</h3>
         {call aui.form.form}
-          {param action: '' /}
+          {param action: $relUrl /}
           {param content}
             {call aui.form.textField}
               {param id: 'name' /}
