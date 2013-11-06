@@ -83,7 +83,9 @@ public class JenkinsConfigurationServlet extends HttpServlet {
             .replaceAll("/+$", "")
             .replaceAll("/delete/?.*$", "")
             .replaceAll("/reload-all/?.*$", "")
-            .replaceAll("/create-new/?.*$", "");
+            .replaceAll("/create-new/?.*$", "")
+            .replaceAll("\\?notice=.*$", "")
+            .replaceAll("\\?error=.*$", "");
 
         String[] parts = pathInfo.replaceFirst(PATH_PREFIX, "").split("/");
 
@@ -104,6 +106,15 @@ public class JenkinsConfigurationServlet extends HttpServlet {
             }
         }
 
+        String error = req.getParameter("error");
+        if (error == null) {
+            error = new String();
+        }
+        String notice = req.getParameter("notice");
+        if (notice == null) {
+            notice = new String();
+        }
+
         res.setContentType("text/html;charset=UTF-8");
         try {
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
@@ -115,6 +126,8 @@ public class JenkinsConfigurationServlet extends HttpServlet {
                 ImmutableMap.<String, Object> builder()
                     .put("relUrl", relUrl)
                     .put("jenkinsConfigs", jenkinsConfigs)
+                    .put("error", error)
+                    .put("notice", notice)
                     .build()
                 );
         } catch (SoyException e) {
@@ -145,7 +158,9 @@ public class JenkinsConfigurationServlet extends HttpServlet {
                 stashPassword, maxVerifyChain);
             pluginUserManager.createStashbotUser(configurationPersistanceManager.getJenkinsServerConfiguration(name));
         } catch (SQLException e) {
-            res.sendError(500, e.getMessage());
+            res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
+        } catch (Exception e) {
+            res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
         }
         doGet(req, res);
     }
