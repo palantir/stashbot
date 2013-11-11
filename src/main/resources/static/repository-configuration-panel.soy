@@ -61,7 +61,7 @@
             {param id: 'publishBranchRegex' /}
             {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Regex for branches to publish') /}
             {param value: $publishBranchRegex /}
-            {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the publish build command run on them by jenkins') /}
+            {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', '(anchored regular expression) Branches matching this regular expression will have the publish build command run on them by jenkins (e.g. "refs/heads/master" or "refs/heads/.*")') /}
           {/call}
           {call aui.form.textField}
             {param id: 'publishBuildCommand' /}
@@ -73,7 +73,7 @@
             {param id: 'verifyBranchRegex' /}
             {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex for branches to verify') /}
             {param value: $verifyBranchRegex /}
-            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', '(Regular Expression) Branches matching this regular expression will have the verify build command run on them by jenkins') /}
+            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', '(anchored regular expression) Branches matching this regular expression will have the verify build command run on them by jenkins (e.g. "refs/heads/develop" or "refs/heads/.*")') /}
           {/call}
           {call aui.form.textField}
             {param id: 'verifyBuildCommand' /}
@@ -85,7 +85,7 @@
             {param id: 'maxVerifyChain' /}
             {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
             {param value: $maxVerifyChain /}
-            {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+            {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of builds to trigger from a single reference update') /}
           {/call}
           {call aui.form.buttons}
             {param content}
@@ -100,6 +100,32 @@
       {/call}
     {/param}
 {/call}
+<div>
+<h3>Regular Expressions:</h3>
+<p>
+Regular expressions are simple Java style regular expressions.  Extra escaping is not required, and the regular expressions are anchored by default so you must add a trailing ".*" if you want prefix matching.
+<br/>
+Examples:
+<pre>refs/heads/master</pre>
+<pre>refs/heads/.*</pre>
+<pre>refs/heads/features/.*-verify</pre>
+</p>
+<h3>Verify Versus Publish:</h3>
+<p>
+When a new change is added to a reference which matches both publish and verify regular expressions, the publish build is triggered first.  A verify build is never done on a sha1 which has already triggered a publish build.  Also, publish builds are always only triggered on the most recent change to a ref, so if a chain of commits are pushed, only the latest is published (though depending on other settings, multiple verify builds could be triggered, see next section).
+</p>
+<h3>Max Verify Chain:</h3>
+<p>
+The max verify chain setting specifies the number of verify builds to trigger due to a single ref update, at most.  For example, if the setting is set to 5, and a reference is updated from pointing to commit A, to pointing to commit B, and commit B has commit A as it's parent's parent's parent's parent, that is a chain of five commits have been pushed each dependent on the next, then 5 verify builds will be triggered, one for each commit.  If the setting was instead set to 3, only the 3 "most recent" commits would be verified, and 2 would be left unbuilt (but verifies could be triggered manually).  If the setting was 0, an unlimited number of builds could be triggered (though still limited by the jenkins configuration setting as well, which puts a cap on it).
+</p>
+<h3>Recommendations and Best Practices</h3>
+<p>
+If one is releasing using something like <a href="http://nvie.com/posts/a-successful-git-branching-model/">git flow</a>, you will probably want to have a release branch which you tag for publishes.  This is frequently called <i>refs/heads/release</i> or <i>refs/heads/master</i>.  One might then verify <i>refs/heads/.*</i> if one wants verification builds on all branches, or one might prefer to have "free-reign" branches and only perform verification on certain named branches (by doing something like <i>refs/heads/features/.*</i> for verification but allow people to also push to branches called <i>refs/heads/sandbox/.*</i> without verification builds).
+</p>
+<p>
+Note also that the configuration should take into account capacity concerns.  If the jenkins instance has 10 executors, the typical build takes 10 minutes, and 5-10 changes are pushed per hour, one can probably safely build every commit.  If, however, one has 2 executors and each build takes an hour, it will probably result in large latencies if one tries to build all commits, should someone push a chain of 10 commits even once or twice a day.  For details, consult your site-specific documentation (your infrastructure guys have established guidelines, right? =) )
+</p>
+</div>
 </body>
 </html>
 {/template}

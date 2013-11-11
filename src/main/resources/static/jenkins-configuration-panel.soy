@@ -167,6 +167,21 @@
         {/call}
     {/param}
 {/call}
+<div>
+<h3>Configuring Jenkins:</h3>
+<p>
+Jenkins configurations include the following fields:
+<ul>
+<li><b>name</b>: The name users will see when they select this jenkins server</li>
+<li><b>url</b>: The URL for the jenkins instance.  (e.g. https://jenkins.example.com:8080/)</li>
+<li><b>username</b>: The username to use to log into jenkins (value is ignored if authentication is not enabled).
+<li><b>password</b>: The password to use to log into jenkins (value is ignored if authentication is not enabled).
+<li><b>stashUsername</b>: The username to use to log into stash from jenkins (for cloning repos and reporting build results).  This account is automatically created if it does not exist already.  It is recommended you generate a reasonable username/password pair.  If you prefer for auditing purposes, you may use an account from crowd/LDAP by using the existing credentials in this field.</li>
+<li><b>stashPassword</b>: The password to use to log into stash from jenkins (same comment applies as for the username).</li>
+<li><b>maxVerifyChain</b>: The maximum number of builds to trigger for a single push.  Individual repositories also have this setting, but they are limited by the setting of the jenkins server as well.  Set to 0 for "no limit".  You probably want to set this to between 50% and 200% of the number of executors your jenkins instance has, depending on how long your build takes, your expected latency, and load.</li>
+</ul>
+</p>
+</div>
 </body>
 </html>
 {/template}
