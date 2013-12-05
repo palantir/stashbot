@@ -75,7 +75,7 @@ public class BuildTriggerServletTest {
         MockitoAnnotations.initMocks(this);
 
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
-        Mockito.when(prs.findById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
+        Mockito.when(prs.getById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
         Mockito.when(pr.getId()).thenReturn(PULL_REQUEST_ID);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 

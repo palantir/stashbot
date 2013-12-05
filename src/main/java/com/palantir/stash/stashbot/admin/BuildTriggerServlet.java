@@ -96,7 +96,7 @@ public class BuildTriggerServlet extends HttpServlet {
             mergeHead = parts[4];
             try {
                 pullRequestId = parts[5];
-                pullRequest = pullRequestService.findById(repo.getId(), Long.parseLong(pullRequestId));
+                pullRequest = pullRequestService.getById(repo.getId(), Long.parseLong(pullRequestId));
                 if (pullRequest == null) {
                     throw new IllegalArgumentException("Unable to find pull request for repo id "
                         + repo.getId().toString() + " pr id " + pullRequestId);

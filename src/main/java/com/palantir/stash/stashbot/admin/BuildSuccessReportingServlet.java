@@ -131,7 +131,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 try {
                     // This is a pull request, so add a comment
                     pullRequestId = Long.parseLong(parts[7]);
-                    pullRequest = pullRequestService.findById(repo.getId(), pullRequestId);
+                    pullRequest = pullRequestService.getById(repo.getId(), pullRequestId);
                     if (pullRequest == null) {
                         throw new IllegalArgumentException("Unable to find pull request for repo id "
                             + repo.getId().toString() + " pr id " + Long.toString(pullRequestId));
