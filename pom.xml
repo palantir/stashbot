@@ -87,6 +87,13 @@
             <version>${google.guava.libversion}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- need SAL for LoginUriProvider -->
+        <dependency>
+            <groupId>com.atlassian.sal</groupId>
+            <artifactId>sal-api</artifactId>
+            <version>2.10.9</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.atlassian.activeobjects</groupId>
             <artifactId>activeobjects-plugin</artifactId>
@@ -187,8 +194,8 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>2.7.1</stash.version>
-        <stash.data.version>2.7.1</stash.data.version>
+        <stash.version>2.9.4</stash.version>
+        <stash.data.version>2.9.4</stash.data.version>
         <stash.containerId>tomcat7x</stash.containerId>
         <!--
         WARNING: manually sync this with the version in stash - variable in the
