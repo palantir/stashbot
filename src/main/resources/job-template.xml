@@ -58,7 +58,7 @@ $$PARAMETER_DEFINITIONS$$
         <command>$$STARTED_COMMAND$$</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <command>if [ -z $mergeHead ]; then echo "Merge Head unset, not merging"; else echo "Merge Head detected: $mergeHead"; git merge $mergeHead -m"VERIFYING $buildHead merged into $mergeHead for pull request $pullRequestId in repo $repoId" || echo "BUILD FAILURE""1" &amp;&amp; /bin/false; fi</command>
+        <command>if [ -z $mergeHead ]; then echo "Merge Head unset, not merging"; else echo "Merge Head detected: $mergeHead"; git merge $mergeHead -m"VERIFYING $buildHead merged into $mergeHead for pull request $pullRequestId in repo $repoId" || echo "BUILD FAILURE""1" || /bin/false; fi</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$$PREBUILD_COMMAND$$</command>
