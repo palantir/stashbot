@@ -228,4 +228,20 @@ public class ConfigurationTest {
         Assert.assertEquals(TO_HASH, prm.getToSha());
         Assert.assertEquals(FROM_HASH, prm.getFromSha());
     }
+
+    @Test
+    public void testFixesUrlEndingInSlash() throws Exception {
+        String url = "http://url.that.ends.in";
+        ao.create(JenkinsServerConfiguration.class,
+            new DBParam("NAME", "sometest"),
+            new DBParam("URL", url + "/"),
+            new DBParam("USERNAME", "someuser"),
+            new DBParam("PASSWORD", "somepw"),
+            new DBParam("STASH_USERNAME", "someuser"),
+            new DBParam("STASH_PASSWORD", "somepw"),
+            new DBParam("MAX_VERIFY_CHAIN", 1)
+            );
+        JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration("sometest");
+        Assert.assertEquals(url, jsc.getUrl());
+    }
 }

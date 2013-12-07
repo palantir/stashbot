@@ -66,6 +66,12 @@ public class ConfigurationPersistenceManager {
                 new DBParam("NAME", name));
         }
 
+        String url = configs[0].getUrl();
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+            configs[0].setUrl(url);
+            configs[0].save();
+        }
         return configs[0];
     }
 
