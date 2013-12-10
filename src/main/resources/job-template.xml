@@ -10,9 +10,15 @@ $$PARAMETER_DEFINITIONS$$
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <name></name>
-        <refspec></refspec>
         <url>$$REPOSITORY_URL$$</url>
+        <name>origin</name>
+        <refspec></refspec>
+      </hudson.plugins.git.UserRemoteConfig>
+      <!-- need to have two repos because jenkins does not support multiple refspecs in a single repo, see https://issues.jenkins-ci.org/browse/JENKINS-8756 -->
+      <hudson.plugins.git.UserRemoteConfig>
+          <url>$$REPOSITORY_URL$$</url>
+          <name>stash-metadata</name>
+          <refspec>+stash-refs/*:refs/remotes/stash-metadata/*</refspec>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
