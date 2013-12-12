@@ -21,19 +21,18 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.event.pull.PullRequestCommentEvent;
 import com.atlassian.stash.event.pull.PullRequestEvent;
-import com.atlassian.stash.event.pull.PullRequestOpenedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
-import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 /**
- * This class listens for new pull requests and triggers a verify build if the target repository has CI enabled and the
- * target ref matches the verify regex.
+ * This class listens for new pull requests or pull request updates and triggers a verify build if the target repository
+ * has CI enabled and the target ref matches the verify regex (or triggers an updated build if the to/from sha has
+ * changed).
  * 
  * @author cmyers
  * 
@@ -58,7 +57,6 @@ public class PullRequestListener {
         try {
             // First, update pull request metadata
             final PullRequest pr = event.getPullRequest();
-            final PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
 
             // More correct to use the "to ref" to find the repo - this is the destination repo.
             final Repository repo = pr.getToRef().getRepository();
@@ -70,6 +68,15 @@ public class PullRequestListener {
                 return;
             }
 
+            // Update override metadata if applicable
+            if (event instanceof PullRequestCommentEvent) {
+                Comment c = ((PullRequestCommentEvent) event).getComment();
+                if (c.getText().contains(OVERRIDE_STRING)) {
+                    log.debug("Pull Request override set to true for PR " + pr.toString());
+                    cpm.setPullRequestMetadata(pr, null, null, true);
+                }
+            }
+
             // Ensure target branch is a verified branch
             if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
                 log.debug("Pull Request " + pr.toString() + " ignored, branch " + pr.getToRef().getId()
@@ -77,45 +84,26 @@ public class PullRequestListener {
                 return;
             }
 
-            // If the event is creating a pull request, we need to trigger a build
-            boolean needsBuild = false;
-            if (event instanceof PullRequestOpenedEvent) {
-                log.debug("New Pull Request Opened");
-                needsBuild = true;
-            }
-
-            if (event instanceof PullRequestCommentEvent) {
-                Comment c = ((PullRequestCommentEvent) event).getComment();
-                if (c.getText().contains(OVERRIDE_STRING)) {
-                    log.debug("Pull Request override set to true");
-                    cpm.setPullRequestMetadata(pr, null, true);
-                }
-            }
-
-            // If either hash is updated, needs build
-            if (!pr.getFromRef().getLatestChangeset().equals(prm.getFromSha())) {
-                log.debug("Pull Request From SHA updated");
-                needsBuild = true;
-                cpm.setPullRequestMetadata(pr, false, false);
-            }
-            if (!pr.getToRef().getLatestChangeset().equals(prm.getToSha())) {
-                log.debug("Pull Request To SHA updated");
-                needsBuild = true;
-                cpm.setPullRequestMetadata(pr, false, false);
-            }
-
-            if (!needsBuild) {
+            // If we have built this combination of PR, fromHash, toHash, then we're done
+            String fromSha = pr.getFromRef().getLatestChangeset();
+            String toSha = pr.getToRef().getLatestChangeset();
+            if (cpm.getPullRequestMetadata(pr).getBuildStarted()) {
+                log.debug("Verification build already triggered for PR " + pr.toString() + ", sha " + fromSha
+                    + " merged with target sha " + toSha);
                 return;
             }
 
-            // trigger build
-            String fromSha = pr.getFromRef().getLatestChangeset();
-            String toSha = pr.getToRef().getLatestChangeset();
-
+            // At this point, we know a build hasn't been triggered yet, so trigger it
             log.debug("Triggering verification build for PR " + pr.toString() + ", building sha " + fromSha
                 + " merged with target sha " + toSha);
 
             jenkinsManager.triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, fromSha, toSha, pr.getId().toString());
+
+            // note that we have successfully started the build
+            // Since we don't hit this code in the case of exception, you can "retry" a build simply by causing a PR
+            // event like by adding a comment.
+            cpm.setPullRequestMetadata(pr, true, null, null);
+
         } catch (SQLException e) {
             log.error("Error getting repository configuration", e);
         }

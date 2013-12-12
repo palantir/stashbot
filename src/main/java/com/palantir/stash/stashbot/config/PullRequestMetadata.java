@@ -18,14 +18,12 @@ import net.java.ao.Preload;
 import net.java.ao.schema.Default;
 import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
-import net.java.ao.schema.Unique;
 
 @Table("PRMetadata001")
 @Preload
 public interface PullRequestMetadata extends Entity {
 
     @NotNull
-    @Unique
     public Long getPullRequestId();
 
     public void setPullRequestId(Long id);
@@ -39,6 +37,12 @@ public interface PullRequestMetadata extends Entity {
     public String getToSha();
 
     public void setToSha(String fromSha);
+
+    @NotNull
+    @Default("false")
+    public Boolean getBuildStarted();
+
+    public void setBuildStarted(Boolean buildStarted);
 
     @NotNull
     @Default("false")

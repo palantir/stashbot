@@ -211,13 +211,23 @@ public class ConfigurationPersistenceManager {
         throw new IllegalArgumentException("Jenkins Server name " + name + " does not exist");
     }
 
+    private String pullRequestToString(PullRequest pr) {
+        return "[id:" + Long.toString(pr.getId()) + ", from:" + pr.getFromRef().getLatestChangeset() + ", to:"
+            + pr.getToRef().getLatestChangeset() + "]";
+    }
+
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         Long id = pr.getId();
 
-        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class, "PULL_REQUEST_ID = ?", id);
+        String fromSha = pr.getFromRef().getLatestChangeset();
+        String toSha = pr.getToRef().getLatestChangeset();
+
+        PullRequestMetadata[] prms =
+            ao.find(PullRequestMetadata.class, "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id, toSha,
+                fromSha);
         if (prms.length == 0) {
-            // new PR, create a new object
-            log.info("Creating PR Metadata for id: " + id.toString());
+            // new/updated PR, create a new object
+            log.info("Creating PR Metadata for pull request: " + pullRequestToString(pr));
             PullRequestMetadata prm = ao.create(PullRequestMetadata.class,
                 new DBParam("PULL_REQUEST_ID", id),
                 new DBParam("TO_SHA", pr.getToRef().getLatestChangeset()),
@@ -230,10 +240,13 @@ public class ConfigurationPersistenceManager {
         return prms[0];
     }
 
-    public void setPullRequestMetadata(PullRequest pr, Boolean success, Boolean override) {
+    public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted, Boolean success, Boolean override) {
         PullRequestMetadata prm = getPullRequestMetadata(pr);
         prm.setFromSha(pr.getFromRef().getLatestChangeset());
         prm.setToSha(pr.getToRef().getLatestChangeset());
+        if (buildStarted != null) {
+            prm.setBuildStarted(buildStarted);
+        }
         if (success != null) {
             prm.setSuccess(success);
         }

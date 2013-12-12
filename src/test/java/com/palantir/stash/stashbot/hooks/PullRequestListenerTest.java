@@ -101,6 +101,7 @@ public class PullRequestListenerTest {
         Mockito.when(prm.getToSha()).thenReturn(MERGE_HEAD);
         Mockito.when(prm.getSuccess()).thenReturn(false);
         Mockito.when(prm.getOverride()).thenReturn(false);
+        Mockito.when(prm.getBuildStarted()).thenReturn(false);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
         Mockito.when(proEvent.getPullRequest()).thenReturn(pr);
@@ -135,9 +136,10 @@ public class PullRequestListenerTest {
     @Test
     public void testNormalComment() {
         Mockito.when(comment.getText()).thenReturn(COMMENT_TEXT);
+        Mockito.when(prm.getBuildStarted()).thenReturn(true);
         prl.listen(prCommentEvent);
         Mockito.verify(cpm, Mockito.never()).setPullRequestMetadata(Mockito.any(PullRequest.class),
-            Mockito.anyBoolean(), Mockito.anyBoolean());
+            (Boolean) Mockito.notNull(), Mockito.anyBoolean(), Mockito.anyBoolean());
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD,
             MERGE_HEAD,
             Long.toString(PULL_REQUEST_ID));
@@ -146,8 +148,10 @@ public class PullRequestListenerTest {
     @Test
     public void testOverrideComment() {
         Mockito.when(comment.getText()).thenReturn(OVERRIDE_COMMENT_TEXT);
+        Mockito.when(prm.getBuildStarted()).thenReturn(true);
         prl.listen(prCommentEvent);
-        Mockito.verify(cpm).setPullRequestMetadata(Mockito.eq(pr), Mockito.eq((Boolean) null), Mockito.eq(true));
+        Mockito.verify(cpm).setPullRequestMetadata(Mockito.eq(pr), Mockito.eq((Boolean) null),
+            Mockito.eq((Boolean) null), Mockito.eq(true));
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD,
             MERGE_HEAD,
             Long.toString(PULL_REQUEST_ID));
@@ -157,11 +161,13 @@ public class PullRequestListenerTest {
     public void testEditPullRequestNoUpdate() {
         Mockito.when(prm.getFromSha()).thenReturn(HEAD);
         Mockito.when(prm.getToSha()).thenReturn(MERGE_HEAD);
+        Mockito.when(prm.getBuildStarted()).thenReturn(true);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
         prl.listen(prUpdatedEvent);
         // Ensure metadata is not changed
         Mockito.verify(cpm, Mockito.never()).setPullRequestMetadata(Mockito.any(PullRequest.class),
+            Mockito.anyBoolean(),
             Mockito.anyBoolean(),
             Mockito.anyBoolean());
     }
@@ -175,7 +181,7 @@ public class PullRequestListenerTest {
         // Ensure metadata IS changed because from sha is different now
         // should set override and success to false
         // Also, should trigger a build
-        Mockito.verify(cpm).setPullRequestMetadata(Mockito.eq(pr), Mockito.eq(false),
+        Mockito.verify(cpm).setPullRequestMetadata(Mockito.eq(pr), Mockito.eq(true), Mockito.eq(false),
             Mockito.eq(false));
         Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD, MERGE_HEAD,
             Long.toString(PULL_REQUEST_ID));

@@ -173,9 +173,9 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // but also update metadata
 
             if (state.equals(State.SUCCESSFUL)) {
-                configurationPersistanceManager.setPullRequestMetadata(pullRequest, true, null);
+                configurationPersistanceManager.setPullRequestMetadata(pullRequest, null, true, null);
             } else {
-                configurationPersistanceManager.setPullRequestMetadata(pullRequest, false, null);
+                configurationPersistanceManager.setPullRequestMetadata(pullRequest, null, false, null);
             }
 
             printOutput(req, res);
