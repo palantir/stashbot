@@ -16,7 +16,6 @@ package com.palantir.stash.stashbot.managers;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,6 @@ import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 
 import com.atlassian.stash.hook.repository.RepositoryHookService;
-import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.util.Page;
@@ -44,8 +42,9 @@ import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter;
-import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter.JenkinsBuildParam;
+import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class JenkinsManager {
@@ -54,13 +53,8 @@ public class JenkinsManager {
     private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY =
         "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
 
-    // Tacking this onto the end of the build command makes it print out "BUILD SUCCESS0" on success and
-    // "BUILD FAILURE1" on failure.
-    private static final String BUILD_COMMAND_POSTFIX =
-        "&& echo \"BUILD SUCCESS$?\" || /bin/false || (echo \"BUILD FAILURE$?\" && /bin/false)";
-
-    private final NavBuilder navBuilder;
     private final ConfigurationPersistenceManager cpm;
+    private final JobTemplateManager jtm;
     private final JenkinsJobXmlFormatter xmlFormatter;
     private final JenkinsClientManager jenkinsClientManager;
     private final RepositoryService repositoryService;
@@ -68,13 +62,13 @@ public class JenkinsManager {
     private final Logger log;
     private final StashbotLoggerFactory lf;
 
-    public JenkinsManager(NavBuilder navBuilder, RepositoryService repositoryService, RepositoryHookService rhs,
-        ConfigurationPersistenceManager cpm, JenkinsJobXmlFormatter xmlFormatter,
+    public JenkinsManager(RepositoryService repositoryService, RepositoryHookService rhs,
+        ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
         JenkinsClientManager jenkisnClientManager, StashbotLoggerFactory lf) {
-        this.navBuilder = navBuilder;
         this.repositoryService = repositoryService;
         this.rhs = rhs;
         this.cpm = cpm;
+        this.jtm = jtm;
         this.xmlFormatter = xmlFormatter;
         this.jenkinsClientManager = jenkisnClientManager;
         this.lf = lf;
@@ -105,7 +99,19 @@ public class JenkinsManager {
                 throw new IllegalArgumentException("Job " + jobName + " already exists");
             }
 
-            String xml = calculateXml(repo, buildType, jsc, rc);
+            JobTemplate jt;
+            switch (buildType) {
+            case VERIFICATION:
+                jt = jtm.getDefaultVerifyJob();
+                break;
+            case PUBLISH:
+                jt = jtm.getDefaultPublishJob();
+                break;
+            default:
+                // TODO: have a NOOP job type?
+                throw new IllegalArgumentException("Hey, don't try to create a NOOP build!!");
+            }
+            String xml = xmlFormatter.generateJobXml(jt, repo);
 
             log.trace("Sending XML to jenkins to create job: " + xml);
             jenkinsServer.createJob(buildType.getBuildNameFor(repo), xml);
@@ -117,57 +123,6 @@ public class JenkinsManager {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String calculateXml(Repository repo, JenkinsBuildTypes buildType, final JenkinsServerConfiguration jsc,
-        final RepositoryConfiguration rc) {
-        String repositoryUrl = navBuilder.repo(repo).clone(repo.getScmId()).buildAbsoluteWithoutUsername();
-        // manually insert the username and pw we are configured to use
-        repositoryUrl =
-            repositoryUrl.replace("://", "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword() + "@");
-
-        String startedCommand = "/usr/bin/curl -s -i " + buildUrl(repositoryUrl, jsc, "inprogress");
-        String successCommand = "/usr/bin/curl -s -i " + buildUrl(repositoryUrl, jsc, "successful");
-        String failedCommand = "/usr/bin/curl -s -i " + buildUrl(repositoryUrl, jsc, "failed");
-
-        String prebuildCommand = rc.getPrebuildCommand();
-
-        String buildCommand;
-        if (buildType == JenkinsBuildTypes.PUBLISH) {
-            buildCommand = rc.getPublishBuildCommand();
-        } else if (buildType == JenkinsBuildTypes.VERIFICATION) {
-            buildCommand = rc.getVerifyBuildCommand();
-        } else {
-            buildCommand = "/bin/true";
-        }
-
-        buildCommand = "(" + buildCommand + ") " + BUILD_COMMAND_POSTFIX;
-
-        // URL looks like: "BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
-        Collection<JenkinsBuildParam> params =
-            ImmutableList.<JenkinsBuildParam> of(
-                new JenkinsBuildParam("repoId",
-                    JenkinsJobXmlFormatter.JenkinsBuildParamType.StringParameterDefinition, "stash repository Id",
-                    "unknown"),
-                new JenkinsBuildParam("type",
-                    JenkinsJobXmlFormatter.JenkinsBuildParamType.StringParameterDefinition, "build type",
-                    "unknown"),
-                new JenkinsBuildParam("buildHead",
-                    JenkinsJobXmlFormatter.JenkinsBuildParamType.StringParameterDefinition, "the change to build",
-                    "head"),
-                new JenkinsBuildParam("mergeHead",
-                    JenkinsJobXmlFormatter.JenkinsBuildParamType.StringParameterDefinition,
-                    "branch to merge in before build", ""),
-                new JenkinsBuildParam("pullRequestId",
-                    JenkinsJobXmlFormatter.JenkinsBuildParamType.StringParameterDefinition,
-                    "stash pull request id", ""));
-
-        String repositoryLink = navBuilder.repo(repo).browse().buildAbsolute();
-        String repositoryName = repo.getProject().getName() + " " + repo.getName();
-        String xml =
-            xmlFormatter.getJobXml(repositoryUrl, prebuildCommand, buildCommand, startedCommand, successCommand,
-                failedCommand, repositoryLink, repositoryName, params);
-        return xml;
     }
 
     /**
@@ -192,7 +147,19 @@ public class JenkinsManager {
                 throw new IllegalArgumentException("Job " + jobName + " must already exist to update");
             }
 
-            String xml = calculateXml(repo, buildType, jsc, rc);
+            JobTemplate jt;
+            switch (buildType) {
+            case VERIFICATION:
+                jt = jtm.getDefaultVerifyJob();
+                break;
+            case PUBLISH:
+                jt = jtm.getDefaultPublishJob();
+                break;
+            default:
+                // TODO: have a NOOP job type?
+                throw new IllegalArgumentException("Hey, don't try to update a NOOP build!!");
+            }
+            String xml = xmlFormatter.generateJobXml(jt, repo);
 
             log.trace("Sending XML to jenkins to create job: " + xml);
             jenkinsServer.updateJob(buildType.getBuildNameFor(repo), xml);
@@ -428,18 +395,5 @@ public class JenkinsManager {
                 log.error("Interrupted: this shouldn't happen", e);
             }
         }
-    }
-
-    private String buildUrl(String repositoryUrl, JenkinsServerConfiguration jsc, String status) {
-        // Look at the BuildSuccessReportinServlet if you change this:
-        // "BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
-        // SEE ALSO:
-        // https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
-        String url =
-            navBuilder.buildAbsolute().concat(
-                "/plugins/servlet/stashbot/build-reporting/$repoId/$type/" + status
-                    + "/$BUILD_NUMBER/$buildHead/$mergeHead/$pullRequestId");
-        url = url.replace("://", "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword() + "@");
-        return url;
     }
 }

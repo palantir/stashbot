@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -29,20 +28,18 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.atlassian.stash.hook.repository.RepositoryHookService;
-import com.atlassian.stash.nav.NavBuilder;
-import com.atlassian.stash.nav.NavBuilder.BrowseRepoResource;
-import com.atlassian.stash.nav.NavBuilder.Repo;
-import com.atlassian.stash.nav.NavBuilder.RepoClone;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.google.common.collect.ImmutableList;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter;
-import com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter.JenkinsBuildParam;
+import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class JenkinsManagerTest {
@@ -52,11 +49,7 @@ public class JenkinsManagerTest {
         "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
 
     private static final String XML_STRING = "<some xml here/>";
-    private static final String ABSOLUTE_PATH = "http://www.example.com/stash";
-    private static final String ABSOLUTE_PATH2 = "http://www.example.com/stash/browse";
 
-    @Mock
-    private NavBuilder navBuilder;
     @Mock
     private RepositoryService repositoryService;
     @Mock
@@ -67,6 +60,8 @@ public class JenkinsManagerTest {
     private JenkinsJobXmlFormatter xmlFormatter;
     @Mock
     private JenkinsClientManager jenkinsClientManager;
+    @Mock
+    private JobTemplateManager jtm;
 
     private JenkinsManager jenkinsManager;
 
@@ -77,22 +72,15 @@ public class JenkinsManagerTest {
     @Mock
     private Project proj;
 
-    // nav builder intermediaries - god damn this is annoying to mock
-    @Mock
-    private Repo nbRepo;
-    @Mock
-    private RepoClone nbRepoClone;
-    @Mock
-    private BrowseRepoResource nbRepoBrowse;
-
     @Mock
     private RepositoryConfiguration rc;
     @Mock
     private JenkinsServerConfiguration jsc;
+    @Mock
+    private JobTemplate jobTemplate;
 
     private StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws URISyntaxException, SQLException {
 
@@ -102,19 +90,11 @@ public class JenkinsManagerTest {
             jenkinsClientManager.getJenkinsServer(Mockito.any(JenkinsServerConfiguration.class),
                 Mockito.any(RepositoryConfiguration.class))).thenReturn(jenkinsServer);
 
-        Mockito.when(
-            xmlFormatter.getJobXml(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-                Mockito.anyString(), Mockito.any(List.class)))
-            .thenReturn(
-                XML_STRING);
+        Mockito.when(xmlFormatter.generateJobXml(jobTemplate, repo)).thenReturn(XML_STRING);
 
-        Mockito.when(navBuilder.repo(Mockito.any(Repository.class))).thenReturn(nbRepo);
-        Mockito.when(navBuilder.buildAbsolute()).thenReturn(ABSOLUTE_PATH);
-        Mockito.when(nbRepo.clone(Mockito.anyString())).thenReturn(nbRepoClone);
-        Mockito.when(nbRepo.browse()).thenReturn(nbRepoBrowse);
-        Mockito.when(nbRepoClone.buildAbsoluteWithoutUsername()).thenReturn(ABSOLUTE_PATH);
-        Mockito.when(nbRepoBrowse.buildAbsolute()).thenReturn(ABSOLUTE_PATH2);
+        Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.of(jobTemplate));
+        Mockito.when(jtm.getDefaultPublishJob()).thenReturn(jobTemplate);
+        Mockito.when(jtm.getDefaultVerifyJob()).thenReturn(jobTemplate);
 
         Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
@@ -127,50 +107,31 @@ public class JenkinsManagerTest {
         Mockito.when(proj.getKey()).thenReturn("project_key");
 
         jenkinsManager =
-            new JenkinsManager(navBuilder, repositoryService, rhs, cpm, xmlFormatter, jenkinsClientManager, lf);
+            new JenkinsManager(repositoryService, rhs, cpm, jtm, xmlFormatter, jenkinsClientManager, lf);
     }
 
     @Test
-    public void testCreateJob() throws IOException {
+    public void testCreateJob() throws Exception {
 
         JenkinsBuildTypes buildType = JenkinsBuildTypes.VERIFICATION;
-        String urlWithCreds = ABSOLUTE_PATH.replace("://", "://stash_username:stash_password@");
         String repoName = buildType.getBuildNameFor(repo);
 
         jenkinsManager.createJob(repo, buildType);
 
         ArgumentCaptor<String> xmlCaptor = ArgumentCaptor.forClass(String.class);
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Class<List<JenkinsBuildParam>> forClass = (Class<List<JenkinsBuildParam>>) (Class) List.class;
-        ArgumentCaptor<List<JenkinsBuildParam>> paramCaptor = ArgumentCaptor.forClass(forClass);
 
-        Mockito.verify(xmlFormatter).getJobXml(Mockito.eq(urlWithCreds), Mockito.anyString(), Mockito.anyString(),
-            Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-            paramCaptor.capture());
-
+        Mockito.verify(xmlFormatter).generateJobXml(jobTemplate, repo);
         Mockito.verify(jenkinsServer).createJob(Mockito.eq(repoName), xmlCaptor.capture());
 
         Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
-
-        List<JenkinsBuildParam> params = paramCaptor.getValue();
-
-        Map<String, JenkinsBuildParam> paramMap = new HashMap<String, JenkinsBuildParam>();
-        for (JenkinsBuildParam jbp : params) {
-            paramMap.put(jbp.getName(), jbp);
-        }
-        Assert.assertTrue(paramMap.containsKey("buildHead"));
-        Assert.assertTrue(paramMap.containsKey("mergeHead"));
-        Assert.assertTrue(paramMap.containsKey("type"));
-        Assert.assertTrue(paramMap.containsKey("repoId"));
-        Assert.assertTrue(paramMap.containsKey("pullRequestId"));
     }
 
     @Test
-    public void testUpdateJob() throws IOException {
+    public void testUpdateJob() throws Exception {
 
         JenkinsBuildTypes buildType = JenkinsBuildTypes.VERIFICATION;
-        String urlWithCreds = ABSOLUTE_PATH.replace("://", "://stash_username:stash_password@");
         String jobName = buildType.getBuildNameFor(repo);
+        String repoName = buildType.getBuildNameFor(repo);
 
         Job existingJob = Mockito.mock(Job.class);
         Map<String, Job> jobMap = new HashMap<String, Job>();
@@ -180,29 +141,11 @@ public class JenkinsManagerTest {
         jenkinsManager.updateJob(repo, buildType);
 
         ArgumentCaptor<String> xmlCaptor = ArgumentCaptor.forClass(String.class);
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Class<List<JenkinsBuildParam>> forClass = (Class<List<JenkinsBuildParam>>) (Class) List.class;
-        ArgumentCaptor<List<JenkinsBuildParam>> paramCaptor = ArgumentCaptor.forClass(forClass);
 
-        Mockito.verify(xmlFormatter).getJobXml(Mockito.eq(urlWithCreds), Mockito.anyString(), Mockito.anyString(),
-            Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
-            paramCaptor.capture());
-
-        Mockito.verify(jenkinsServer).updateJob(Mockito.eq(jobName), xmlCaptor.capture());
+        Mockito.verify(xmlFormatter).generateJobXml(jobTemplate, repo);
+        Mockito.verify(jenkinsServer).updateJob(Mockito.eq(repoName), xmlCaptor.capture());
 
         Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
-
-        List<JenkinsBuildParam> params = paramCaptor.getValue();
-
-        Map<String, JenkinsBuildParam> paramMap = new HashMap<String, JenkinsBuildParam>();
-        for (JenkinsBuildParam jbp : params) {
-            paramMap.put(jbp.getName(), jbp);
-        }
-        Assert.assertTrue(paramMap.containsKey("buildHead"));
-        Assert.assertTrue(paramMap.containsKey("mergeHead"));
-        Assert.assertTrue(paramMap.containsKey("type"));
-        Assert.assertTrue(paramMap.containsKey("repoId"));
-        Assert.assertTrue(paramMap.containsKey("pullRequestId"));
     }
 
     @Test

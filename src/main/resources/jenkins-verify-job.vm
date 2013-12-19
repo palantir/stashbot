@@ -1,0 +1,122 @@
+#**
+  Parameters:
+  parameterList: list of params
+    each param has type, name, description, defaultValue
+  repositoryUrl
+  repositoryRefSpec
+  startedCommand
+  prebuildCommand
+  buildCommand
+  successCommand
+  failureCommand
+
+  esc - escape tool - required
+  @author cmyers
+*#
+
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>This is the default verify job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$repositoryUrl"&gt;$repositoryUrl&lt;/a&gt;</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+#foreach ( $param in $paramaterList )
+        <hudson.model.${param.typeName}>
+          <name>$param.name</name>
+          <description>$!param.description</description>
+          <defaultValue>$!param.defaultValue</defaultValue>
+        </hudson.model.${param.typeName}/>
+#end
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@1.1.26">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>$repositoryUrl</url>
+        <name>origin</name>
+        <refspec></refspec>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+          <name>\$buildHead</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <disableSubmodules>false</disableSubmodules>
+    <recursiveSubmodules>false</recursiveSubmodules>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <authorOrCommitter>false</authorOrCommitter>
+    <clean>false</clean>
+    <wipeOutWorkspace>false</wipeOutWorkspace>
+    <pruneBranches>false</pruneBranches>
+    <remotePoll>false</remotePoll>
+    <ignoreNotifyCommit>false</ignoreNotifyCommit>
+    <useShallowClone>false</useShallowClone>
+    <buildChooser class="hudson.plugins.git.util.DefaultBuildChooser"/>
+    <gitTool>Default</gitTool>
+    <submoduleCfg class="list"/>
+    <relativeTargetDir></relativeTargetDir>
+    <reference></reference>
+    <excludedRegions></excludedRegions>
+    <excludedUsers></excludedUsers>
+    <gitConfigName></gitConfigName>
+    <gitConfigEmail></gitConfigEmail>
+    <skipTag>true</skipTag>
+    <includedRegions></includedRegions>
+    <scmName></scmName>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers class="vector"/>
+  <concurrentBuild>true</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+        <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
+        <command>git reset --hard HEAD &amp;&amp; git clean -fdx</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+        <command>$startedCommand</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+        <command>$prebuildCommand</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command>$buildCommand</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.8">
+      <tasks>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>BUILD SUCCESS0</logText>
+              <operator>AND</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>$successCommand</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>BUILD FAILURE1</logText>
+              <operator>AND</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>$failureCommand</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+      </tasks>
+    </hudson.plugins.postbuildtask.PostbuildTask>
+  </publishers>
+  <buildWrappers/>
+</project>
