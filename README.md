@@ -103,11 +103,8 @@ disallowed until that build has succeeded.
 ## Eclipse
 
 1. Generate project files by running `atlas-mvn eclipse:eclipse`
-2. Load the code formatter settings by going to preferences, filtering on
-"formatter", selecting Java -> Code Style -> Formatter, and importing the xml
-file in code-style directory.
-3. Load the cleanup settings by going to preferences, filtering on "cleanup" (also under code style) and import the cleanup xml file from the code-style directory.
-4. Finally, again under preferences, filter on "save actions" for the java editor and check the options for "format source code", "format all lines", and "organize imports".
+2. Load the code formatter settings by going to File -> Import -> Preferences and loading the .epf file in code-style/
+3. Finally, again under preferences, filter on "save actions" for the java editor and check the options for "format source code", "format all lines", and "organize imports".
 
 Doing these 4 things will ensure you do not introduce unneccessary whitespace changes.
 
