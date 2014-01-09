@@ -87,6 +87,17 @@
             <version>${google.guava.libversion}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- used to generate jenkins config xml -->
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity-tools</artifactId>
+            <version>2.0</version>
+        </dependency>
         <!-- need SAL for LoginUriProvider -->
         <dependency>
             <groupId>com.atlassian.sal</groupId>
