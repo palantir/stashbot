@@ -10,14 +10,14 @@ import com.google.common.collect.ImmutableMap;
  * @author cmyers
  */
 public enum JobType {
-	VERIFY_COMMIT, VERIFY_PR, PUBLISH, NOOP; // "default" or "null" job type
+    VERIFY_COMMIT, VERIFY_PR, PUBLISH, NOOP; // "default" or "null" job type
 
-	private static final Map<JobType, String> nameMap = ImmutableMap.of(
-			VERIFY_COMMIT, "verification", VERIFY_PR, "verify_pr", PUBLISH,
-			"publish", NOOP, "noop");
+    private static final Map<JobType, String> nameMap = ImmutableMap.of(
+        VERIFY_COMMIT, "verification", VERIFY_PR, "verify_pr", PUBLISH,
+        "publish", NOOP, "noop");
 
-	@Override
-	public String toString() {
-		return nameMap.get(this);
-	}
+    @Override
+    public String toString() {
+        return nameMap.get(this);
+    }
 }

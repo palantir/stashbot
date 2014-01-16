@@ -1,16 +1,16 @@
-//   Copyright 2013 Palantir Technologies
+// Copyright 2013 Palantir Technologies
 //
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package com.palantir.stash.stashbot.hooks;
 
 import java.sql.SQLException;
@@ -37,45 +37,46 @@ import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
  */
 public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
-	private final ConfigurationPersistenceManager cpm;
-	private final Logger log;
+    private final ConfigurationPersistenceManager cpm;
+    private final Logger log;
 
-	public PullRequestBuildSuccessMergeCheck(
-			ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
-		this.cpm = cpm;
-		this.log = lf.getLoggerForThis(this);
-	}
+    public PullRequestBuildSuccessMergeCheck(
+        ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
+        this.cpm = cpm;
+        this.log = lf.getLoggerForThis(this);
+    }
 
-	@Override
-	public void check(@Nonnull MergeRequest mr) {
-		PullRequest pr = mr.getPullRequest();
-		Repository repo = pr.getToRef().getRepository();
+    @Override
+    public void check(@Nonnull MergeRequest mr) {
+        PullRequest pr = mr.getPullRequest();
+        Repository repo = pr.getToRef().getRepository();
 
-		RepositoryConfiguration rc;
-		try {
-			rc = cpm.getRepositoryConfigurationForRepository(repo);
-		} catch (SQLException e) {
-			throw new RuntimeException("Unable to get RepositoryConfiguration",
-					e);
-		}
-		if (!rc.getCiEnabled()) {
-			return;
-		}
-		if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
-			log.debug("Pull Request " + pr.toString() + " ignored, branch "
-					+ pr.getToRef().getId() + " doesn't match verify regex");
-			return;
-		}
+        RepositoryConfiguration rc;
+        try {
+            rc = cpm.getRepositoryConfigurationForRepository(repo);
+        } catch (SQLException e) {
+            throw new RuntimeException("Unable to get RepositoryConfiguration",
+                e);
+        }
+        if (!rc.getCiEnabled()) {
+            return;
+        }
+        if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
+            log.debug("Pull Request " + pr.toString() + " ignored, branch "
+                + pr.getToRef().getId() + " doesn't match verify regex");
+            return;
+        }
 
-		PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
-		log.debug("PRM: success " + prm.getSuccess().toString() + " override "
-				+ prm.getOverride().toString());
+        PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
+        log.debug("PRM: success " + prm.getSuccess().toString() + " override "
+            + prm.getOverride().toString());
 
-		if (prm.getOverride() || prm.getSuccess()) {
-			return;
-		}
+        if (prm.getOverride() || prm.getSuccess()) {
+            return;
+        }
 
-		mr.veto("Green build required to merge",
-				"Either retrigger the build so it succeeds, or add a comment with the string '==OVERRIDE==' to override the requirement");
-	}
+        mr.veto(
+            "Green build required to merge",
+            "Either retrigger the build so it succeeds, or add a comment with the string '==OVERRIDE==' to override the requirement");
+    }
 }
