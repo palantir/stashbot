@@ -127,7 +127,7 @@
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
     <component key="stashbotLoggerFactory" class="com.palantir.stash.stashbot.logger.StashbotLoggerFactory"/>
-    <component key="triggerBuildUrlBuilder" class="com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder" />
+    <component key="stashbotUrlBuilder" class="com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder"/>
     <component key="velocityManager" class="com.palantir.stash.stashbot.managers.VelocityManager" />
 
     <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />

@@ -29,6 +29,7 @@ import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 
 import com.atlassian.stash.hook.repository.RepositoryHookService;
+import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.util.Page;
@@ -46,373 +47,431 @@ import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManager {
 
-	// NOTE: this is the key used in the atlassian-plugin.xml
-	private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY = "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
+    // NOTE: this is the key used in the atlassian-plugin.xml
+    private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY = "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
 
-	private final ConfigurationPersistenceManager cpm;
-	private final JobTemplateManager jtm;
-	private final JenkinsJobXmlFormatter xmlFormatter;
-	private final JenkinsClientManager jenkinsClientManager;
-	private final RepositoryService repositoryService;
-	private final RepositoryHookService rhs;
-	private final Logger log;
-	private final StashbotLoggerFactory lf;
+    private final ConfigurationPersistenceManager cpm;
+    private final JobTemplateManager jtm;
+    private final JenkinsJobXmlFormatter xmlFormatter;
+    private final JenkinsClientManager jenkinsClientManager;
+    private final RepositoryService repositoryService;
+    private final RepositoryHookService rhs;
+    private final StashbotUrlBuilder sub;
+    private final Logger log;
+    private final StashbotLoggerFactory lf;
 
-	public JenkinsManager(RepositoryService repositoryService,
-			RepositoryHookService rhs, ConfigurationPersistenceManager cpm,
-			JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
-			JenkinsClientManager jenkisnClientManager, StashbotLoggerFactory lf) {
-		this.repositoryService = repositoryService;
-		this.rhs = rhs;
-		this.cpm = cpm;
-		this.jtm = jtm;
-		this.xmlFormatter = xmlFormatter;
-		this.jenkinsClientManager = jenkisnClientManager;
-		this.lf = lf;
-		this.log = lf.getLoggerForThis(this);
-	}
+    public JenkinsManager(RepositoryService repositoryService, RepositoryHookService rhs,
+        ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
+        JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, StashbotLoggerFactory lf) {
+        this.repositoryService = repositoryService;
+        this.rhs = rhs;
+        this.cpm = cpm;
+        this.jtm = jtm;
+        this.xmlFormatter = xmlFormatter;
+        this.jenkinsClientManager = jenkisnClientManager;
+        this.sub = sub;
+        this.lf = lf;
+        this.log = lf.getLoggerForThis(this);
+    }
 
-	public void updateRepo(Repository repo) {
-		try {
-			Callable<Void> visit = new UpdateAllRepositoryVisitor(rhs,
-					jenkinsClientManager, jtm, cpm, repo, lf);
-			visit.call();
-		} catch (Exception e) {
-			log.error(
-					"Exception while attempting to create missing jobs for a repo: ",
-					e);
-		}
-	}
+    public void updateRepo(Repository repo) {
+        try {
+            Callable<Void> visit = new UpdateAllRepositoryVisitor(rhs,
+                jenkinsClientManager, jtm, cpm, repo, lf);
+            visit.call();
+        } catch (Exception e) {
+            log.error(
+                "Exception while attempting to create missing jobs for a repo: ",
+                e);
+        }
+    }
 
-	public void createJob(Repository repo, JobTemplate jobTemplate) {
-		try {
-			final RepositoryConfiguration rc = cpm
-					.getRepositoryConfigurationForRepository(repo);
-			final JenkinsServerConfiguration jsc = cpm
-					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-			final JenkinsServer jenkinsServer = jenkinsClientManager
-					.getJenkinsServer(jsc, rc);
-			final String jobName = jobTemplate.getBuildNameFor(repo);
+    public void createJob(Repository repo, JobTemplate jobTemplate) {
+        try {
+            final RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(repo);
+            final JenkinsServerConfiguration jsc = cpm
+                .getJenkinsServerConfiguration(rc.getJenkinsServerName());
+            final JenkinsServer jenkinsServer = jenkinsClientManager
+                .getJenkinsServer(jsc, rc);
+            final String jobName = jobTemplate.getBuildNameFor(repo);
 
-			// If we try to create a job which already exists, we still get a
-			// 200... so we should check first to make
-			// sure it doesn't already exist
-			Map<String, Job> jobMap = jenkinsServer.getJobs();
+            // If we try to create a job which already exists, we still get a
+            // 200... so we should check first to make
+            // sure it doesn't already exist
+            Map<String, Job> jobMap = jenkinsServer.getJobs();
 
-			if (jobMap.containsKey(jobName)) {
-				throw new IllegalArgumentException("Job " + jobName
-						+ " already exists");
-			}
+            if (jobMap.containsKey(jobName)) {
+                throw new IllegalArgumentException("Job " + jobName
+                    + " already exists");
+            }
 
-			String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
+            String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
 
-			log.trace("Sending XML to jenkins to create job: " + xml);
-			jenkinsServer.createJob(jobName, xml);
-		} catch (IOException e) {
-			// TODO: something other than just rethrow?
-			throw new RuntimeException(e);
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+            log.trace("Sending XML to jenkins to create job: " + xml);
+            jenkinsServer.createJob(jobName, xml);
+        } catch (IOException e) {
+            // TODO: something other than just rethrow?
+            throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	/**
-	 * This method IGNORES the current job XML, and regenerates it from scratch,
-	 * and posts it. If any changes were made to the job directly via jenkins
-	 * UI, this will overwrite those changes.
-	 * 
-	 * @param repo
-	 * @param buildType
-	 */
-	public void updateJob(Repository repo, JobTemplate jobTemplate) {
-		try {
-			final RepositoryConfiguration rc = cpm
-					.getRepositoryConfigurationForRepository(repo);
-			final JenkinsServerConfiguration jsc = cpm
-					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-			final JenkinsServer jenkinsServer = jenkinsClientManager
-					.getJenkinsServer(jsc, rc);
-			final String jobName = jobTemplate.getBuildNameFor(repo);
+    /**
+     * This method IGNORES the current job XML, and regenerates it from scratch, and posts it. If any changes were made
+     * to the job directly via jenkins UI, this will overwrite those changes.
+     * 
+     * @param repo
+     * @param buildType
+     */
+    public void updateJob(Repository repo, JobTemplate jobTemplate) {
+        try {
+            final RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(repo);
+            final JenkinsServerConfiguration jsc = cpm
+                .getJenkinsServerConfiguration(rc.getJenkinsServerName());
+            final JenkinsServer jenkinsServer = jenkinsClientManager
+                .getJenkinsServer(jsc, rc);
+            final String jobName = jobTemplate.getBuildNameFor(repo);
 
-			// If we try to create a job which already exists, we still get a
-			// 200... so we should check first to make
-			// sure it doesn't already exist
-			Map<String, Job> jobMap = jenkinsServer.getJobs();
+            // If we try to create a job which already exists, we still get a
+            // 200... so we should check first to make
+            // sure it doesn't already exist
+            Map<String, Job> jobMap = jenkinsServer.getJobs();
 
-			String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
+            String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
 
-			if (jobMap.containsKey(jobName)) {
-				log.trace("Sending XML to jenkins to update job: " + xml);
-				jenkinsServer.updateJob(jobName, xml);
-				return;
-			jkj}
+            if (jobMap.containsKey(jobName)) {
+                log.trace("Sending XML to jenkins to update job: " + xml);
+                jenkinsServer.updateJob(jobName, xml);
+                return;
+            }
 
-			log.trace("Sending XML to jenkins to create job: " + xml);
-			jenkinsServer.createJob(jobName, xml);
-		} catch (IOException e) {
-			// TODO: something other than just rethrow?
-			throw new RuntimeException(e);
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+            log.trace("Sending XML to jenkins to create job: " + xml);
+            jenkinsServer.createJob(jobName, xml);
+        } catch (IOException e) {
+            // TODO: something other than just rethrow?
+            throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	public void triggerBuild(Repository repo, JobType jobType,
-			String hashToBuild) {
-		triggerBuild(repo, jobType, hashToBuild, null, null);
-	}
+    public void triggerBuild(Repository repo, JobType jobType,
+        String hashToBuild) {
+        try {
+            RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(repo);
+            JenkinsServerConfiguration jsc = cpm
+                .getJenkinsServerConfiguration(rc.getJenkinsServerName());
+            JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
-	public void triggerBuild(Repository repo, JobType jobType,
-			String hashToBuild, String hashToMerge, String pullRequestId) {
+            String jenkinsBuildId = jt.getBuildNameFor(repo);
+            String url = jsc.getUrl();
+            String user = jsc.getUsername();
+            String password = jsc.getPassword();
 
-		try {
-			RepositoryConfiguration rc = cpm
-					.getRepositoryConfigurationForRepository(repo);
-			JenkinsServerConfiguration jsc = cpm
-					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-			JobTemplate jt = jtm.getJobTemplate(jobType, rc);
+            log.info("Triggering jenkins build id " + jenkinsBuildId
+                + " on hash " + hashToBuild + " (" + user + "@" + url
+                + " pw: " + password.replaceAll(".", "*") + ")");
 
-			String jenkinsBuildId = jt.getBuildNameFor(repo);
-			String url = jsc.getUrl();
-			String user = jsc.getUsername();
-			String password = jsc.getPassword();
+            final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
+                rc);
+            Map<String, Job> jobMap = js.getJobs();
+            String key = jt.getBuildNameFor(repo);
 
-			log.info("Triggering jenkins build id " + jenkinsBuildId
-					+ " on hash " + hashToBuild + " (" + user + "@" + url
-					+ " pw: " + password.replaceAll(".", "*") + ")");
+            if (!jobMap.containsKey(key)) {
+                throw new RuntimeException("Build doesn't exist: " + key);
+            }
 
-			final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
-					rc);
-			Map<String, Job> jobMap = js.getJobs();
-			String key = jt.getBuildNameFor(repo);
+            Builder<String, String> builder = ImmutableMap.builder();
+            builder.put("buildHead", hashToBuild);
+            builder.put("repoId", repo.getId().toString());
 
-			if (!jobMap.containsKey(key)) {
-				throw new RuntimeException("Build doesn't exist: " + key);
-			}
+            jobMap.get(key).build(builder.build());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        } catch (HttpResponseException e) { // subclass of IOException thrown by
+                                            // client
+            if (e.getStatusCode() == 302) {
+                // BUG in client - this isn't really an error, assume the build
+                // triggered ok and this is just a redirect
+                // to some URL after the fact.
+                return;
+            }
+            // For other HTTP errors, log it for easier debugging
+            log.error(
+                "HTTP Error (resp code "
+                    + Integer.toString(e.getStatusCode()) + ")", e);
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-			Builder<String, String> builder = ImmutableMap.builder();
-			builder.put("buildHead", hashToBuild);
-			builder.put("repoId", repo.getId().toString());
-			// TODO: pull request support
-			if (pullRequestId != null) {
-				log.debug("Determined pullRequestId " + pullRequestId);
-				builder.put("pullRequestId", pullRequestId);
-			}
+    public void triggerBuild(Repository repo, JobType jobType,
+        PullRequest pullRequest) {
 
-			jobMap.get(key).build(builder.build());
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		} catch (HttpResponseException e) { // subclass of IOException thrown by
-											// client
-			if (e.getStatusCode() == 302) {
-				// BUG in client - this isn't really an error, assume the build
-				// triggered ok and this is just a redirect
-				// to some URL after the fact.
-				return;
-			}
-			// For other HTTP errors, log it for easier debugging
-			log.error(
-					"HTTP Error (resp code "
-							+ Integer.toString(e.getStatusCode()) + ")", e);
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        try {
+            String pullRequestId = pullRequest.getId().toString();
+            String hashToBuild = pullRequest.getToRef().getLatestChangeset();
 
-	/**
-	 * Code to ensure a given repository has plans that exist in jenkins.
-	 * 
-	 * @author cmyers
-	 */
-	class CreateMissingRepositoryVisitor implements Callable<Void> {
+            RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(repo);
+            JenkinsServerConfiguration jsc = cpm
+                .getJenkinsServerConfiguration(rc.getJenkinsServerName());
+            JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
-		private final RepositoryHookService rhs;
-		private final JenkinsClientManager jcm;
-		private final JobTemplateManager jtm;
-		private final ConfigurationPersistenceManager cpm;
-		private final Repository r;
-		private final Logger log;
+            String jenkinsBuildId = jt.getBuildNameFor(repo);
+            String url = jsc.getUrl();
+            String user = jsc.getUsername();
+            String password = jsc.getPassword();
 
-		public CreateMissingRepositoryVisitor(RepositoryHookService rhs,
-				JenkinsClientManager jcm, JobTemplateManager jtm,
-				ConfigurationPersistenceManager cpm, Repository r,
-				StashbotLoggerFactory lf) {
-			this.rhs = rhs;
-			this.jcm = jcm;
-			this.jtm = jtm;
-			this.cpm = cpm;
-			this.r = r;
-			this.log = lf.getLoggerForThis(this);
-		}
+            log.info("Triggering jenkins build id " + jenkinsBuildId
+                + " on hash " + hashToBuild + " (" + user + "@" + url
+                + " pw: " + password.replaceAll(".", "*") + ")");
 
-		@Override
-		public Void call() throws Exception {
-			RepositoryConfiguration rc = cpm
-					.getRepositoryConfigurationForRepository(r);
-			// may someday require repo also...
-			JenkinsServerConfiguration jsc = cpm
-					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+            final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
+                rc);
+            Map<String, Job> jobMap = js.getJobs();
+            String key = jt.getBuildNameFor(repo);
 
-			if (!rc.getCiEnabled())
-				return null;
+            if (!jobMap.containsKey(key)) {
+                throw new RuntimeException("Build doesn't exist: " + key);
+            }
 
-			// Ensure hook is enabled
-			try {
-				rhs.enable(r, TRIGGER_JENKINS_BUILD_HOOK_KEY);
-			} catch (Exception e) {
-				log.error("Exception thrown while trying to enable hook", e);
-			}
+            Builder<String, String> builder = ImmutableMap.builder();
+            builder.put("repoId", repo.getId().toString());
+            if (pullRequest != null) {
+                log.debug("Determined pullRequestId " + pullRequestId);
+                builder.put("pullRequestId", pullRequestId);
+                // toRef is always present in the repo
+                builder.put("buildHead", pullRequest.getToRef()
+                    .getLatestChangeset().toString());
+                // fromRef may be in a different repo
+                builder.put("mergeRef", pullRequest.getFromRef().getDisplayId());
+                builder.put("mergeRefUrl", sub.buildCloneUrl(repo, jsc));
+                builder.put("mergeHead", pullRequest.getFromRef()
+                    .getLatestChangeset().toString());
+            }
 
-			// make sure jobs exist
-			List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
-			JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
-			Map<String, Job> jobs = js.getJobs();
+            jobMap.get(key).build(builder.build());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        } catch (HttpResponseException e) { // subclass of IOException thrown by
+                                            // client
+            if (e.getStatusCode() == 302) {
+                // BUG in client - this isn't really an error, assume the build
+                // triggered ok and this is just a redirect
+                // to some URL after the fact.
+                return;
+            }
+            // For other HTTP errors, log it for easier debugging
+            log.error(
+                "HTTP Error (resp code "
+                    + Integer.toString(e.getStatusCode()) + ")", e);
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-			for (JobTemplate template : templates) {
-				if (!jobs.containsKey(template.getBuildNameFor(r))) {
-					log.info("Creating " + template.getName()
-							+ " job for repo " + r.toString());
-					createJob(r, template);
-				}
-			}
-			return null;
-		}
-	}
+    /**
+     * Code to ensure a given repository has plans that exist in jenkins.
+     * 
+     * @author cmyers
+     */
+    class CreateMissingRepositoryVisitor implements Callable<Void> {
 
-	public void createMissingJobs() {
+        private final RepositoryHookService rhs;
+        private final JenkinsClientManager jcm;
+        private final JobTemplateManager jtm;
+        private final ConfigurationPersistenceManager cpm;
+        private final Repository r;
+        private final Logger log;
 
-		ExecutorService es = Executors.newCachedThreadPool();
-		List<Future<Void>> futures = new LinkedList<Future<Void>>();
+        public CreateMissingRepositoryVisitor(RepositoryHookService rhs,
+            JenkinsClientManager jcm, JobTemplateManager jtm,
+            ConfigurationPersistenceManager cpm, Repository r,
+            StashbotLoggerFactory lf) {
+            this.rhs = rhs;
+            this.jcm = jcm;
+            this.jtm = jtm;
+            this.cpm = cpm;
+            this.r = r;
+            this.log = lf.getLoggerForThis(this);
+        }
 
-		PageRequest pageReq = new PageRequestImpl(0, 500);
-		Page<? extends Repository> p = repositoryService.findAll(pageReq);
-		while (true) {
-			for (Repository r : p.getValues()) {
-				Future<Void> f = es.submit(new CreateMissingRepositoryVisitor(
-						rhs, jenkinsClientManager, jtm, cpm, r, lf));
-				futures.add(f);
-			}
-			if (p.getIsLastPage())
-				break;
-			pageReq = p.getNextPageRequest();
-			p = repositoryService.findAll(pageReq);
-		}
-		for (Future<Void> f : futures) {
-			try {
-				f.get(); // don't care about return, just catch exceptions
-			} catch (ExecutionException e) {
-				log.error(
-						"Exception while attempting to create missing jobs for a repo: ",
-						e);
-			} catch (InterruptedException e) {
-				log.error("Interrupted: this shouldn't happen", e);
-			}
-		}
-	}
+        @Override
+        public Void call() throws Exception {
+            RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(r);
+            // may someday require repo also...
+            JenkinsServerConfiguration jsc = cpm
+                .getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
-	/**
-	 * Code to ensure a given repository has plans that exist in jenkins.
-	 * 
-	 * @author cmyers
-	 */
-	class UpdateAllRepositoryVisitor implements Callable<Void> {
+            if (!rc.getCiEnabled())
+                return null;
 
-		private final RepositoryHookService rhs;
-		private final JenkinsClientManager jcm;
-		private final JobTemplateManager jtm;
-		private final ConfigurationPersistenceManager cpm;
-		private final Repository r;
-		private final Logger log;
+            // Ensure hook is enabled
+            try {
+                rhs.enable(r, TRIGGER_JENKINS_BUILD_HOOK_KEY);
+            } catch (Exception e) {
+                log.error("Exception thrown while trying to enable hook", e);
+            }
 
-		public UpdateAllRepositoryVisitor(RepositoryHookService rhs,
-				JenkinsClientManager jcm, JobTemplateManager jtm,
-				ConfigurationPersistenceManager cpm, Repository r,
-				StashbotLoggerFactory lf) {
-			this.rhs = rhs;
-			this.jcm = jcm;
-			this.jtm = jtm;
-			this.cpm = cpm;
-			this.r = r;
-			this.log = lf.getLoggerForThis(this);
-		}
+            // make sure jobs exist
+            List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
+            JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+            Map<String, Job> jobs = js.getJobs();
 
-		@Override
-		public Void call() throws Exception {
-			RepositoryConfiguration rc = cpm
-					.getRepositoryConfigurationForRepository(r);
-			// may someday require repo also...
-			JenkinsServerConfiguration jsc = cpm
-					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+            for (JobTemplate template : templates) {
+                if (!jobs.containsKey(template.getBuildNameFor(r))) {
+                    log.info("Creating " + template.getName()
+                        + " job for repo " + r.toString());
+                    createJob(r, template);
+                }
+            }
+            return null;
+        }
+    }
 
-			if (!rc.getCiEnabled())
-				return null;
+    public void createMissingJobs() {
 
-			// Ensure hook is enabled
-			try {
-				rhs.enable(r, TRIGGER_JENKINS_BUILD_HOOK_KEY);
-			} catch (Exception e) {
-				log.error("Exception thrown while trying to enable hook", e);
-			}
+        ExecutorService es = Executors.newCachedThreadPool();
+        List<Future<Void>> futures = new LinkedList<Future<Void>>();
 
-			// make sure jobs are up to date
-			List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
-			JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
-			Map<String, Job> jobs = js.getJobs();
-			// for (JobTemplate jobTemplate : templates) {
-			JobTemplate jobTemplate = jtm.getDefaultVerifyJob();
-			if (!jobs.containsKey(jobTemplate.getBuildNameFor(r))) {
-				log.info("Creating " + jobTemplate.getName() + " job for repo "
-						+ r.toString());
-				createJob(r, jobTemplate);
-			} else {
-				// update job
-				log.info("Updating " + jobTemplate.getName() + " job for repo "
-						+ r.toString());
-				updateJob(r, jobTemplate);
-			}
-			// }
-			return null;
-		}
-	}
+        PageRequest pageReq = new PageRequestImpl(0, 500);
+        Page<? extends Repository> p = repositoryService.findAll(pageReq);
+        while (true) {
+            for (Repository r : p.getValues()) {
+                Future<Void> f = es.submit(new CreateMissingRepositoryVisitor(
+                    rhs, jenkinsClientManager, jtm, cpm, r, lf));
+                futures.add(f);
+            }
+            if (p.getIsLastPage())
+                break;
+            pageReq = p.getNextPageRequest();
+            p = repositoryService.findAll(pageReq);
+        }
+        for (Future<Void> f : futures) {
+            try {
+                f.get(); // don't care about return, just catch exceptions
+            } catch (ExecutionException e) {
+                log.error(
+                    "Exception while attempting to create missing jobs for a repo: ",
+                    e);
+            } catch (InterruptedException e) {
+                log.error("Interrupted: this shouldn't happen", e);
+            }
+        }
+    }
 
-	public void updateAllJobs() {
+    /**
+     * Code to ensure a given repository has plans that exist in jenkins.
+     * 
+     * @author cmyers
+     */
+    class UpdateAllRepositoryVisitor implements Callable<Void> {
 
-		ExecutorService es = Executors.newCachedThreadPool();
-		List<Future<Void>> futures = new LinkedList<Future<Void>>();
+        private final RepositoryHookService rhs;
+        private final JenkinsClientManager jcm;
+        private final JobTemplateManager jtm;
+        private final ConfigurationPersistenceManager cpm;
+        private final Repository r;
+        private final Logger log;
 
-		PageRequest pageReq = new PageRequestImpl(0, 500);
-		Page<? extends Repository> p = repositoryService.findAll(pageReq);
-		while (true) {
-			for (Repository r : p.getValues()) {
-				Future<Void> f = es.submit(new UpdateAllRepositoryVisitor(rhs,
-						jenkinsClientManager, jtm, cpm, r, lf));
-				futures.add(f);
-			}
-			if (p.getIsLastPage())
-				break;
-			pageReq = p.getNextPageRequest();
-			p = repositoryService.findAll(pageReq);
-		}
-		for (Future<Void> f : futures) {
-			try {
-				f.get(); // don't care about return, just catch exceptions
-			} catch (ExecutionException e) {
-				log.error(
-						"Exception while attempting to create missing jobs for a repo: ",
-						e);
-			} catch (InterruptedException e) {
-				log.error("Interrupted: this shouldn't happen", e);
-			}
-		}
-	}
+        public UpdateAllRepositoryVisitor(RepositoryHookService rhs,
+            JenkinsClientManager jcm, JobTemplateManager jtm,
+            ConfigurationPersistenceManager cpm, Repository r,
+            StashbotLoggerFactory lf) {
+            this.rhs = rhs;
+            this.jcm = jcm;
+            this.jtm = jtm;
+            this.cpm = cpm;
+            this.r = r;
+            this.log = lf.getLoggerForThis(this);
+        }
+
+        @Override
+        public Void call() throws Exception {
+            RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(r);
+            // may someday require repo also...
+            JenkinsServerConfiguration jsc = cpm
+                .getJenkinsServerConfiguration(rc.getJenkinsServerName());
+
+            if (!rc.getCiEnabled())
+                return null;
+
+            // Ensure hook is enabled
+            try {
+                rhs.enable(r, TRIGGER_JENKINS_BUILD_HOOK_KEY);
+            } catch (Exception e) {
+                log.error("Exception thrown while trying to enable hook", e);
+            }
+
+            // make sure jobs are up to date
+            List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
+            JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
+            Map<String, Job> jobs = js.getJobs();
+            for (JobTemplate jobTemplate : templates) {
+                if (!jobs.containsKey(jobTemplate.getBuildNameFor(r))) {
+                    log.info("Creating " + jobTemplate.getName()
+                        + " job for repo " + r.toString());
+                    createJob(r, jobTemplate);
+                } else {
+                    // update job
+                    log.info("Updating " + jobTemplate.getName()
+                        + " job for repo " + r.toString());
+                    updateJob(r, jobTemplate);
+                }
+            }
+            return null;
+        }
+    }
+
+    public void updateAllJobs() {
+
+        ExecutorService es = Executors.newCachedThreadPool();
+        List<Future<Void>> futures = new LinkedList<Future<Void>>();
+
+        PageRequest pageReq = new PageRequestImpl(0, 500);
+        Page<? extends Repository> p = repositoryService.findAll(pageReq);
+        while (true) {
+            for (Repository r : p.getValues()) {
+                Future<Void> f = es.submit(new UpdateAllRepositoryVisitor(rhs,
+                    jenkinsClientManager, jtm, cpm, r, lf));
+                futures.add(f);
+            }
+            if (p.getIsLastPage())
+                break;
+            pageReq = p.getNextPageRequest();
+            p = repositoryService.findAll(pageReq);
+        }
+        for (Future<Void> f : futures) {
+            try {
+                f.get(); // don't care about return, just catch exceptions
+            } catch (ExecutionException e) {
+                log.error(
+                    "Exception while attempting to create missing jobs for a repo: ",
+                    e);
+            } catch (InterruptedException e) {
+                log.error("Interrupted: this shouldn't happen", e);
+            }
+        }
+    }
 }

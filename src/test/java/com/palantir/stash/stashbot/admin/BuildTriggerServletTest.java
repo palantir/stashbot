@@ -90,7 +90,7 @@ public class BuildTriggerServletTest {
 
     private BuildTriggerServlet bsrs;
 
-    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
     private MockJobTemplateFactory jtf;
 
@@ -147,8 +147,7 @@ public class BuildTriggerServletTest {
         bsrs.doGet(req, res);
 
         Mockito.verify(res).setStatus(200);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, verifyPRType, HEAD, MERGE_HEAD,
-            Long.toString(PULL_REQUEST_ID));
+        Mockito.verify(jenkinsManager).triggerBuild(repo, verifyPRType, pr);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Build Triggered"));

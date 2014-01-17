@@ -28,50 +28,53 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
+import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class RetriggerLinkWebPanel implements WebPanel {
 
-    private final ConfigurationPersistenceManager cpm;
-    private final TriggerBuildUrlBuilder ub;
-    private final Logger log;
+	private final ConfigurationPersistenceManager cpm;
+	private final StashbotUrlBuilder ub;
+	private final Logger log;
 
-    public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm, TriggerBuildUrlBuilder ub,
-        StashbotLoggerFactory lf) {
-        this.cpm = cpm;
-        this.ub = ub;
-        this.log = lf.getLoggerForThis(this);
-    }
+	public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm,
+			StashbotUrlBuilder ub, StashbotLoggerFactory lf) {
+		this.cpm = cpm;
+		this.ub = ub;
+		this.log = lf.getLoggerForThis(this);
+	}
 
-    @Override
-    public String getHtml(Map<String, Object> context) {
-        Writer holdSomeText = new StringWriter();
-        try {
-            writeHtml(holdSomeText, context);
-        } catch (IOException e) {
-            log.error("Error occured rendering web panel", e);
-            return "Error occured loading text";
-        }
-        return holdSomeText.toString();
-    }
+	@Override
+	public String getHtml(Map<String, Object> context) {
+		Writer holdSomeText = new StringWriter();
+		try {
+			writeHtml(holdSomeText, context);
+		} catch (IOException e) {
+			log.error("Error occured rendering web panel", e);
+			return "Error occured loading text";
+		}
+		return holdSomeText.toString();
+	}
 
-    @Override
-    public void writeHtml(Writer writer, Map<String, Object> context) throws IOException {
-        try {
-            Repository repo = (Repository) context.get("repository");
-            RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+	@Override
+	public void writeHtml(Writer writer, Map<String, Object> context)
+			throws IOException {
+		try {
+			Repository repo = (Repository) context.get("repository");
+			RepositoryConfiguration rc = cpm
+					.getRepositoryConfigurationForRepository(repo);
 
-            if (!rc.getCiEnabled()) {
-                // No link
-                return;
-            }
+			if (!rc.getCiEnabled()) {
+				// No link
+				return;
+			}
 
-            Changeset changeset = (Changeset) context.get("changeset");
-            String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT, changeset.getId(), null, null);
+			Changeset changeset = (Changeset) context.get("changeset");
+			String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT,
+					changeset.getId(), null);
 
-            writer.append("<a href=\"" + url + "\">Retrigger</a>");
-        } catch (SQLException e) {
-            throw new IOException(e);
-        }
-    }
+			writer.append("<a href=\"" + url + "\">Retrigger</a>");
+		} catch (SQLException e) {
+			throw new IOException(e);
+		}
+	}
 }

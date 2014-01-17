@@ -29,50 +29,53 @@ import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 /**
- * This class is a MergeRequestCheck to disable merging where the target repo has CI enabled and no comments which
+ * This class is a MergeRequestCheck to disable merging where the target repo
+ * has CI enabled and no comments which
  * 
  * @author cmyers
  * 
  */
 public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
-    private final ConfigurationPersistenceManager cpm;
-    private final Logger log;
+	private final ConfigurationPersistenceManager cpm;
+	private final Logger log;
 
-    public PullRequestBuildSuccessMergeCheck(ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
-        this.cpm = cpm;
-        this.log = lf.getLoggerForThis(this);
-    }
+	public PullRequestBuildSuccessMergeCheck(
+			ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
+		this.cpm = cpm;
+		this.log = lf.getLoggerForThis(this);
+	}
 
-    @Override
-    public void check(@Nonnull MergeRequest mr) {
-        PullRequest pr = mr.getPullRequest();
-        Repository repo = pr.getToRef().getRepository();
+	@Override
+	public void check(@Nonnull MergeRequest mr) {
+		PullRequest pr = mr.getPullRequest();
+		Repository repo = pr.getToRef().getRepository();
 
-        RepositoryConfiguration rc;
-        try {
-            rc = cpm.getRepositoryConfigurationForRepository(repo);
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to get RepositoryConfiguration", e);
-        }
-        if (!rc.getCiEnabled()) {
-            return;
-        }
-        if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
-            log.debug("Pull Request " + pr.toString() + " ignored, branch " + pr.getToRef().getId()
-                + " doesn't match verify regex");
-            return;
-        }
+		RepositoryConfiguration rc;
+		try {
+			rc = cpm.getRepositoryConfigurationForRepository(repo);
+		} catch (SQLException e) {
+			throw new RuntimeException("Unable to get RepositoryConfiguration",
+					e);
+		}
+		if (!rc.getCiEnabled()) {
+			return;
+		}
+		if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {
+			log.debug("Pull Request " + pr.toString() + " ignored, branch "
+					+ pr.getToRef().getId() + " doesn't match verify regex");
+			return;
+		}
 
-        PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
-        log.debug("PRM: success " + prm.getSuccess().toString() + " override " + prm.getOverride().toString());
+		PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
+		log.debug("PRM: success " + prm.getSuccess().toString() + " override "
+				+ prm.getOverride().toString());
 
-        if (prm.getOverride() || prm.getSuccess()) {
-            return;
-        }
+		if (prm.getOverride() || prm.getSuccess()) {
+			return;
+		}
 
-        mr.veto(
-            "Green build required to merge",
-            "Either retrigger the build so it succeeds, or add a comment with the string '==OVERRIDE==' to override the requirement");
-    }
+		mr.veto("Green build required to merge",
+				"Either retrigger the build so it succeeds, or add a comment with the string '==OVERRIDE==' to override the requirement");
+	}
 }

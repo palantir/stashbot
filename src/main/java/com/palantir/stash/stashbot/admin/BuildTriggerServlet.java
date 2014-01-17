@@ -48,7 +48,8 @@ public class BuildTriggerServlet extends HttpServlet {
      * 
      */
     private static final long serialVersionUID = 1L;
-    // 1 => repoId, 2 => type, 3 => build_head, 4 => mergeHead, 5 => pullRequestId
+    // 1 => repoId, 2 => type, 3 => build_head, 4 => mergeHead, 5 =>
+    // pullRequestId
     private static final String URL_FORMAT = "BASE_URL/REPO_ID/TYPE/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
 
     private final RepositoryService repositoryService;
@@ -58,8 +59,9 @@ public class BuildTriggerServlet extends HttpServlet {
     private final JenkinsManager jenkinsManager;
     private final Logger log;
 
-    public BuildTriggerServlet(RepositoryService repositoryService, PullRequestService pullRequestService,
-        JobTemplateManager jtm, ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
+    public BuildTriggerServlet(RepositoryService repositoryService,
+        PullRequestService pullRequestService, JobTemplateManager jtm,
+        ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
         StashbotLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.pullRequestService = pullRequestService;
@@ -70,13 +72,15 @@ public class BuildTriggerServlet extends HttpServlet {
     }
 
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse res)
+        throws ServletException, IOException {
 
         final String pathInfo = req.getPathInfo();
         final String[] parts = pathInfo.split("/");
 
         if (parts.length != 4 && parts.length != 6) {
-            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
+            throw new IllegalArgumentException("The format of the URL is "
+                + URL_FORMAT);
         }
         final int repoId;
         final Repository repo;
@@ -86,19 +90,22 @@ public class BuildTriggerServlet extends HttpServlet {
             repoId = Integer.valueOf(parts[1]);
             repo = repositoryService.getById(repoId);
             if (repo == null) {
-                throw new IllegalArgumentException("Unable to get a repository for id " + repoId);
+                throw new IllegalArgumentException(
+                    "Unable to get a repository for id " + repoId);
             }
             rc = cpm.getRepositoryConfigurationForRepository(repo);
             jt = jtm.fromString(rc, parts[2].toLowerCase());
         } catch (SQLException e) {
             throw new IllegalArgumentException("SQLException occured", e);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT, e);
+            throw new IllegalArgumentException("The format of the URL is "
+                + URL_FORMAT, e);
         }
 
         if (jt == null) {
-            throw new IllegalArgumentException("Unable to get a valid JobTemplate from " + parts[2]
-                + " for repository " + repo.toString());
+            throw new IllegalArgumentException(
+                "Unable to get a valid JobTemplate from " + parts[2]
+                    + " for repository " + repo.toString());
         }
 
         // TODO: ensure this hash actually exists?
@@ -111,13 +118,17 @@ public class BuildTriggerServlet extends HttpServlet {
             mergeHead = parts[4];
             try {
                 pullRequestId = parts[5];
-                pullRequest = pullRequestService.getById(repo.getId(), Long.parseLong(pullRequestId));
+                pullRequest = pullRequestService.getById(repo.getId(),
+                    Long.parseLong(pullRequestId));
                 if (pullRequest == null) {
-                    throw new IllegalArgumentException("Unable to find pull request for repo id "
-                        + repo.getId().toString() + " pr id " + pullRequestId);
+                    throw new IllegalArgumentException(
+                        "Unable to find pull request for repo id "
+                            + repo.getId().toString() + " pr id "
+                            + pullRequestId);
                 }
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Unable to parse pull request id " + parts[5], e);
+                throw new IllegalArgumentException(
+                    "Unable to parse pull request id " + parts[5], e);
             }
         } else {
             mergeHead = null;
@@ -129,15 +140,17 @@ public class BuildTriggerServlet extends HttpServlet {
             log.debug("Triggering build for buildHead " + buildHead);
             try {
                 jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead);
+                printOutput(req, res);
+                return;
             } catch (Exception e) {
                 printErrorOutput(req, res, e);
                 return;
             }
         }
 
-        // mergeHead is not null *and* pullRequest is not null if we reach here.
+        // pullRequest is not null if we reach here.
         try {
-            jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead, mergeHead, pullRequestId);
+            jenkinsManager.triggerBuild(repo, jt.getJobType(), pullRequest);
         } catch (Exception e) {
             printErrorOutput(req, res, e);
             return;
@@ -146,7 +159,8 @@ public class BuildTriggerServlet extends HttpServlet {
         return;
     }
 
-    private void printOutput(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    private void printOutput(HttpServletRequest req, HttpServletResponse res)
+        throws IOException {
         res.reset();
         res.setStatus(200);
         res.setContentType("text/plain;charset=UTF-8");
@@ -155,7 +169,8 @@ public class BuildTriggerServlet extends HttpServlet {
         w.close();
     }
 
-    private void printErrorOutput(HttpServletRequest req, HttpServletResponse res, Exception e) throws IOException {
+    private void printErrorOutput(HttpServletRequest req,
+        HttpServletResponse res, Exception e) throws IOException {
         res.reset();
         res.setStatus(500);
         res.setContentType("text/plain;charset=UTF-8");

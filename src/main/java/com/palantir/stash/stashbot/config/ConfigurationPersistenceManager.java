@@ -36,15 +36,16 @@ public class ConfigurationPersistenceManager {
 
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
-    public ConfigurationPersistenceManager(ActiveObjects ao, StashbotLoggerFactory lf) {
+    public ConfigurationPersistenceManager(ActiveObjects ao,
+        StashbotLoggerFactory lf) {
         this.ao = ao;
         this.log = lf.getLoggerForThis(this);
     }
 
     public void deleteJenkinsServerConfiguration(String name) {
-        JenkinsServerConfiguration[] configs =
-            ao.find(JenkinsServerConfiguration.class,
-                Query.select().where("NAME = ?", name));
+        JenkinsServerConfiguration[] configs = ao.find(
+            JenkinsServerConfiguration.class,
+            Query.select().where("NAME = ?", name));
         if (configs.length == 0) {
             return;
         }
@@ -53,17 +54,18 @@ public class ConfigurationPersistenceManager {
         }
     }
 
-    public JenkinsServerConfiguration getJenkinsServerConfiguration(String name) throws SQLException {
+    public JenkinsServerConfiguration getJenkinsServerConfiguration(String name)
+        throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
-        JenkinsServerConfiguration[] configs =
-            ao.find(JenkinsServerConfiguration.class,
-                Query.select().where("NAME = ?", name));
+        JenkinsServerConfiguration[] configs = ao.find(
+            JenkinsServerConfiguration.class,
+            Query.select().where("NAME = ?", name));
         if (configs.length == 0) {
             // just use the defaults
-            return ao.create(JenkinsServerConfiguration.class,
-                new DBParam("NAME", name));
+            return ao.create(JenkinsServerConfiguration.class, new DBParam(
+                "NAME", name));
         }
 
         String url = configs[0].getUrl();
@@ -75,27 +77,25 @@ public class ConfigurationPersistenceManager {
         return configs[0];
     }
 
-    public void setJenkinsServerConfiguration(String name, String url, String username, String password,
-        String stashUsername, String stashPassword, Integer maxVerifyChain) throws SQLException {
+    public void setJenkinsServerConfiguration(String name, String url,
+        String username, String password, String stashUsername,
+        String stashPassword, Integer maxVerifyChain) throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
         validateName(name);
-        JenkinsServerConfiguration[] configs =
-            ao.find(JenkinsServerConfiguration.class,
-                Query.select().where("NAME = ?", name));
+        JenkinsServerConfiguration[] configs = ao.find(
+            JenkinsServerConfiguration.class,
+            Query.select().where("NAME = ?", name));
 
         if (configs.length == 0) {
             log.info("Creating jenkins configuration: " + name);
-            ao.create(JenkinsServerConfiguration.class,
-                new DBParam("NAME", name),
-                new DBParam("URL", url),
-                new DBParam("USERNAME", username),
-                new DBParam("PASSWORD", password),
-                new DBParam("STASH_USERNAME", stashUsername),
-                new DBParam("STASH_PASSWORD", stashPassword),
-                new DBParam("MAX_VERIFY_CHAIN", maxVerifyChain)
-                );
+            ao.create(JenkinsServerConfiguration.class, new DBParam("NAME",
+                name), new DBParam("URL", url), new DBParam("USERNAME",
+                username), new DBParam("PASSWORD", password), new DBParam(
+                "STASH_USERNAME", stashUsername), new DBParam(
+                "STASH_PASSWORD", stashPassword), new DBParam(
+                "MAX_VERIFY_CHAIN", maxVerifyChain));
             return;
         }
         // already exists, so update it
@@ -109,12 +109,15 @@ public class ConfigurationPersistenceManager {
         configs[0].save();
     }
 
-    public RepositoryConfiguration getRepositoryConfigurationForRepository(Repository repo) throws SQLException {
-        RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
+    public RepositoryConfiguration getRepositoryConfigurationForRepository(
+        Repository repo) throws SQLException {
+        RepositoryConfiguration[] repos = ao.find(
+            RepositoryConfiguration.class,
             Query.select().where("REPO_ID = ?", repo.getId()));
         if (repos.length == 0) {
             // just use the defaults
-            RepositoryConfiguration rc = ao.create(RepositoryConfiguration.class,
+            RepositoryConfiguration rc = ao.create(
+                RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()));
             rc.save();
             return rc;
@@ -122,35 +125,42 @@ public class ConfigurationPersistenceManager {
         return repos[0];
     }
 
-    public void setRepositoryConfigurationForRepository(Repository repo, boolean isCiEnabled, String verifyBranchRegex,
-        String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand, String prebuildCommand)
+    public void setRepositoryConfigurationForRepository(Repository repo,
+        boolean isCiEnabled, String verifyBranchRegex,
+        String verifyBuildCommand, String publishBranchRegex,
+        String publishBuildCommand, String prebuildCommand)
         throws SQLException, IllegalArgumentException {
-        setRepositoryConfigurationForRepository(repo, isCiEnabled, verifyBranchRegex, verifyBuildCommand,
-            publishBranchRegex, publishBuildCommand, prebuildCommand, null, null);
+        setRepositoryConfigurationForRepository(repo, isCiEnabled,
+            verifyBranchRegex, verifyBuildCommand, publishBranchRegex,
+            publishBuildCommand, prebuildCommand, null, null);
     }
 
-    public void setRepositoryConfigurationForRepository(Repository repo, boolean isCiEnabled, String verifyBranchRegex,
-        String verifyBuildCommand, String publishBranchRegex, String publishBuildCommand, String prebuildCommand,
+    public void setRepositoryConfigurationForRepository(Repository repo,
+        boolean isCiEnabled, String verifyBranchRegex,
+        String verifyBuildCommand, String publishBranchRegex,
+        String publishBuildCommand, String prebuildCommand,
         String jenkinsServerName, Integer maxVerifyChain)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
         validateNameExists(jenkinsServerName);
-        RepositoryConfiguration[] repos = ao.find(RepositoryConfiguration.class,
+        RepositoryConfiguration[] repos = ao.find(
+            RepositoryConfiguration.class,
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
-            log.info("Creating repository configuration for id: " + repo.getId().toString());
-            RepositoryConfiguration rc = ao.create(RepositoryConfiguration.class,
-                new DBParam("REPO_ID", repo.getId()),
-                new DBParam("CI_ENABLED", isCiEnabled),
-                new DBParam("VERIFY_BRANCH_REGEX", verifyBranchRegex),
+            log.info("Creating repository configuration for id: "
+                + repo.getId().toString());
+            RepositoryConfiguration rc = ao.create(
+                RepositoryConfiguration.class,
+                new DBParam("REPO_ID", repo.getId()), new DBParam(
+                    "CI_ENABLED", isCiEnabled), new DBParam(
+                    "VERIFY_BRANCH_REGEX", verifyBranchRegex),
                 new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
                 new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
                 new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
                 new DBParam("PREBUILD_COMMAND", prebuildCommand),
-                new DBParam("JENKINS_SERVER_NAME", jenkinsServerName)
-                );
+                new DBParam("JENKINS_SERVER_NAME", jenkinsServerName));
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
@@ -170,23 +180,28 @@ public class ConfigurationPersistenceManager {
         repos[0].save();
     }
 
-    public ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations() throws SQLException {
-        JenkinsServerConfiguration[] allConfigs = ao.find(JenkinsServerConfiguration.class);
+    public ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
+        throws SQLException {
+        JenkinsServerConfiguration[] allConfigs = ao
+            .find(JenkinsServerConfiguration.class);
         if (allConfigs.length == 0) {
             return ImmutableList.of(getJenkinsServerConfiguration(null));
         }
         return ImmutableList.copyOf(allConfigs);
     }
 
-    public ImmutableCollection<String> getAllJenkinsServerNames() throws SQLException {
+    public ImmutableCollection<String> getAllJenkinsServerNames()
+        throws SQLException {
         List<String> names = new ArrayList<String>();
 
-        JenkinsServerConfiguration[] allConfigs = ao.find(JenkinsServerConfiguration.class);
+        JenkinsServerConfiguration[] allConfigs = ao
+            .find(JenkinsServerConfiguration.class);
         for (JenkinsServerConfiguration jsc : allConfigs) {
             names.add(jsc.getName());
         }
         if (allConfigs.length == 0) {
-            return ImmutableList.of(getJenkinsServerConfiguration(null).getName());
+            return ImmutableList.of(getJenkinsServerConfiguration(null)
+                .getName());
         }
         return ImmutableList.copyOf(names);
 
@@ -202,37 +217,41 @@ public class ConfigurationPersistenceManager {
         if (name.equals(DEFAULT_JENKINS_SERVER_CONFIG_KEY)) {
             return;
         }
-        JenkinsServerConfiguration[] allConfigs = ao.find(JenkinsServerConfiguration.class);
+        JenkinsServerConfiguration[] allConfigs = ao
+            .find(JenkinsServerConfiguration.class);
         for (JenkinsServerConfiguration jsc : allConfigs) {
             if (jsc.getName().equals(name)) {
                 return;
             }
         }
-        throw new IllegalArgumentException("Jenkins Server name " + name + " does not exist");
+        throw new IllegalArgumentException("Jenkins Server name " + name
+            + " does not exist");
     }
 
     private String pullRequestToString(PullRequest pr) {
-        return "[id:" + Long.toString(pr.getId()) + ", from:" + pr.getFromRef().getLatestChangeset() + ", to:"
+        return "[id:" + Long.toString(pr.getId()) + ", from:"
+            + pr.getFromRef().getLatestChangeset() + ", to:"
             + pr.getToRef().getLatestChangeset() + "]";
     }
 
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         Long id = pr.getId();
+        String fromSha = pr.getFromRef().getLatestChangeset().toString();
+        String toSha = pr.getToRef().getLatestChangeset().toString();
 
-        String fromSha = pr.getFromRef().getLatestChangeset();
-        String toSha = pr.getToRef().getLatestChangeset();
-
-        PullRequestMetadata[] prms =
-            ao.find(PullRequestMetadata.class, "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id, toSha,
-                fromSha);
+        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
+            "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id,
+            toSha, fromSha);
         if (prms.length == 0) {
             // new/updated PR, create a new object
-            log.info("Creating PR Metadata for pull request: " + pullRequestToString(pr));
-            PullRequestMetadata prm = ao.create(PullRequestMetadata.class,
-                new DBParam("PULL_REQUEST_ID", id),
-                new DBParam("TO_SHA", pr.getToRef().getLatestChangeset()),
-                new DBParam("FROM_SHA", pr.getFromRef().getLatestChangeset())
-                );
+            log.info("Creating PR Metadata for pull request: "
+                + pullRequestToString(pr));
+            PullRequestMetadata prm =
+                ao.create(
+                    PullRequestMetadata.class,
+                    new DBParam("PULL_REQUEST_ID", id),
+                    new DBParam("TO_SHA", toSha),
+                    new DBParam("FROM_SHA", fromSha));
             prm.save();
             return prm;
 
@@ -240,10 +259,9 @@ public class ConfigurationPersistenceManager {
         return prms[0];
     }
 
-    public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted, Boolean success, Boolean override) {
+    public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
+        Boolean success, Boolean override) {
         PullRequestMetadata prm = getPullRequestMetadata(pr);
-        prm.setFromSha(pr.getFromRef().getLatestChangeset());
-        prm.setToSha(pr.getToRef().getLatestChangeset());
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }

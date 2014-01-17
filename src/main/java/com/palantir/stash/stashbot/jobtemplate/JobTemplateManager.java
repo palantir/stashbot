@@ -10,8 +10,6 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
@@ -26,13 +24,10 @@ public class JobTemplateManager {
 	private static final String DEFAULT_VERIFY_PR_JOB_FILE = "jenkins-verify-pull-request-job.vm";
 
 	private final ActiveObjects ao;
-	private final RepositoryService repositoryService;
 	private final Logger log;
 
-	public JobTemplateManager(ActiveObjects ao,
-			RepositoryService repositoryService, StashbotLoggerFactory lf) {
+	public JobTemplateManager(ActiveObjects ao, StashbotLoggerFactory lf) {
 		this.ao = ao;
-		this.repositoryService = repositoryService;
 		this.log = lf.getLoggerForThis(this);
 	}
 
@@ -196,7 +191,6 @@ public class JobTemplateManager {
 	 */
 	public JobTemplate fromString(RepositoryConfiguration rc, String s)
 			throws SQLException {
-		Repository repo = repositoryService.getById(rc.getRepoId());
 		for (JobTemplate jt : getJenkinsJobsForRepository(rc)) {
 			if (jt.getJobType().toString().equals(s.toLowerCase())) {
 				return jt;

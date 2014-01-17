@@ -30,6 +30,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.VelocityManager;
+import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsJobXmlFormatter {
 
@@ -40,13 +41,15 @@ public class JenkinsJobXmlFormatter {
 
 	private final VelocityManager velocityManager;
 	private final ConfigurationPersistenceManager cpm;
+	private final StashbotUrlBuilder sub;
 	private final NavBuilder navBuilder;
 
 	public JenkinsJobXmlFormatter(VelocityManager velocityManager,
-			ConfigurationPersistenceManager cpm, NavBuilder navBuilder)
-			throws IOException {
+			ConfigurationPersistenceManager cpm, StashbotUrlBuilder sub,
+			NavBuilder navBuilder) throws IOException {
 		this.velocityManager = velocityManager;
 		this.cpm = cpm;
+		this.sub = sub;
 		this.navBuilder = navBuilder;
 	}
 
@@ -57,7 +60,7 @@ public class JenkinsJobXmlFormatter {
 				.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 		StringBuffer sb = new StringBuffer();
 		sb.append("/usr/bin/curl -s -i ");
-		sb.append(buildUrl(repo, jobTemplate, repositoryUrl, jsc, status));
+		sb.append(sub.buildReportingUrl(repo, jobTemplate.getJobType(), jsc, status));
 		return sb.toString();
 	}
 
@@ -193,21 +196,4 @@ public class JenkinsJobXmlFormatter {
 		return command + " " + BUILD_COMMAND_POSTFIX;
 	}
 
-	private String buildUrl(Repository repo, JobTemplate jobTemplate,
-			String repositoryUrl, JenkinsServerConfiguration jsc, String status) {
-		// Look at the BuildSuccessReportinServlet if you change this:
-		// "BASE_URL/REPO_ID/JOB_NAME/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
-		// SEE ALSO:
-		// https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
-		// TODO: Remove $repoId, hardcode ID?
-		String url = navBuilder
-				.buildAbsolute()
-				.concat("/plugins/servlet/stashbot/build-reporting/$repoId/"
-						+ jobTemplate.getJobType().toString() + "/" + status
-						+ "/$BUILD_NUMBER/$buildHead/$mergeHead/$pullRequestId");
-		url = url.replace("://",
-				"://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
-						+ "@");
-		return url;
-	}
 }

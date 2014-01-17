@@ -41,6 +41,7 @@ import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.managers.VelocityManager;
+import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsJobXmlFormatterTest {
 
@@ -64,6 +65,8 @@ public class JenkinsJobXmlFormatterTest {
     private JobTemplate jobTemplate;
     @Mock
     private ConfigurationPersistenceManager cpm;
+    @Mock
+    private StashbotUrlBuilder sub;
 
     // nav builder intermediaries - god damn this is annoying to mock
     @Mock
@@ -125,7 +128,7 @@ public class JenkinsJobXmlFormatterTest {
             }
         }).when(velocityTemplate).merge(Mockito.eq(velocityContext), writerCaptor.capture());
 
-        jjxf = new JenkinsJobXmlFormatter(velocityManager, cpm, navBuilder);
+        jjxf = new JenkinsJobXmlFormatter(velocityManager, cpm, sub, navBuilder);
     }
 
     @Test

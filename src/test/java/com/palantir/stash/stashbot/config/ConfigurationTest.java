@@ -47,8 +47,9 @@ import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 public class ConfigurationTest {
 
     private static final Long PR_ID = 1234L;
-    private static final String FROM_HASH = "8e57a8b77501710fe1e30a3500102c0968763107";
-    private static final String TO_HASH = "296d73382b433cf0b14fbd8ba0e6a8491156a3c9";
+    private static final Integer REPO_ID = 1235;
+    private static final String FROM_SHA = "8e57a8b77501710fe1e30a3500102c0968763107";
+    private static final String TO_SHA = "beefbeef7501710fe1e30a3500102c0968763107";
 
     private EntityManager entityManager;
     private ActiveObjects ao;
@@ -60,8 +61,10 @@ public class ConfigurationTest {
     private PullRequestRef toRef;
     @Mock
     private PullRequest pr;
+    @Mock
+    private Repository repo;
 
-    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
     @Before
     public void setUp() throws Exception {
@@ -70,8 +73,10 @@ public class ConfigurationTest {
         Mockito.when(pr.getToRef()).thenReturn(toRef);
         Mockito.when(pr.getFromRef()).thenReturn(fromRef);
         Mockito.when(pr.getId()).thenReturn(PR_ID);
-        Mockito.when(fromRef.getLatestChangeset()).thenReturn(FROM_HASH);
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_HASH);
+        Mockito.when(toRef.getRepository()).thenReturn(repo);
+        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA);
+        Mockito.when(fromRef.getLatestChangeset()).thenReturn(FROM_SHA);
+        Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
         // ensure our runner sets this for us
         Assert.assertNotNull(entityManager);
@@ -92,20 +97,24 @@ public class ConfigurationTest {
 
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
-        cpm.setJenkinsServerConfiguration(null, url, username, password, stashUsername, stashPassword, maxVerifyChain);
-        JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(null);
+        cpm.setJenkinsServerConfiguration(null, url, username, password,
+            stashUsername, stashPassword, maxVerifyChain);
+        JenkinsServerConfiguration jsc = cpm
+            .getJenkinsServerConfiguration(null);
         Assert.assertEquals("default", jsc.getName());
         Assert.assertEquals(url, jsc.getUrl());
         Assert.assertEquals(username, jsc.getUsername());
         Assert.assertEquals(password, jsc.getPassword());
 
-        Assert.assertEquals(sizeOfData + 1, ao.count(JenkinsServerConfiguration.class));
+        Assert.assertEquals(sizeOfData + 1,
+            ao.count(JenkinsServerConfiguration.class));
     }
 
     @Test
     public void getsDefaultjenkinsServerConfiguration() throws Exception {
 
-        JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(null);
+        JenkinsServerConfiguration jsc = cpm
+            .getJenkinsServerConfiguration(null);
         Assert.assertEquals("default", jsc.getName());
         Assert.assertEquals("empty", jsc.getUrl());
         Assert.assertEquals("empty", jsc.getUsername());
@@ -115,7 +124,8 @@ public class ConfigurationTest {
     @Test
     public void getsAllJenkinsServerConfigurationsEmpty() throws Exception {
 
-        Collection<JenkinsServerConfiguration> jscs = cpm.getAllJenkinsServerConfigurations();
+        Collection<JenkinsServerConfiguration> jscs = cpm
+            .getAllJenkinsServerConfigurations();
         Assert.assertEquals(jscs.size(), 1);
         JenkinsServerConfiguration jsc = jscs.iterator().next();
         Assert.assertEquals("default", jsc.getName());
@@ -127,10 +137,13 @@ public class ConfigurationTest {
     @Test
     public void getsAllJenkinsServerConfigurationsNotEmpty() throws Exception {
 
-        cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw", "stashuser", "stashpw", 10);
-        cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw", "stashuser", "stashpw", 10);
+        cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw",
+            "stashuser", "stashpw", 10);
+        cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw",
+            "stashuser", "stashpw", 10);
 
-        Collection<JenkinsServerConfiguration> jscs = cpm.getAllJenkinsServerConfigurations();
+        Collection<JenkinsServerConfiguration> jscs = cpm
+            .getAllJenkinsServerConfigurations();
         Assert.assertEquals(jscs.size(), 2);
         Map<String, JenkinsServerConfiguration> configs = new HashMap<String, JenkinsServerConfiguration>();
 
@@ -141,7 +154,8 @@ public class ConfigurationTest {
         Assert.assertEquals("url1", configs.get("default").getUrl());
         Assert.assertEquals("foo", configs.get("foo").getName());
         Assert.assertEquals("url2", configs.get("foo").getUrl());
-        Assert.assertEquals(new Integer(10), configs.get("foo").getMaxVerifyChain());
+        Assert.assertEquals(new Integer(10), configs.get("foo")
+            .getMaxVerifyChain());
     }
 
     @Test
@@ -152,10 +166,13 @@ public class ConfigurationTest {
 
         int size = ao.count(RepositoryConfiguration.class);
 
-        cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
-            "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "default", null);
+        cpm.setRepositoryConfigurationForRepository(repo, true,
+            "verifyBranchRegex", "verifyBuildCommand",
+            "publishBranchRegex", "publishBuildCommand", "prebuildCommand",
+            "default", null);
 
-        RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+        RepositoryConfiguration rc = cpm
+            .getRepositoryConfigurationForRepository(repo);
 
         Assert.assertEquals("publishBranchRegex", rc.getPublishBranchRegex());
         Assert.assertEquals("publishBuildCommand", rc.getPublishBuildCommand());
@@ -175,8 +192,10 @@ public class ConfigurationTest {
         Mockito.when(repo.getName()).thenReturn("repoName");
 
         try {
-            cpm.setRepositoryConfigurationForRepository(repo, true, "verifyBranchRegex", "verifyBuildCommand",
-                "publishBranchRegex", "publishBuildCommand", "prebuildCommand", "BADNAME", null);
+            cpm.setRepositoryConfigurationForRepository(repo, true,
+                "verifyBranchRegex", "verifyBuildCommand",
+                "publishBranchRegex", "publishBuildCommand",
+                "prebuildCommand", "BADNAME", null);
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success
@@ -187,7 +206,8 @@ public class ConfigurationTest {
     public void getsStoredRepoData() throws Exception {
         Repository repo = Mockito.mock(Repository.class);
         Mockito.when(repo.getId()).thenReturn(10);
-        RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+        RepositoryConfiguration rc = cpm
+            .getRepositoryConfigurationForRepository(repo);
 
         Assert.assertEquals("publishBranchRegex", rc.getPublishBranchRegex());
         Assert.assertEquals("publishBuildCommand", rc.getPublishBuildCommand());
@@ -202,11 +222,12 @@ public class ConfigurationTest {
         @SuppressWarnings("unchecked")
         @Override
         public void update(EntityManager entityManager) throws Exception {
-            entityManager.migrate(JenkinsServerConfiguration.class, RepositoryConfiguration.class,
-                PullRequestMetadata.class);
+            entityManager.migrate(JenkinsServerConfiguration.class,
+                RepositoryConfiguration.class, PullRequestMetadata.class);
 
-            RepositoryConfiguration rc = entityManager.create(RepositoryConfiguration.class,
-                new DBParam("REPO_ID", new Integer(10)));
+            RepositoryConfiguration rc = entityManager.create(
+                RepositoryConfiguration.class, new DBParam("REPO_ID",
+                    new Integer(10)));
 
             rc.setCiEnabled(true);
             rc.setPublishBranchRegex("publishBranchRegex");
@@ -225,23 +246,24 @@ public class ConfigurationTest {
 
         Assert.assertEquals(1, ao.count(PullRequestMetadata.class));
         Assert.assertEquals(PR_ID, prm.getPullRequestId());
-        Assert.assertEquals(TO_HASH, prm.getToSha());
-        Assert.assertEquals(FROM_HASH, prm.getFromSha());
+        Assert.assertEquals(FROM_SHA, prm.getFromSha());
+        Assert.assertEquals(TO_SHA, prm.getToSha());
     }
 
     @Test
     public void testFixesUrlEndingInSlash() throws Exception {
         String url = "http://url.that.ends.in";
-        ao.create(JenkinsServerConfiguration.class,
+        ao.create(
+            JenkinsServerConfiguration.class,
             new DBParam("NAME", "sometest"),
             new DBParam("URL", url + "/"),
             new DBParam("USERNAME", "someuser"),
             new DBParam("PASSWORD", "somepw"),
             new DBParam("STASH_USERNAME", "someuser"),
             new DBParam("STASH_PASSWORD", "somepw"),
-            new DBParam("MAX_VERIFY_CHAIN", 1)
-            );
-        JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration("sometest");
+            new DBParam("MAX_VERIFY_CHAIN", 1));
+        JenkinsServerConfiguration jsc = cpm
+            .getJenkinsServerConfiguration("sometest");
         Assert.assertEquals(url, jsc.getUrl());
     }
 }

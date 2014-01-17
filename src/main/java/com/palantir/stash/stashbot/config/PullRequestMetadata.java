@@ -36,7 +36,7 @@ public interface PullRequestMetadata extends Entity {
     @NotNull
     public String getToSha();
 
-    public void setToSha(String fromSha);
+    public void setToSha(String toSha);
 
     @NotNull
     @Default("false")
@@ -55,4 +55,5 @@ public interface PullRequestMetadata extends Entity {
     public Boolean getOverride();
 
     public void setOverride(Boolean override);
+
 }
