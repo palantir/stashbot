@@ -24,10 +24,17 @@ import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.stash.project.Project;
+import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.repository.RepositoryService;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobTest.DataStuff;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
@@ -36,61 +43,120 @@ import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 @Data(DataStuff.class)
 public class JenkinsJobTest {
 
-    private EntityManager entityManager;
-    private ActiveObjects ao;
-    private JobTemplateManager jjtm;
+	private EntityManager entityManager;
+	private ActiveObjects ao;
 
-    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+	private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+	private JobTemplateManager jtm;
+	private ConfigurationPersistenceManager cpm;
 
-        // ensure our runner sets this for us
-        Assert.assertNotNull(entityManager);
+	private RepositoryConfiguration rc;
+	@Mock
+	private JobTemplate verifyCommitJT;
+	@Mock
+	private JobTemplate verifyPRJT;
+	@Mock
+	private JobTemplate publishJT;
+	@Mock
+	private RepositoryService rs;
 
-        ao = new TestActiveObjects(entityManager);
+	@Mock
+	private Repository repo;
+	@Mock
+	private Project project;
 
-        jjtm = new JobTemplateManager(ao, lf);
-    }
+	@Before
+	public void setUp() throws Exception {
+		MockitoAnnotations.initMocks(this);
 
-    @Test
-    public void testCreatesDefaultObjects() throws Exception {
-        int sizeOfData = ao.count(JobTemplate.class);
-        JobTemplate jjtV = jjtm.getDefaultVerifyJob();
-        JobTemplate jjtP = jjtm.getDefaultPublishJob();
+		// ensure our runner sets this for us
+		Assert.assertNotNull(entityManager);
 
-        Assert.assertEquals(jjtV.getName(), "defaultVerifyJob");
-        Assert.assertEquals(jjtP.getName(), "defaultPublishJob");
+		// Init mocks worked?
+		Assert.assertNotNull(rs);
+		Assert.assertNotNull(repo);
 
-        int newSizeOfData = ao.count(JobTemplate.class);
-        Assert.assertTrue(newSizeOfData == sizeOfData + 2);
-    }
+		Mockito.when(rs.getById(1234)).thenReturn(repo);
+		Mockito.when(repo.getId()).thenReturn(1234);
+		Mockito.when(repo.getProject()).thenReturn(project);
+		Mockito.when(project.getName()).thenReturn("projectName");
+		Mockito.when(rs.getById(Mockito.anyInt())).thenReturn(repo);
 
-    @Test
-    public void testNewJobWorkflow() throws Exception {
-        int sizeOfData = ao.count(JobTemplate.class);
-        final String NEW_JOB = "newJobName";
-        final String TEMPLATE_FILE = "verify-template.xml";
+		ao = new TestActiveObjects(entityManager);
 
-        JobTemplate newjob = jjtm.getJobTemplate(NEW_JOB);
+		jtm = new JobTemplateManager(ao, rs, lf);
+		cpm = new ConfigurationPersistenceManager(ao, lf);
 
-        Assert.assertEquals(newjob.getName(), NEW_JOB);
-        Assert.assertEquals(newjob.getTemplateFile(), TEMPLATE_FILE);
-        Assert.assertEquals(newjob.getJobType(), JenkinsJobType.NOOP_BUILD);
+		verifyCommitJT = jtm.getDefaultVerifyJob();
+		verifyPRJT = jtm.getDefaultVerifyPullRequestJob();
+		publishJT = jtm.getDefaultPublishJob();
 
-        int newSizeOfData = ao.count(JobTemplate.class);
-        Assert.assertTrue(newSizeOfData == sizeOfData + 1);
-    }
+		rc = cpm.getRepositoryConfigurationForRepository(repo);
 
-    public static class DataStuff implements DatabaseUpdater {
+		jtm.setJenkinsJobMapping(rc, verifyCommitJT, true, true);
+		jtm.setJenkinsJobMapping(rc, publishJT, true, true);
+		jtm.setJenkinsJobMapping(rc, verifyPRJT, true, true);
 
-        @SuppressWarnings("unchecked")
-        @Override
-        public void update(EntityManager entityManager) throws Exception {
-            entityManager.migrate(JobTemplate.class, JobMapping.class);
+	}
 
-        }
+	@Test
+	public void testCreatesDefaultObjects() throws Exception {
+		JobTemplate jjtV = jtm.getDefaultVerifyJob();
+		JobTemplate jjtP = jtm.getDefaultPublishJob();
+		JobTemplate jjtPR = jtm.getDefaultVerifyPullRequestJob();
 
-    }
+		Assert.assertEquals(jjtV.getName(), "verification");
+		Assert.assertEquals(jjtPR.getName(), "verify-pr");
+		Assert.assertEquals(jjtP.getName(), "publish");
+
+		int newSizeOfData = ao.count(JobTemplate.class);
+		Assert.assertTrue(newSizeOfData == 3);
+	}
+
+	@Test
+	public void testNewJobWorkflow() throws Exception {
+		int sizeOfData = ao.count(JobTemplate.class);
+		final String NEW_JOB = "newJobName";
+		final String TEMPLATE_FILE = "verify-template.xml";
+
+		JobTemplate newjob = jtm.getJobTemplate(NEW_JOB);
+
+		Assert.assertEquals(newjob.getName(), NEW_JOB);
+		Assert.assertEquals(newjob.getTemplateFile(), TEMPLATE_FILE);
+		Assert.assertEquals(newjob.getJobType(), JobType.NOOP);
+
+		int newSizeOfData = ao.count(JobTemplate.class);
+		Assert.assertTrue(newSizeOfData == sizeOfData + 1);
+	}
+
+	@Test
+	public void testFromString() throws Exception {
+		String v = JobType.VERIFY_COMMIT.toString();
+		String p = JobType.PUBLISH.toString();
+		String pr = JobType.VERIFY_PR.toString();
+
+		JobTemplate vjt = jtm.fromString(rc, v);
+		Assert.assertNotNull(vjt);
+		Assert.assertEquals(JobType.VERIFY_COMMIT, vjt.getJobType());
+
+		JobTemplate pjt = jtm.fromString(rc, p);
+		Assert.assertNotNull(pjt);
+		Assert.assertEquals(JobType.PUBLISH, pjt.getJobType());
+
+		JobTemplate prjt = jtm.fromString(rc, pr);
+		Assert.assertNotNull(prjt);
+		Assert.assertEquals(JobType.VERIFY_PR, prjt.getJobType());
+	}
+
+	public static class DataStuff implements DatabaseUpdater {
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void update(EntityManager entityManager) throws Exception {
+			entityManager.migrate(JobTemplate.class, JobMapping.class,
+					RepositoryConfiguration.class);
+		}
+
+	}
 }

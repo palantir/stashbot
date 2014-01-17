@@ -31,8 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.mocks.MockGitCommandBuilderFactory;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
@@ -112,7 +112,7 @@ public class TriggerJenkinsBuildHookTest {
     public void testTriggersBuildOnPush() {
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 
     @Test
@@ -120,7 +120,8 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getCiEnabled()).thenReturn(false);
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD));
     }
 
     @Test
@@ -128,7 +129,8 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(change.getType()).thenReturn(RefChangeType.DELETE);
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD));
     }
 
     @Test
@@ -136,7 +138,8 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn("blahblahnomatch");
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD));
     }
 
     @Test
@@ -145,7 +148,7 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getPublishBranchRegex()).thenReturn("master");
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.PUBLISH, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.PUBLISH, HEAD);
     }
 
     @Test
@@ -156,8 +159,8 @@ public class TriggerJenkinsBuildHookTest {
 
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 
     @Test
@@ -170,9 +173,9 @@ public class TriggerJenkinsBuildHookTest {
 
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION,
-            HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD_MINUS_ONE));
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 
     @Test
@@ -186,7 +189,7 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         // TODO: verify the git rev-list is invoked with proper args?
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 }

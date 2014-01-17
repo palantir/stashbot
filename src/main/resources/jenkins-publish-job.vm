@@ -1,3 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
 #**
   Parameters:
   parameterList: list of params
@@ -8,16 +9,14 @@
   prebuildCommand
   buildCommand
   successCommand
-  failureCommand
+  failedCommand
 
   esc - escape tool - required
   @author cmyers
 *#
-
-<?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description>This is the default publish job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$repositoryUrl"&gt;$repositoryUrl&lt;/a&gt;</description>
+  <description>This is the default publish job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$esc.xml($repositoryUrl)"&gt;$esc.xml($repositoryUrl)&lt;/a&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -25,9 +24,9 @@
 #foreach ( $param in $paramaterList )
         <hudson.model.${param.typeName}>
           <name>$param.name</name>
-          <description>$!param.description</description>
-          <defaultValue>$!param.defaultValue</defaultValue>
-        </hudson.model.${param.typeName}/>
+          <description>$!esc.xml($!param.description)</description>
+          <defaultValue>$!esc.xml($!param.defaultValue)</defaultValue>
+        </hudson.model.${param.typeName}>
 #end
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -36,14 +35,15 @@
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>$repositoryUrl</url>
+        <url>$esc.xml($repositoryUrl)</url>
         <name>origin</name>
         <refspec></refspec>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-          <name>\$buildHead</name>
+#set ($d = "$")
+        <name>${d}buildHead</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -81,13 +81,13 @@
         <command>git reset --hard HEAD &amp;&amp; git clean -fdx</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <command>$startedCommand</command>
+        <command>$esc.xml($startedCommand)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <command>$prebuildCommand</command>
+        <command>$esc.xml($prebuildCommand)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>$buildCommand</command>
+      <command>$esc.xml($buildCommand)</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -102,7 +102,7 @@
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
-          <script>$successCommand</script>
+          <script>$esc.xml($successCommand)</script>
         </hudson.plugins.postbuildtask.TaskProperties>
         <hudson.plugins.postbuildtask.TaskProperties>
           <logTexts>
@@ -113,7 +113,7 @@
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
-          <script>$failureCommand</script>
+          <script>$esc.xml($failedCommand)</script>
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>

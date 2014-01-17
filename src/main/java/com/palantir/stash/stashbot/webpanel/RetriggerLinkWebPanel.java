@@ -26,8 +26,8 @@ import com.atlassian.stash.content.Changeset;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
 public class RetriggerLinkWebPanel implements WebPanel {
@@ -67,7 +67,7 @@ public class RetriggerLinkWebPanel implements WebPanel {
             }
 
             Changeset changeset = (Changeset) context.get("changeset");
-            String url = ub.getJenkinsTriggerUrl(repo, JenkinsBuildTypes.VERIFICATION, changeset.getId(), null, null);
+            String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT, changeset.getId(), null, null);
 
             writer.append("<a href=\"" + url + "\">Retrigger</a>");
         } catch (SQLException e) {

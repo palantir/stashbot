@@ -14,9 +14,9 @@
 package com.palantir.stash.stashbot.managers;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -31,7 +31,6 @@ import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
-import com.google.common.collect.ImmutableList;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -40,165 +39,186 @@ import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 
 public class JenkinsManagerTest {
 
-    // NOTE: this is the key used in the atlassian-plugin.xml
-    private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY =
-        "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
+	// NOTE: this is the key used in the atlassian-plugin.xml
+	private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY = "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
 
-    private static final String XML_STRING = "<some xml here/>";
+	private static final String XML_STRING = "<some xml here/>";
 
-    @Mock
-    private RepositoryService repositoryService;
-    @Mock
-    private RepositoryHookService rhs;
-    @Mock
-    private ConfigurationPersistenceManager cpm;
-    @Mock
-    private JenkinsJobXmlFormatter xmlFormatter;
-    @Mock
-    private JenkinsClientManager jenkinsClientManager;
-    @Mock
-    private JobTemplateManager jtm;
+	@Mock
+	private RepositoryService repositoryService;
+	@Mock
+	private RepositoryHookService rhs;
+	@Mock
+	private ConfigurationPersistenceManager cpm;
+	@Mock
+	private JenkinsJobXmlFormatter xmlFormatter;
+	@Mock
+	private JenkinsClientManager jenkinsClientManager;
+	@Mock
+	private JobTemplateManager jtm;
 
-    private JenkinsManager jenkinsManager;
+	private JenkinsManager jenkinsManager;
 
-    @Mock
-    private JenkinsServer jenkinsServer;
-    @Mock
-    private Repository repo;
-    @Mock
-    private Project proj;
+	@Mock
+	private JenkinsServer jenkinsServer;
+	@Mock
+	private Repository repo;
+	@Mock
+	private Project proj;
 
-    @Mock
-    private RepositoryConfiguration rc;
-    @Mock
-    private JenkinsServerConfiguration jsc;
-    @Mock
-    private JobTemplate jobTemplate;
+	@Mock
+	private RepositoryConfiguration rc;
+	@Mock
+	private JenkinsServerConfiguration jsc;
 
-    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+	private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
-    @Before
-    public void setUp() throws URISyntaxException, SQLException {
+	private MockJobTemplateFactory jtf;
 
-        MockitoAnnotations.initMocks(this);
+	@Before
+	public void setUp() throws Exception {
 
-        Mockito.when(
-            jenkinsClientManager.getJenkinsServer(Mockito.any(JenkinsServerConfiguration.class),
-                Mockito.any(RepositoryConfiguration.class))).thenReturn(jenkinsServer);
+		MockitoAnnotations.initMocks(this);
 
-        Mockito.when(xmlFormatter.generateJobXml(jobTemplate, repo)).thenReturn(XML_STRING);
+		Mockito.when(
+				jenkinsClientManager.getJenkinsServer(
+						Mockito.any(JenkinsServerConfiguration.class),
+						Mockito.any(RepositoryConfiguration.class)))
+				.thenReturn(jenkinsServer);
 
-        Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.of(jobTemplate));
-        Mockito.when(jtm.getDefaultPublishJob()).thenReturn(jobTemplate);
-        Mockito.when(jtm.getDefaultVerifyJob()).thenReturn(jobTemplate);
+		jtf = new MockJobTemplateFactory(jtm);
+		jtf.generateDefaultsForRepo(repo, rc);
 
-        Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
-        Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
-        Mockito.when(jsc.getStashUsername()).thenReturn("stash_username");
-        Mockito.when(jsc.getStashPassword()).thenReturn("stash_password");
-        Mockito.when(jsc.getPassword()).thenReturn("jenkins_password");
+		Mockito.when(
+				xmlFormatter.generateJobXml(Mockito.any(JobTemplate.class),
+						Mockito.eq(repo))).thenReturn(XML_STRING);
 
-        Mockito.when(repo.getSlug()).thenReturn("slug");
-        Mockito.when(repo.getProject()).thenReturn(proj);
-        Mockito.when(proj.getKey()).thenReturn("project_key");
+		Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString()))
+				.thenReturn(jsc);
+		Mockito.when(cpm.getRepositoryConfigurationForRepository(repo))
+				.thenReturn(rc);
+		Mockito.when(jsc.getStashUsername()).thenReturn("stash_username");
+		Mockito.when(jsc.getStashPassword()).thenReturn("stash_password");
+		Mockito.when(jsc.getPassword()).thenReturn("jenkins_password");
 
-        jenkinsManager =
-            new JenkinsManager(repositoryService, rhs, cpm, jtm, xmlFormatter, jenkinsClientManager, lf);
-    }
+		Mockito.when(repo.getName()).thenReturn("somename");
+		Mockito.when(repo.getSlug()).thenReturn("slug");
+		Mockito.when(repo.getProject()).thenReturn(proj);
+		Mockito.when(proj.getKey()).thenReturn("project_key");
 
-    @Test
-    public void testCreateJob() throws Exception {
+		jenkinsManager = new JenkinsManager(repositoryService, rhs, cpm, jtm,
+				xmlFormatter, jenkinsClientManager, lf);
+	}
 
-        JenkinsBuildTypes buildType = JenkinsBuildTypes.VERIFICATION;
-        String repoName = buildType.getBuildNameFor(repo);
+	@Test
+	public void testCreateJob() throws Exception {
 
-        jenkinsManager.createJob(repo, buildType);
+		JobTemplate jt = jtm.getDefaultVerifyJob();
 
-        ArgumentCaptor<String> xmlCaptor = ArgumentCaptor.forClass(String.class);
+		jenkinsManager.createJob(repo, jt);
 
-        Mockito.verify(xmlFormatter).generateJobXml(jobTemplate, repo);
-        Mockito.verify(jenkinsServer).createJob(Mockito.eq(repoName), xmlCaptor.capture());
+		ArgumentCaptor<String> xmlCaptor = ArgumentCaptor
+				.forClass(String.class);
 
-        Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
-    }
+		Mockito.verify(xmlFormatter).generateJobXml(jt, repo);
+		Mockito.verify(jenkinsServer).createJob(Mockito.anyString(),
+				xmlCaptor.capture());
 
-    @Test
-    public void testUpdateJob() throws Exception {
+		Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
+	}
 
-        JenkinsBuildTypes buildType = JenkinsBuildTypes.VERIFICATION;
-        String jobName = buildType.getBuildNameFor(repo);
-        String repoName = buildType.getBuildNameFor(repo);
+	@Test
+	public void testUpdateJob() throws Exception {
 
-        Job existingJob = Mockito.mock(Job.class);
-        Map<String, Job> jobMap = new HashMap<String, Job>();
-        jobMap.put(jobName, existingJob);
-        Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
+		String repoName = "somename";
+		String jobName = "somename_verification";
 
-        jenkinsManager.updateJob(repo, buildType);
+		Job existingJob = Mockito.mock(Job.class);
+		Map<String, Job> jobMap = new HashMap<String, Job>();
+		jobMap.put(jobName, existingJob);
+		Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
 
-        ArgumentCaptor<String> xmlCaptor = ArgumentCaptor.forClass(String.class);
+		JobTemplate jt = jtm.getDefaultVerifyJob();
 
-        Mockito.verify(xmlFormatter).generateJobXml(jobTemplate, repo);
-        Mockito.verify(jenkinsServer).updateJob(Mockito.eq(repoName), xmlCaptor.capture());
+		jenkinsManager.updateJob(repo, jt);
 
-        Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
-    }
+		ArgumentCaptor<String> xmlCaptor = ArgumentCaptor
+				.forClass(String.class);
 
-    @Test
-    public void testTriggerBuildShort() throws IOException {
-        String HASH = "38356e8abe0e96538dd1007278ecc02c3bf3d2cb";
-        JenkinsBuildTypes buildType = JenkinsBuildTypes.VERIFICATION;
-        String jobName = buildType.getBuildNameFor(repo);
+		Mockito.verify(xmlFormatter).generateJobXml(jt, repo);
+		Mockito.verify(jenkinsServer).updateJob(Mockito.anyString(),
+				xmlCaptor.capture());
+		Mockito.verify(jenkinsServer, Mockito.never()).createJob(
+				Mockito.anyString(), Mockito.anyString());
 
-        Job existingJob = Mockito.mock(Job.class);
-        Mockito.when(existingJob.getName()).thenReturn(jobName);
-        Map<String, Job> jobMap = new HashMap<String, Job>();
-        jobMap.put(jobName, existingJob);
-        Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
+		Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
+	}
 
-        jenkinsManager.triggerBuild(repo, buildType, HASH);
+	@Test
+	public void testTriggerBuildShort() throws IOException, SQLException {
+		String HASH = "38356e8abe0e96538dd1007278ecc02c3bf3d2cb";
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Class<Map<String, String>> forClass = (Class<Map<String, String>>) (Class) Map.class;
-        ArgumentCaptor<Map<String, String>> paramCaptor = ArgumentCaptor.forClass(forClass);
+		JobTemplate jt = jtm.getDefaultVerifyJob();
 
-        Mockito.verify(existingJob).build(paramCaptor.capture());
+		String jobName = jt.getBuildNameFor(repo);
+		Job existingJob = Mockito.mock(Job.class);
+		Mockito.when(existingJob.getName()).thenReturn(jobName);
+		Map<String, Job> jobMap = new HashMap<String, Job>();
+		jobMap.put(jobName, existingJob);
+		Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
 
-        Map<String, String> paramMap = paramCaptor.getValue();
-        Assert.assertTrue(paramMap.containsKey("buildHead"));
-        Assert.assertTrue(paramMap.containsKey("type"));
-        Assert.assertTrue(paramMap.containsKey("repoId"));
-        Assert.assertFalse(paramMap.containsKey("pullRequestId"));
-        Assert.assertFalse(paramMap.containsKey("mergeHead"));
-    }
+		Mockito.when(jtm.getJobTemplate(JobType.VERIFY_COMMIT, rc)).thenReturn(
+				jt);
 
-    @Test
-    public void testUpdateRepoCIEnabled() throws IOException {
+		jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, HASH);
 
-        Mockito.when(rc.getCiEnabled()).thenReturn(true);
-        String verificationName = JenkinsBuildTypes.VERIFICATION.getBuildNameFor(repo);
-        String publishName = JenkinsBuildTypes.PUBLISH.getBuildNameFor(repo);
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		Class<Map<String, String>> forClass = (Class) Map.class;
+		ArgumentCaptor<Map<String, String>> paramCaptor = ArgumentCaptor
+				.forClass(forClass);
 
-        jenkinsManager.updateRepo(repo);
+		Mockito.verify(existingJob).build(paramCaptor.capture());
 
-        Mockito.verify(rhs).enable(repo, TRIGGER_JENKINS_BUILD_HOOK_KEY);
-        Mockito.verify(jenkinsServer).createJob(Mockito.eq(verificationName), Mockito.anyString());
-        Mockito.verify(jenkinsServer).createJob(Mockito.eq(publishName), Mockito.anyString());
-    }
+		Map<String, String> paramMap = paramCaptor.getValue();
+		Assert.assertTrue(paramMap.containsKey("buildHead"));
+		Assert.assertTrue(paramMap.containsKey("repoId"));
+		Assert.assertFalse(paramMap.containsKey("pullRequestId"));
+		Assert.assertFalse(paramMap.containsKey("mergeHead"));
+	}
 
-    @Test
-    public void testUpdateRepoCIDisabled() throws IOException {
+	@Test
+	public void testUpdateRepoCIEnabled() throws IOException {
 
-        Mockito.when(rc.getCiEnabled()).thenReturn(false);
+		Mockito.when(rc.getCiEnabled()).thenReturn(true);
 
-        jenkinsManager.updateRepo(repo);
+		jenkinsManager.updateRepo(repo);
 
-        Mockito.verify(rhs, Mockito.never()).enable(Mockito.any(Repository.class), Mockito.anyString());
-        Mockito.verify(jenkinsServer, Mockito.never()).createJob(Mockito.anyString(), Mockito.anyString());
-    }
+		Mockito.verify(rhs).enable(repo, TRIGGER_JENKINS_BUILD_HOOK_KEY);
+		List<JobTemplate> templates = jtf.getMockTemplates();
+
+		for (JobTemplate t : templates) {
+			Mockito.verify(jenkinsServer).createJob(
+					Mockito.eq(t.getBuildNameFor(repo)), Mockito.anyString());
+		}
+	}
+
+	@Test
+	public void testUpdateRepoCIDisabled() throws IOException {
+
+		Mockito.when(rc.getCiEnabled()).thenReturn(false);
+
+		jenkinsManager.updateRepo(repo);
+
+		Mockito.verify(rhs, Mockito.never()).enable(
+				Mockito.any(Repository.class), Mockito.anyString());
+		Mockito.verify(jenkinsServer, Mockito.never()).createJob(
+				Mockito.anyString(), Mockito.anyString());
+	}
 
 }

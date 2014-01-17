@@ -11,37 +11,27 @@
 //   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
-package com.palantir.stash.stashbot.managers;
+package com.palantir.stash.stashbot.jobtemplate;
 
 import com.atlassian.stash.repository.Repository;
 
-public enum JenkinsBuildTypes {
-    NOOP,
-    VERIFICATION,
-    PUBLISH;
+// Custom AO implementation
+// For details, see: http://www.javalobby.org/articles/activeobjects/
+public class JobTemplateImpl {
 
-    public static JenkinsBuildTypes fromString(String s) {
-        for (JenkinsBuildTypes t : JenkinsBuildTypes.values()) {
-            if (t.toString().equals(s.toLowerCase())) {
-                return t;
-            }
-        }
-        return null;
-    }
+    private final JobTemplate dis;
 
-    public String toString() {
-        return super.toString().toLowerCase();
+    public JobTemplateImpl(JobTemplate jt) {
+        this.dis = jt;
     }
 
     // TODO: remove invalid characters from repo
     public String getBuildNameFor(Repository repo) {
-        if (this == NOOP) {
-            throw new IllegalStateException("Cannot getBuildName for NOOP build");
-        }
         String project = repo.getProject().getKey();
         String nameSlug = repo.getSlug();
-        String key = project + "_" + nameSlug + "_" + this.toString();
+        String key = project + "_" + nameSlug + "_" + dis.getJobType().toString();
         // jenkins does toLowerCase() on all keys, so we must do the same
         return key.toLowerCase();
     }
+
 }

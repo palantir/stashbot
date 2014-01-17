@@ -14,14 +14,18 @@
 package com.palantir.stash.stashbot.jobtemplate;
 
 import net.java.ao.Entity;
+import net.java.ao.Implementation;
 import net.java.ao.Preload;
+import net.java.ao.schema.Ignore;
 import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
+import com.atlassian.stash.repository.Repository;
 
 @Table("JobTemplate001")
 @Preload
+@Implementation(JobTemplateImpl.class)
 public interface JobTemplate extends Entity {
 
     @NotNull
@@ -36,8 +40,12 @@ public interface JobTemplate extends Entity {
     public void setTemplateFile(String file);
 
     // Job Type - used in part to specify semantics
-    public JenkinsJobType getJobType();
 
-    public void setJobType(JenkinsJobType jobType);
+    public JobType getJobType();
 
+    public void setJobType(JobType jobType);
+
+    // Implemented logic outside of CRUD
+    @Ignore
+    public String getBuildNameFor(Repository repo);
 }

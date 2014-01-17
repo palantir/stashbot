@@ -15,6 +15,7 @@ package com.palantir.stash.stashbot.admin;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -27,8 +28,11 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 public class BuildTriggerServlet extends HttpServlet {
@@ -49,14 +53,19 @@ public class BuildTriggerServlet extends HttpServlet {
 
     private final RepositoryService repositoryService;
     private final PullRequestService pullRequestService;
+    private final JobTemplateManager jtm;
+    private final ConfigurationPersistenceManager cpm;
     private final JenkinsManager jenkinsManager;
     private final Logger log;
 
     public BuildTriggerServlet(RepositoryService repositoryService, PullRequestService pullRequestService,
-        JenkinsManager jenkinsManager, StashbotLoggerFactory lf) {
+        JobTemplateManager jtm, ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
+        StashbotLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.pullRequestService = pullRequestService;
         this.jenkinsManager = jenkinsManager;
+        this.jtm = jtm;
+        this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
     }
 
@@ -71,19 +80,25 @@ public class BuildTriggerServlet extends HttpServlet {
         }
         final int repoId;
         final Repository repo;
+        final RepositoryConfiguration rc;
+        final JobTemplate jt;
         try {
             repoId = Integer.valueOf(parts[1]);
             repo = repositoryService.getById(repoId);
             if (repo == null) {
                 throw new IllegalArgumentException("Unable to get a repository for id " + repoId);
             }
+            rc = cpm.getRepositoryConfigurationForRepository(repo);
+            jt = jtm.fromString(rc, parts[2].toLowerCase());
+        } catch (SQLException e) {
+            throw new IllegalArgumentException("SQLException occured", e);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT, e);
         }
 
-        final JenkinsBuildTypes type = JenkinsBuildTypes.fromString(parts[2].toUpperCase());
-        if (type == null) {
-            throw new IllegalArgumentException("Unable to get a valid JenkinsBuildType from " + parts[2]);
+        if (jt == null) {
+            throw new IllegalArgumentException("Unable to get a valid JobTemplate from " + parts[2]
+                + " for repository " + repo.toString());
         }
 
         // TODO: ensure this hash actually exists?
@@ -113,7 +128,7 @@ public class BuildTriggerServlet extends HttpServlet {
         if (mergeHead == null) {
             log.debug("Triggering build for buildHead " + buildHead);
             try {
-                jenkinsManager.triggerBuild(repo, type, buildHead);
+                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead);
             } catch (Exception e) {
                 printErrorOutput(req, res, e);
                 return;
@@ -122,7 +137,7 @@ public class BuildTriggerServlet extends HttpServlet {
 
         // mergeHead is not null *and* pullRequest is not null if we reach here.
         try {
-            jenkinsManager.triggerBuild(repo, type, buildHead, mergeHead, pullRequestId);
+            jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead, mergeHead, pullRequestId);
         } catch (Exception e) {
             printErrorOutput(req, res, e);
             return;

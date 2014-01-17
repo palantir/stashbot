@@ -35,8 +35,8 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
 
@@ -95,7 +95,7 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
             // published and not verified, if the ref matches both build and verify.
             log.info("Triggering PUBLISH build for " + repo.toString() + " hash " + refChange.getToHash());
             // trigger a publication build
-            jenkinsManager.triggerBuild(repo, JenkinsBuildTypes.PUBLISH, refChange.getToHash());
+            jenkinsManager.triggerBuild(repo, JobType.PUBLISH, refChange.getToHash());
             publishBuilds.add(refChange.getToHash());
         }
 
@@ -158,7 +158,7 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
                 }
                 log.info("Triggering VERIFICATION build for commit " + cs);
                 // trigger a verification build (no merge)
-                jenkinsManager.triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, cs);
+                jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, cs);
                 verifiedBuilds.add(cs);
             }
         }

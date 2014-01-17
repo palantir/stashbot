@@ -16,7 +16,6 @@ package com.palantir.stash.stashbot.admin;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -34,10 +33,16 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.google.common.collect.ImmutableList;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 
 public class BuildTriggerServletTest {
 
@@ -54,6 +59,10 @@ public class BuildTriggerServletTest {
     private JenkinsManager jenkinsManager;
     @Mock
     private JenkinsServerConfiguration jsc;
+    @Mock
+    private ConfigurationPersistenceManager cpm;
+    @Mock
+    private JobTemplateManager jtm;
 
     @Mock
     private HttpServletRequest req;
@@ -62,7 +71,20 @@ public class BuildTriggerServletTest {
     @Mock
     private Repository repo;
     @Mock
+    private RepositoryConfiguration rc;
+    @Mock
     private PullRequest pr;
+
+    @Mock
+    private JobTemplate jt1;
+    @Mock
+    private JobTemplate jt2;
+    @Mock
+    private JobTemplate jt3;
+
+    private JobType verifyCommitType;
+    private JobType verifyPRType;
+    private JobType publishType;
 
     private StringWriter mockWriter;
 
@@ -70,30 +92,48 @@ public class BuildTriggerServletTest {
 
     private StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
+    private MockJobTemplateFactory jtf;
+
     @Before
-    public void setUp() throws IOException, SQLException {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+
+        verifyCommitType = JobType.VERIFY_COMMIT;
+        verifyPRType = JobType.VERIFY_PR;
+        publishType = JobType.PUBLISH;
 
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
         Mockito.when(prs.getById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
         Mockito.when(pr.getId()).thenReturn(PULL_REQUEST_ID);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
+        Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
+
+        Mockito.when(jt1.getJobType()).thenReturn(verifyCommitType);
+        Mockito.when(jt2.getJobType()).thenReturn(verifyPRType);
+        Mockito.when(jt3.getJobType()).thenReturn(publishType);
+        Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.of(jt1, jt2, jt3));
+        Mockito.when(jtm.fromString(rc, verifyCommitType.toString())).thenReturn(jt1);
+        Mockito.when(jtm.fromString(rc, verifyPRType.toString())).thenReturn(jt2);
+        Mockito.when(jtm.fromString(rc, publishType.toString())).thenReturn(jt3);
+
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
-        bsrs = new BuildTriggerServlet(repositoryService, prs, jenkinsManager, lf);
+        jtf = new MockJobTemplateFactory(jtm);
+        jtf.generateDefaultsForRepo(repo, rc);
+
+        bsrs = new BuildTriggerServlet(repositoryService, prs, jtm, cpm, jenkinsManager, lf);
     }
 
     @Test
     public void testTriggerCommitVerify() throws ServletException, IOException {
-        Mockito.when(req.getPathInfo()).thenReturn(
-            buildPathInfo(REPO_ID, JenkinsBuildTypes.VERIFICATION, HEAD, null, null));
+        Mockito.when(req.getPathInfo()).thenReturn(buildPathInfo(REPO_ID, verifyCommitType, HEAD, null, null));
 
         bsrs.doGet(req, res);
 
         Mockito.verify(res).setStatus(200);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, verifyCommitType, HEAD);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Build Triggered"));
@@ -102,23 +142,37 @@ public class BuildTriggerServletTest {
     @Test
     public void testTriggerPullRequestVerify() throws ServletException, IOException {
         Mockito.when(req.getPathInfo()).thenReturn(
-            buildPathInfo(REPO_ID, JenkinsBuildTypes.VERIFICATION, HEAD, MERGE_HEAD, PULL_REQUEST_ID));
+            buildPathInfo(REPO_ID, verifyPRType, HEAD, MERGE_HEAD, PULL_REQUEST_ID));
 
         bsrs.doGet(req, res);
 
         Mockito.verify(res).setStatus(200);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD, MERGE_HEAD,
+        Mockito.verify(jenkinsManager).triggerBuild(repo, verifyPRType, HEAD, MERGE_HEAD,
             Long.toString(PULL_REQUEST_ID));
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Build Triggered"));
     }
 
+    @Test
+    public void testTriggerPublish() throws ServletException, IOException {
+        Mockito.when(req.getPathInfo()).thenReturn(buildPathInfo(REPO_ID, publishType, HEAD, null, null));
+
+        bsrs.doGet(req, res);
+
+        Mockito.verify(res).setStatus(200);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, publishType, HEAD);
+
+        String output = mockWriter.toString();
+        Assert.assertTrue(output.contains("Build Triggered"));
+    }
+
     // path info: "/BASE_URL/REPO_ID/TYPE/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]"
-    private String buildPathInfo(int repoId, JenkinsBuildTypes type, String head, String mergeHead, Long pullRequestId) {
+    private String
+        buildPathInfo(int repoId, JobType jobType, String head, String mergeHead, Long pullRequestId) {
         return "/"
             + Integer.toString(repoId) + "/"
-            + type.toString() + "/"
+            + jobType.toString() + "/"
             + head + "/"
             + (mergeHead != null ? mergeHead : "") + "/"
             + (pullRequestId != null ? pullRequestId.toString() : "");

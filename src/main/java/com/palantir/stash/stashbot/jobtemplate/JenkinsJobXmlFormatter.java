@@ -33,139 +33,181 @@ import com.palantir.stash.stashbot.managers.VelocityManager;
 
 public class JenkinsJobXmlFormatter {
 
-    // Tacking this onto the end of the build command makes it print out "BUILD SUCCESS0" on success and
-    // "BUILD FAILURE1" on failure.
-    private static final String BUILD_COMMAND_POSTFIX =
-        "&& echo \"BUILD SUCCESS$?\" || /bin/false || (echo \"BUILD FAILURE$?\" && /bin/false)";
+	// Tacking this onto the end of the build command makes it print out
+	// "BUILD SUCCESS0" on success and
+	// "BUILD FAILURE1" on failure.
+	private static final String BUILD_COMMAND_POSTFIX = "&& echo \"BUILD SUCCESS$?\" || /bin/false || (echo \"BUILD FAILURE$?\" && /bin/false)";
 
-    private final VelocityManager velocityManager;
-    private final ConfigurationPersistenceManager cpm;
-    private final NavBuilder navBuilder;
+	private final VelocityManager velocityManager;
+	private final ConfigurationPersistenceManager cpm;
+	private final NavBuilder navBuilder;
 
-    public JenkinsJobXmlFormatter(VelocityManager velocityManager, ConfigurationPersistenceManager cpm,
-        NavBuilder navBuilder) throws IOException {
-        this.velocityManager = velocityManager;
-        this.cpm = cpm;
-        this.navBuilder = navBuilder;
-    }
+	public JenkinsJobXmlFormatter(VelocityManager velocityManager,
+			ConfigurationPersistenceManager cpm, NavBuilder navBuilder)
+			throws IOException {
+		this.velocityManager = velocityManager;
+		this.cpm = cpm;
+		this.navBuilder = navBuilder;
+	}
 
-    private String curlCommandBuilder(RepositoryConfiguration rc, String repositoryUrl, String status)
-        throws SQLException {
-        final JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-        StringBuffer sb = new StringBuffer();
-        sb.append("/usr/bin/curl -s -i ");
-        sb.append(buildUrl(repositoryUrl, jsc, status));
-        return sb.toString();
-    }
+	private String curlCommandBuilder(Repository repo, JobTemplate jobTemplate,
+			RepositoryConfiguration rc, String repositoryUrl, String status)
+			throws SQLException {
+		final JenkinsServerConfiguration jsc = cpm
+				.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+		StringBuffer sb = new StringBuffer();
+		sb.append("/usr/bin/curl -s -i ");
+		sb.append(buildUrl(repo, jobTemplate, repositoryUrl, jsc, status));
+		return sb.toString();
+	}
 
-    public String generateJobXml(JobTemplate jobTemplate, Repository repo) throws SQLException {
+	public String generateJobXml(JobTemplate jobTemplate, Repository repo)
+			throws SQLException {
 
-        final VelocityContext vc = velocityManager.getVelocityContext();
-        final RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
-        final JenkinsServerConfiguration jsc = cpm.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+		final VelocityContext vc = velocityManager.getVelocityContext();
+		final RepositoryConfiguration rc = cpm
+				.getRepositoryConfigurationForRepository(repo);
+		final JenkinsServerConfiguration jsc = cpm
+				.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
-        String repositoryUrl = navBuilder.repo(repo).clone(repo.getScmId()).buildAbsoluteWithoutUsername();
-        // manually insert the username and pw we are configured to use
-        repositoryUrl =
-            repositoryUrl.replace("://", "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword() + "@");
+		String repositoryUrl = navBuilder.repo(repo).clone(repo.getScmId())
+				.buildAbsoluteWithoutUsername();
+		// manually insert the username and pw we are configured to use
+		repositoryUrl = repositoryUrl.replace("://",
+				"://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+						+ "@");
 
-        vc.put("repositoryUrl", repositoryUrl);
+		vc.put("repositoryUrl", repositoryUrl);
 
-        vc.put("prebuildCommand", rc.getPrebuildCommand());
+		vc.put("prebuildCommand", rc.getPrebuildCommand());
 
-        // Put build command depending on build type
-        // TODO: figure out build command some other way?
-        switch (jobTemplate.getJobType()) {
-        case VERIFY_BUILD:
-            vc.put("buildCommand", buildCommand(rc.getVerifyBuildCommand()));
-            break;
-        case RELEASE_BUILD:
-            vc.put("buildCommand", buildCommand(rc.getPublishBuildCommand()));
-            break;
-        case NOOP_BUILD:
-            vc.put("buildCommand", buildCommand("/bin/true"));
-            break;
-        default:
-            throw new IllegalArgumentException("invalid jobTemplate (null?)");
-        }
+		// Put build command depending on build type
+		// TODO: figure out build command some other way?
+		switch (jobTemplate.getJobType()) {
+		case VERIFY_COMMIT:
+			vc.put("buildCommand", buildCommand(rc.getVerifyBuildCommand()));
+			break;
+		case VERIFY_PR:
+			vc.put("buildCommand", buildCommand(rc.getVerifyBuildCommand()));
+			break;
+		case PUBLISH:
+			vc.put("buildCommand", buildCommand(rc.getPublishBuildCommand()));
+			break;
+		case NOOP:
+			vc.put("buildCommand", buildCommand("/bin/true"));
+			break;
+		}
 
-        vc.put("startedCommand", curlCommandBuilder(rc, repositoryUrl, "inprogress"));
-        vc.put("successCommand", curlCommandBuilder(rc, repositoryUrl, "successful"));
-        vc.put("failedCommand", curlCommandBuilder(rc, repositoryUrl, "failed"));
-        vc.put("repositoryLink", navBuilder.repo(repo).browse().buildAbsolute());
-        vc.put("repositoryName", repo.getProject().getName() + " " + repo.getName());
+		vc.put("startedCommand",
+				curlCommandBuilder(repo, jobTemplate, rc, repositoryUrl,
+						"inprogress"));
+		vc.put("successCommand",
+				curlCommandBuilder(repo, jobTemplate, rc, repositoryUrl,
+						"successful"));
+		vc.put("failedCommand",
+				curlCommandBuilder(repo, jobTemplate, rc, repositoryUrl,
+						"failed"));
+		vc.put("repositoryLink", navBuilder.repo(repo).browse().buildAbsolute());
+		vc.put("repositoryName",
+				repo.getProject().getName() + " " + repo.getName());
 
-        // Parameters are type-dependent for now
-        ImmutableList.Builder<Map<String, String>> paramBuilder = new ImmutableList.Builder<Map<String, String>>();
-        switch (jobTemplate.getJobType()) {
-        case VERIFY_BUILD:
-            // repoId
-            paramBuilder.add(ImmutableMap.of("name", "repoId", "typeName",
-                JenkinsBuildParamType.StringParameterDefinition.toString(), "description", "stash repository Id",
-                "defaultValue", "unknown"));
-            // buildHead
-            paramBuilder.add(ImmutableMap.of("name", "buildHead", "typeName",
-                JenkinsBuildParamType.StringParameterDefinition.toString(), "description", "the change to build",
-                "defaultValue", "head"));
-            break;
-        case RELEASE_BUILD:
-            // repoId
-            paramBuilder.add(ImmutableMap.of("name", "repoId", "typeName",
-                JenkinsBuildParamType.StringParameterDefinition.toString(), "description", "stash repository Id",
-                "defaultValue", "unknown"));
-            // buildHead
-            paramBuilder.add(ImmutableMap.of("name", "buildHead", "typeName",
-                JenkinsBuildParamType.StringParameterDefinition.toString(), "description", "the change to build",
-                "defaultValue", "head"));
-            break;
-        case NOOP_BUILD:
-            // no params
-            break;
-        }
-        vc.put("paramaterList", paramBuilder.build());
+		// Parameters are type-dependent for now
+		ImmutableList.Builder<Map<String, String>> paramBuilder = new ImmutableList.Builder<Map<String, String>>();
+		switch (jobTemplate.getJobType()) {
+		case VERIFY_COMMIT:
+			// repoId
+			paramBuilder.add(ImmutableMap.of("name", "repoId", "typeName",
+					JenkinsBuildParamType.StringParameterDefinition.toString(),
+					"description", "stash repository Id", "defaultValue",
+					"unknown"));
+			// buildHead
+			paramBuilder.add(ImmutableMap.of("name", "buildHead", "typeName",
+					JenkinsBuildParamType.StringParameterDefinition.toString(),
+					"description", "the change to build", "defaultValue",
+					"head"));
+			break;
+		case VERIFY_PR:
+			// repoId
+			paramBuilder.add(ImmutableMap.of("name", "repoId", "typeName",
+					JenkinsBuildParamType.StringParameterDefinition.toString(),
+					"description", "stash repository Id", "defaultValue",
+					"unknown"));
+			// buildHead
+			paramBuilder.add(ImmutableMap.of("name", "buildHead", "typeName",
+					JenkinsBuildParamType.StringParameterDefinition.toString(),
+					"description", "the change to build", "defaultValue",
+					"head"));
+			// pullRequestId
+			paramBuilder.add(ImmutableMap.of("name", "pullRequestId",
+					"typeName",
+					JenkinsBuildParamType.StringParameterDefinition.toString(),
+					"description", "the pull request Id", "defaultValue", ""));
+			break;
+		case PUBLISH:
+			// repoId
+			paramBuilder.add(ImmutableMap.of("name", "repoId", "typeName",
+					JenkinsBuildParamType.StringParameterDefinition.toString(),
+					"description", "stash repository Id", "defaultValue",
+					"unknown"));
+			// buildHead
+			paramBuilder.add(ImmutableMap.of("name", "buildHead", "typeName",
+					JenkinsBuildParamType.StringParameterDefinition.toString(),
+					"description", "the change to build", "defaultValue",
+					"head"));
+			break;
+		case NOOP:
+			// no params
+			break;
+		}
+		vc.put("paramaterList", paramBuilder.build());
 
-        StringWriter xml = new StringWriter();
+		StringWriter xml = new StringWriter();
 
-        VelocityEngine ve = velocityManager.getVelocityEngine();
-        Template template = ve.getTemplate(jobTemplate.getTemplateFile());
+		VelocityEngine ve = velocityManager.getVelocityEngine();
+		Template template = ve.getTemplate(jobTemplate.getTemplateFile());
 
-        template.merge(vc, xml);
-        return xml.toString();
-    }
+		template.merge(vc, xml);
+		return xml.toString();
+	}
 
-    /**
-     * XML specific parameter types
-     * 
-     * @author cmyers
-     */
-    public static enum JenkinsBuildParamType {
-        StringParameterDefinition,
-        BooleanParameterDefinition;
-        // TODO: more?
-    }
+	/**
+	 * XML specific parameter types
+	 * 
+	 * @author cmyers
+	 */
+	public static enum JenkinsBuildParamType {
+		StringParameterDefinition, BooleanParameterDefinition;
+		// TODO: more?
+	}
 
-    /**
-     * Appends the shell magics to the build command to make it succeed/fail properly.
-     * 
-     * TODO: move this into the template?
-     * 
-     * @param command
-     * @return
-     */
-    private String buildCommand(String command) {
-        return command + " " + BUILD_COMMAND_POSTFIX;
-    }
+	/**
+	 * Appends the shell magics to the build command to make it succeed/fail
+	 * properly.
+	 * 
+	 * TODO: move this into the template?
+	 * 
+	 * @param command
+	 * @return
+	 */
+	private String buildCommand(String command) {
+		return command + " " + BUILD_COMMAND_POSTFIX;
+	}
 
-    private String buildUrl(String repositoryUrl, JenkinsServerConfiguration jsc, String status) {
-        // Look at the BuildSuccessReportinServlet if you change this:
-        // "BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
-        // SEE ALSO:
-        // https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
-        String url =
-            navBuilder.buildAbsolute().concat(
-                "/plugins/servlet/stashbot/build-reporting/$repoId/$type/" + status
-                    + "/$BUILD_NUMBER/$buildHead/$mergeHead/$pullRequestId");
-        url = url.replace("://", "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword() + "@");
-        return url;
-    }
+	private String buildUrl(Repository repo, JobTemplate jobTemplate,
+			String repositoryUrl, JenkinsServerConfiguration jsc, String status) {
+		// Look at the BuildSuccessReportinServlet if you change this:
+		// "BASE_URL/REPO_ID/JOB_NAME/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
+		// SEE ALSO:
+		// https://wiki.jenkins-ci.org/display/JENKINS/Building+a+software+project#Buildingasoftwareproject-JenkinsSetEnvironmentVariables
+		// TODO: Remove $repoId, hardcode ID?
+		String url = navBuilder
+				.buildAbsolute()
+				.concat("/plugins/servlet/stashbot/build-reporting/$repoId/"
+						+ jobTemplate.getJobType().toString() + "/" + status
+						+ "/$BUILD_NUMBER/$buildHead/$mergeHead/$pullRequestId");
+		url = url.replace("://",
+				"://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+						+ "@");
+		return url;
+	}
 }

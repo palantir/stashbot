@@ -25,8 +25,8 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 /**
@@ -97,7 +97,7 @@ public class PullRequestListener {
             log.debug("Triggering verification build for PR " + pr.toString() + ", building sha " + fromSha
                 + " merged with target sha " + toSha);
 
-            jenkinsManager.triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, fromSha, toSha, pr.getId().toString());
+            jenkinsManager.triggerBuild(repo, JobType.VERIFY_PR, fromSha, toSha, pr.getId().toString());
 
             // note that we have successfully started the build
             // Since we don't hit this code in the case of exception, you can "retry" a build simply by causing a PR

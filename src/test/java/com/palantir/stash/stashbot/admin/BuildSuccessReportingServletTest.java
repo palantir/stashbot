@@ -16,7 +16,6 @@ package com.palantir.stash.stashbot.admin;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -43,8 +42,10 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
+import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
 
 public class BuildSuccessReportingServletTest {
@@ -85,6 +86,8 @@ public class BuildSuccessReportingServletTest {
     private PullRequestMetadata prm;
     @Mock
     private TriggerBuildUrlBuilder ub;
+    @Mock
+    private JobTemplateManager jtm;
 
     private StringWriter mockWriter;
 
@@ -94,8 +97,10 @@ public class BuildSuccessReportingServletTest {
 
     private StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
+    private MockJobTemplateFactory jtf;
+
     @Before
-    public void setUp() throws IOException, SQLException {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
 
         Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
@@ -110,19 +115,22 @@ public class BuildSuccessReportingServletTest {
         Mockito.when(repo.getProject()).thenReturn(proj);
         Mockito.when(proj.getKey()).thenReturn("projectKey");
         Mockito.when(
-            ub.getJenkinsTriggerUrl(Mockito.any(Repository.class), Mockito.any(JenkinsBuildTypes.class),
+            ub.getJenkinsTriggerUrl(Mockito.any(Repository.class), Mockito.any(JobType.class),
                 Mockito.anyString(), Mockito.anyLong(), Mockito.anyString())).thenReturn(ABSOLUTE_URL);
+
+        jtf = new MockJobTemplateFactory(jtm);
+        jtf.generateDefaultsForRepo(repo, rc);
 
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
-        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, ub, lf);
+        bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss, prs, ub, jtm, lf);
     }
 
     @Test
     public void testReportingSuccess() throws ServletException, IOException {
         Mockito.when(req.getPathInfo()).thenReturn(
-            buildPathInfo(REPO_ID, JenkinsBuildTypes.VERIFICATION, SUCCESSFUL, BUILD_NUMBER, HEAD, null, null));
+            buildPathInfo(REPO_ID, JobType.VERIFY_COMMIT, SUCCESSFUL, BUILD_NUMBER, HEAD, null, null));
 
         bsrs.doGet(req, res);
 
@@ -136,14 +144,14 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), SUCCESSFUL);
-        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
-        Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
+        Assert.assertTrue(bs.getKey().contains(JobType.VERIFY_COMMIT.toString()));
+        Assert.assertTrue(bs.getName().contains(JobType.VERIFY_COMMIT.toString()));
     }
 
     @Test
     public void testReportingInprogress() throws ServletException, IOException {
         Mockito.when(req.getPathInfo()).thenReturn(
-            buildPathInfo(REPO_ID, JenkinsBuildTypes.VERIFICATION, INPROGRESS, BUILD_NUMBER, HEAD, null, null));
+            buildPathInfo(REPO_ID, JobType.VERIFY_COMMIT, INPROGRESS, BUILD_NUMBER, HEAD, null, null));
 
         bsrs.doGet(req, res);
 
@@ -157,14 +165,14 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), INPROGRESS);
-        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
-        Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
+        Assert.assertTrue(bs.getKey().contains(JobType.VERIFY_COMMIT.toString()));
+        Assert.assertTrue(bs.getName().contains(JobType.VERIFY_COMMIT.toString()));
     }
 
     @Test
     public void testReportingFailure() throws ServletException, IOException {
         Mockito.when(req.getPathInfo()).thenReturn(
-            buildPathInfo(REPO_ID, JenkinsBuildTypes.VERIFICATION, FAILED, BUILD_NUMBER, HEAD, null, null));
+            buildPathInfo(REPO_ID, JobType.VERIFY_COMMIT, FAILED, BUILD_NUMBER, HEAD, null, null));
 
         bsrs.doGet(req, res);
 
@@ -178,14 +186,14 @@ public class BuildSuccessReportingServletTest {
 
         BuildStatus bs = buildStatusCaptor.getValue();
         Assert.assertEquals(bs.getState(), FAILED);
-        Assert.assertTrue(bs.getKey().contains(JenkinsBuildTypes.VERIFICATION.toString()));
-        Assert.assertTrue(bs.getName().contains(JenkinsBuildTypes.VERIFICATION.toString()));
+        Assert.assertTrue(bs.getKey().contains(JobType.VERIFY_COMMIT.toString()));
+        Assert.assertTrue(bs.getName().contains(JobType.VERIFY_COMMIT.toString()));
     }
 
     @Test
     public void testMergeBuildReportingSuccess() throws ServletException, IOException {
         Mockito.when(req.getPathInfo()).thenReturn(
-            buildPathInfo(REPO_ID, JenkinsBuildTypes.VERIFICATION, SUCCESSFUL, BUILD_NUMBER, HEAD, MERGE_HEAD,
+            buildPathInfo(REPO_ID, JobType.VERIFY_COMMIT, SUCCESSFUL, BUILD_NUMBER, HEAD, MERGE_HEAD,
                 PULL_REQUEST_ID));
 
         bsrs.doGet(req, res);
@@ -204,11 +212,11 @@ public class BuildSuccessReportingServletTest {
     }
 
     // path info: "/BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]"
-    private String buildPathInfo(int repoId, JenkinsBuildTypes type, State state, long buildNumber, String head,
+    private String buildPathInfo(int repoId, JobType jt, State state, long buildNumber, String head,
         String mergeHead, Long pullRequestId) {
         return "/"
             + Integer.toString(repoId) + "/"
-            + type.toString() + "/"
+            + jt.toString() + "/"
             + state.toString() + "/"
             + Long.toString(buildNumber) + "/"
             + head + "/"

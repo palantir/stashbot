@@ -37,9 +37,9 @@ import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.jobtemplate.JenkinsJobType;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.managers.VelocityManager;
 
 public class JenkinsJobXmlFormatterTest {
@@ -108,7 +108,7 @@ public class JenkinsJobXmlFormatterTest {
 
         Mockito.when(velocityEngine.getTemplate(TEMPLATE_NAME)).thenReturn(velocityTemplate);
 
-        Mockito.when(jobTemplate.getJobType()).thenReturn(JenkinsJobType.VERIFY_BUILD);
+        Mockito.when(jobTemplate.getJobType()).thenReturn(JobType.VERIFY_COMMIT);
         Mockito.when(jobTemplate.getTemplateFile()).thenReturn(TEMPLATE_NAME);
         Mockito.when(repo.getProject()).thenReturn(project);
         Mockito.when(repo.getName()).thenReturn("reponame");

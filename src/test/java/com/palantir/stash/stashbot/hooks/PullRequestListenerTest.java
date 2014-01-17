@@ -31,8 +31,9 @@ import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 public class PullRequestListenerTest {
@@ -79,6 +80,9 @@ public class PullRequestListenerTest {
 
     private StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
+    @Mock
+    private JobTemplate jobTemplate;
+
     @Before
     public void setUp() throws SQLException {
 
@@ -120,16 +124,15 @@ public class PullRequestListenerTest {
     @Test
     public void testTriggersBuildOnPullRequest() {
         prl.listen(proEvent);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD, MERGE_HEAD,
-            Long.toString(PULL_REQUEST_ID));
+        Mockito.verify(jenkinsManager)
+            .triggerBuild(repo, JobType.VERIFY_PR, HEAD, MERGE_HEAD, Long.toString(PULL_REQUEST_ID));
     }
 
     @Test
     public void testCIDisabled() {
         Mockito.when(rc.getCiEnabled()).thenReturn(false);
         prl.listen(proEvent);
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD,
-            MERGE_HEAD,
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JobType.VERIFY_PR, HEAD, MERGE_HEAD,
             Long.toString(PULL_REQUEST_ID));
     }
 
@@ -140,8 +143,7 @@ public class PullRequestListenerTest {
         prl.listen(prCommentEvent);
         Mockito.verify(cpm, Mockito.never()).setPullRequestMetadata(Mockito.any(PullRequest.class),
             (Boolean) Mockito.notNull(), Mockito.anyBoolean(), Mockito.anyBoolean());
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD,
-            MERGE_HEAD,
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JobType.VERIFY_PR, HEAD, MERGE_HEAD,
             Long.toString(PULL_REQUEST_ID));
     }
 
@@ -152,8 +154,7 @@ public class PullRequestListenerTest {
         prl.listen(prCommentEvent);
         Mockito.verify(cpm).setPullRequestMetadata(Mockito.eq(pr), Mockito.eq((Boolean) null),
             Mockito.eq((Boolean) null), Mockito.eq(true));
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD,
-            MERGE_HEAD,
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JobType.VERIFY_PR, HEAD, MERGE_HEAD,
             Long.toString(PULL_REQUEST_ID));
     }
 
@@ -183,7 +184,7 @@ public class PullRequestListenerTest {
         // Also, should trigger a build
         Mockito.verify(cpm).setPullRequestMetadata(Mockito.eq(pr), Mockito.eq(true), Mockito.eq(false),
             Mockito.eq(false));
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD, MERGE_HEAD,
-            Long.toString(PULL_REQUEST_ID));
+        Mockito.verify(jenkinsManager)
+            .triggerBuild(repo, JobType.VERIFY_PR, HEAD, MERGE_HEAD, Long.toString(PULL_REQUEST_ID));
     }
 }
