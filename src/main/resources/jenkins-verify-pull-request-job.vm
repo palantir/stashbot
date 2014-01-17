@@ -99,14 +99,14 @@
   <builders>
     <hudson.tasks.Shell>
         <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
-        <command>git reset --hard HEAD &amp;&amp; git clean -fdx</command>
+        <command>git reset --hard HEAD &amp;&amp; git clean -fdx || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$esc.xml($startedCommand)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <!-- So, here we fetch and merge in the mergeHead.  We merge the hash directly instead of the ref name or FETCH_HEAD to avoid race conditions with the server. -->
-        <command>git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge $mergeHead</command>
+        <command>git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$esc.xml($prebuildCommand)</command>
