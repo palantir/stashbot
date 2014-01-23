@@ -28,6 +28,8 @@
         <entity>com.palantir.stash.stashbot.config.PluginAuthenticationConfiguration</entity>
         <entity>com.palantir.stash.stashbot.config.PullRequestMetadata</entity>
         <entity>com.palantir.stash.stashbot.config.RepositoryConfiguration</entity>
+        <entity>com.palantir.stash.stashbot.jobtemplate.JobTemplate</entity>
+        <entity>com.palantir.stash.stashbot.jobtemplate.JobMapping</entity>
         <!-- unneeded - yet:
            <upgradeTask>com <dot> palantir.stash.stashbothelper.upgrade.Version1UpgradeTask</upgradeTask>
         -->
@@ -119,12 +121,14 @@
     <component key="commandOutputHandlerFactory" class="com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory" />
     <component key="configurationPersistenceManager" class="com.palantir.stash.stashbot.config.ConfigurationPersistenceManager" />
     <component key="jenkinsClientManager" class="com.palantir.stash.stashbot.managers.JenkinsClientManager" />
-    <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jenkins.JenkinsJobXmlFormatter" />
+    <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter" />
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
+    <component key="jobTemplateManager" class="com.palantir.stash.stashbot.jobtemplate.JobTemplateManager" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
     <component key="stashbotLoggerFactory" class="com.palantir.stash.stashbot.logger.StashbotLoggerFactory"/>
-    <component key="triggerBuildUrlBuilder" class="com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder" />
+    <component key="stashbotUrlBuilder" class="com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder"/>
+    <component key="velocityManager" class="com.palantir.stash.stashbot.managers.VelocityManager" />
 
     <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
 

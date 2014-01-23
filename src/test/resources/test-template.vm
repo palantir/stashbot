@@ -1,0 +1,2 @@
+## this is a text to ensure we have our tools
+$esc.xml("&")

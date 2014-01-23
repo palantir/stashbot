@@ -11,41 +11,41 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.palantir.stash.stashbot.config;
+package com.palantir.stash.stashbot.jobtemplate;
 
 import net.java.ao.Entity;
+import net.java.ao.Implementation;
 import net.java.ao.Preload;
-import net.java.ao.schema.Default;
+import net.java.ao.schema.Ignore;
 import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
-@Table("PAConfig001")
+import com.atlassian.stash.repository.Repository;
+
+@Table("JobTemplate001")
 @Preload
-public interface PluginAuthenticationConfiguration extends Entity {
+@Implementation(JobTemplateImpl.class)
+public interface JobTemplate extends Entity {
 
     @NotNull
     @Unique
     public String getName();
 
-    public void setName(String username);
+    public void setName(String name);
 
     @NotNull
-    @Default("stash-readonly-user")
-    public String getUsername();
+    public String getTemplateFile();
 
-    public void setUsername(String stashUsername);
+    public void setTemplateFile(String file);
 
-    @NotNull
-    @Default("YOU SHOULD REALLY SET THIS TO SOMETHING ELSE")
-    public String getPassword();
+    // Job Type - used in part to specify semantics
 
-    public void setPassword(String stashPassword);
+    public JobType getJobType();
 
-    @NotNull
-    @Default("stash-readonly-user@example.com")
-    public String getEmailAddress();
+    public void setJobType(JobType jobType);
 
-    public void setEmailAddress(String email);
-
+    // Implemented logic outside of CRUD
+    @Ignore
+    public String getBuildNameFor(Repository repo);
 }

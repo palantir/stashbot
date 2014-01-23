@@ -1,29 +1,70 @@
 <?xml version='1.0' encoding='UTF-8'?>
+#**
+  Parameters:
+  parameterList: list of params
+    each param has type, name, description, defaultValue
+  repositoryUrl
+  repositoryRefSpec
+  startedCommand
+  prebuildCommand
+  buildCommand
+  successCommand
+  failedCommand
+
+  Pull Request Specific params:
+  mergeRef ("from ref name")
+  mergeRefUrl
+  mergeHead ("from ref hash")
+
+  esc - escape tool - required
+  @author cmyers
+*#
+#set ($d = "$")
 <project>
   <actions/>
-  <description>This is a job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$$REPOSITORY_LINK$$"&gt;$$REPOSITORY_NAME$$&lt;/a&gt;</description>
+  <description>This is the default verify job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$esc.xml($repositoryUrl)"&gt;$esc.xml($repositoryUrl)&lt;/a&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties>
-$$PARAMETER_DEFINITIONS$$
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+#foreach ( $param in $paramaterList )
+        <hudson.model.${param.typeName}>
+          <name>$param.name</name>
+          <description>$!esc.xml($!param.description)</description>
+          <defaultValue>$!esc.xml($!param.defaultValue)</defaultValue>
+        </hudson.model.${param.typeName}>
+#end
+## Merge specific Parameters:
+        <hudson.model.StringParameterDefinition>
+          <name>mergeRef</name>
+          <description>The name of the ref we are merging from</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>mergeRefUrl</name>
+          <description>The URL of the ref to fetch</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>mergeHead</name>
+          <description>The actual SHA1 of the commit to fetch</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
   </properties>
   <scm class="hudson.plugins.git.GitSCM" plugin="git@1.1.26">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
-        <url>$$REPOSITORY_URL$$</url>
+        <url>$esc.xml($repositoryUrl)</url>
         <name>origin</name>
         <refspec></refspec>
-      </hudson.plugins.git.UserRemoteConfig>
-      <!-- need to have two repos because jenkins does not support multiple refspecs in a single repo, see https://issues.jenkins-ci.org/browse/JENKINS-8756 -->
-      <hudson.plugins.git.UserRemoteConfig>
-          <url>$$REPOSITORY_URL$$</url>
-          <name>stash-metadata</name>
-          <refspec>+stash-refs/*:refs/remotes/stash-metadata/*</refspec>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>
       <hudson.plugins.git.BranchSpec>
-          <name>$buildHead</name>
+        <name>${d}buildHead</name>
       </hudson.plugins.git.BranchSpec>
     </branches>
     <disableSubmodules>false</disableSubmodules>
@@ -58,19 +99,20 @@ $$PARAMETER_DEFINITIONS$$
   <builders>
     <hudson.tasks.Shell>
         <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
-        <command>git reset --hard HEAD &amp;&amp; git clean -fdx</command>
+        <command>git reset --hard HEAD &amp;&amp; git clean -fdx || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <command>$$STARTED_COMMAND$$</command>
+        <command>$esc.xml($startedCommand)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <command>if [ -z $mergeHead ]; then echo "Merge Head unset, not merging"; else echo "Merge Head detected: $mergeHead"; git merge $mergeHead -m"VERIFYING $buildHead merged into $mergeHead for pull request $pullRequestId in repo $repoId" || echo "BUILD FAILURE""1" || /bin/false; fi</command>
+        <!-- So, here we fetch and merge in the mergeHead.  We merge the hash directly instead of the ref name or FETCH_HEAD to avoid race conditions with the server. -->
+        <command>git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <command>$$PREBUILD_COMMAND$$</command>
+        <command>$esc.xml($prebuildCommand)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-      <command>$$BUILD_COMMAND$$</command>
+      <command>$esc.xml($buildCommand)</command>
     </hudson.tasks.Shell>
   </builders>
   <publishers>
@@ -85,7 +127,7 @@ $$PARAMETER_DEFINITIONS$$
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
-          <script>$$SUCCESS_COMMAND$$</script>
+          <script>$esc.xml($successCommand)</script>
         </hudson.plugins.postbuildtask.TaskProperties>
         <hudson.plugins.postbuildtask.TaskProperties>
           <logTexts>
@@ -96,7 +138,7 @@ $$PARAMETER_DEFINITIONS$$
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
-          <script>$$FAILURE_COMMAND$$</script>
+          <script>$esc.xml($failedCommand)</script>
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>

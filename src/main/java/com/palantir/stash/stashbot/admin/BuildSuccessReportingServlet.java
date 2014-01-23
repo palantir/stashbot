@@ -1,16 +1,16 @@
-//   Copyright 2013 Palantir Technologies
+// Copyright 2013 Palantir Technologies
 //
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package com.palantir.stash.stashbot.admin;
 
 import java.io.IOException;
@@ -37,16 +37,17 @@ import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
-import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
+import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class BuildSuccessReportingServlet extends HttpServlet {
 
     /**
      * Handle information about build success / failure for a given hash and/or pull request
      * 
-     * URL is of the form BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID] <br/>
+     * URL is of the form BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD /PULLREQUEST_ID] <br/>
      * <br/>
      * REPO_ID is the stash internal ID of the repository<br/>
      * TYPE is "verification" or "release" STATE is "successful", "failed", or "inprogress"<br/>
@@ -61,23 +62,29 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final RepositoryService repositoryService;
     private final BuildStatusService buildStatusService;
     private final PullRequestService pullRequestService;
-    private final TriggerBuildUrlBuilder ub;
+    private final StashbotUrlBuilder ub;
+    private final JobTemplateManager jtm;
 
     // private final PullRequestCommentService pullRequestCommentService;
 
-    public BuildSuccessReportingServlet(ConfigurationPersistenceManager configurationPersistenceManager,
-        RepositoryService repositoryService, BuildStatusService buildStatusService,
-        PullRequestService pullRequestService, TriggerBuildUrlBuilder ub, StashbotLoggerFactory lf) {
+    public BuildSuccessReportingServlet(
+        ConfigurationPersistenceManager configurationPersistenceManager,
+        RepositoryService repositoryService,
+        BuildStatusService buildStatusService,
+        PullRequestService pullRequestService, StashbotUrlBuilder ub,
+        JobTemplateManager jtm, StashbotLoggerFactory lf) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
         this.pullRequestService = pullRequestService;
         this.ub = ub;
+        this.jtm = jtm;
         this.log = lf.getLoggerForThis(this);
     }
 
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse res)
+        throws ServletException, IOException {
 
         try {
             // Look at JenkinsManager class if you change this:
@@ -88,35 +95,44 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             final String[] parts = pathInfo.split("/");
 
             if (parts.length != 6 && parts.length != 8) {
-                throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
+                throw new IllegalArgumentException("The format of the URL is "
+                    + URL_FORMAT);
             }
             final int repoId;
             final Repository repo;
+            final RepositoryConfiguration rc;
             try {
                 repoId = Integer.valueOf(parts[1]);
                 repo = repositoryService.getById(repoId);
+                rc = configurationPersistanceManager
+                    .getRepositoryConfigurationForRepository(repo);
                 if (repo == null) {
-                    throw new IllegalArgumentException("Unable to get a repository for id " + repoId);
+                    throw new IllegalArgumentException(
+                        "Unable to get a repository for id " + repoId);
                 }
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT, e);
+                throw new IllegalArgumentException("The format of the URL is "
+                    + URL_FORMAT, e);
             }
 
-            final JenkinsBuildTypes type = JenkinsBuildTypes.fromString(parts[2].toUpperCase());
-            if (type == null) {
-                throw new IllegalArgumentException("Unable to get a valid JenkinsBuildType from " + parts[2]);
+            JobTemplate jt = jtm.fromString(rc, parts[2].toLowerCase());
+            if (jt == null) {
+                throw new IllegalArgumentException(
+                    "Unable to get a valid JobTemplate from " + parts[2]);
             }
 
             final State state = BuildStatus.State.fromString(parts[3]);
             if (state == null) {
-                throw new IllegalArgumentException("The state must be 'successful', 'failed', or 'inprogress'");
+                throw new IllegalArgumentException(
+                    "The state must be 'successful', 'failed', or 'inprogress'");
             }
 
             final long buildNumber;
             try {
                 buildNumber = Long.parseLong(parts[4]);
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Unable to parse build number", e);
+                throw new IllegalArgumentException(
+                    "Unable to parse build number", e);
             }
 
             // TODO: ensure this hash actually exists?
@@ -131,51 +147,69 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 try {
                     // This is a pull request, so add a comment
                     pullRequestId = Long.parseLong(parts[7]);
-                    pullRequest = pullRequestService.getById(repo.getId(), pullRequestId);
+                    pullRequest = pullRequestService.getById(repo.getId(),
+                        pullRequestId);
                     if (pullRequest == null) {
-                        throw new IllegalArgumentException("Unable to find pull request for repo id "
-                            + repo.getId().toString() + " pr id " + Long.toString(pullRequestId));
+                        throw new IllegalArgumentException(
+                            "Unable to find pull request for repo id "
+                                + repo.getId().toString() + " pr id "
+                                + Long.toString(pullRequestId));
                     }
                 } catch (NumberFormatException e) {
-                    throw new IllegalArgumentException("Unable to parse pull request id " + parts[7], e);
+                    throw new IllegalArgumentException(
+                        "Unable to parse pull request id " + parts[7], e);
                 }
-                retUrl = ub.getJenkinsTriggerUrl(repo, type, buildHead, pullRequestId, mergeHead);
+                retUrl = ub.getJenkinsTriggerUrl(repo, jt.getJobType(),
+                    buildHead, pullRequest);
             } else {
                 mergeHead = null;
                 pullRequestId = 0;
                 pullRequest = null;
-                retUrl = ub.getJenkinsTriggerUrl(repo, type, buildHead, null, null);
+                retUrl = ub.getJenkinsTriggerUrl(repo, jt.getJobType(),
+                    buildHead, null);
             }
 
             if (mergeHead == null) {
                 BuildStatus bs;
-                bs = getSuccessStatus(repo, type, state, buildNumber, buildHead);
-                log.debug("Registering build status for buildHead " + buildHead + " " + bsToString(bs));
+                bs = getSuccessStatus(repo, jt, state, buildNumber, buildHead);
+                log.debug("Registering build status for buildHead " + buildHead
+                    + " " + bsToString(bs));
                 buildStatusService.add(buildHead, bs);
                 printOutput(req, res);
                 return;
             }
 
-            // mergeHead is not null *and* pullRequest is not null if we reach here.
+            // mergeHead is not null *and* pullRequest is not null if we reach
+            // here.
             final StringBuffer sb = new StringBuffer();
-            final String url = getJenkinsUrl(repo, type, buildNumber);
+            final String url = getJenkinsUrl(repo, jt, buildNumber);
 
+            /* NOTE: mergeHead and buildHead are the reverse of what you might
+             * think, because we have to check out the "toRef" becasue it is
+             * the ref that is guaranteed to be in the correct repo.
+             * Nonetheless, buildHead is the commit that is being merged "into"
+             * the target branch, which is the mergeHead variable here.
+             */
             sb.append("Jenkins Build now has status ");
             sb.append("==" + state.toString() + "==");
-            sb.append(" for hash " + buildHead);
-            sb.append(" merged into head " + mergeHead);
+            sb.append(" for hash " + mergeHead);
+            sb.append(" merged into head " + buildHead);
             sb.append(" <a href=\"" + url + "\">Link</a>");
             sb.append(" (<a href=\"" + retUrl + "\">Retrigger</a>)");
 
-            log.debug("Registering comment on pr for buildHead " + buildHead + " mergeHead " + mergeHead);
+            log.debug("Registering comment on pr for buildHead " + buildHead
+                + " mergeHead " + mergeHead);
             // Still make comment so users can see links to build
-            pullRequestService.addComment(repo.getId(), pullRequest.getId(), sb.toString());
+            pullRequestService.addComment(repo.getId(), pullRequest.getId(),
+                sb.toString());
             // but also update metadata
 
             if (state.equals(State.SUCCESSFUL)) {
-                configurationPersistanceManager.setPullRequestMetadata(pullRequest, true, null);
+                configurationPersistanceManager.setPullRequestMetadata(
+                    pullRequest, null, true, null);
             } else {
-                configurationPersistanceManager.setPullRequestMetadata(pullRequest, false, null);
+                configurationPersistanceManager.setPullRequestMetadata(
+                    pullRequest, null, false, null);
             }
 
             printOutput(req, res);
@@ -184,7 +218,8 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         }
     }
 
-    private void printOutput(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    private void printOutput(HttpServletRequest req, HttpServletResponse res)
+        throws IOException {
         res.reset();
         res.setStatus(200);
         res.setContentType("text/plain;charset=UTF-8");
@@ -193,26 +228,32 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         w.close();
     }
 
-    private BuildStatus getSuccessStatus(Repository repo, JenkinsBuildTypes type, State state, long buildNumber,
-        String buildHead) throws SQLException {
+    private BuildStatus getSuccessStatus(Repository repo, JobTemplate jt,
+        State state, long buildNumber, String buildHead)
+        throws SQLException {
         Date now = new Date(java.lang.System.currentTimeMillis());
 
         DateFormat df = DateFormat.getDateInstance();
         // key will be the jenkins name
-        String key = type.getBuildNameFor(repo);
+        String key = jt.getBuildNameFor(repo);
         String name = key + " (build " + Long.toString(buildNumber) + ")";
-        String description = "Build " + Long.toString(buildNumber) + " " + state.toString() + " at " + df.format(now);
-        String url = getJenkinsUrl(repo, type, buildNumber);
-        BuildStatus bs = new InternalBuildStatus(state, name, name, url, description, now);
+        String description = "Build " + Long.toString(buildNumber) + " "
+            + state.toString() + " at " + df.format(now);
+        String url = getJenkinsUrl(repo, jt, buildNumber);
+        BuildStatus bs = new InternalBuildStatus(state, name, name, url,
+            description, now);
         return bs;
     }
 
-    private String getJenkinsUrl(Repository repo, JenkinsBuildTypes type, long buildNumber) throws SQLException {
-        RepositoryConfiguration rc = configurationPersistanceManager.getRepositoryConfigurationForRepository(repo);
-        JenkinsServerConfiguration jsc =
-            configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-        String key = type.getBuildNameFor(repo);
-        String url = jsc.getUrl() + "/job/" + key + "/" + Long.toString(buildNumber);
+    private String getJenkinsUrl(Repository repo, JobTemplate jt,
+        long buildNumber) throws SQLException {
+        RepositoryConfiguration rc = configurationPersistanceManager
+            .getRepositoryConfigurationForRepository(repo);
+        JenkinsServerConfiguration jsc = configurationPersistanceManager
+            .getJenkinsServerConfiguration(rc.getJenkinsServerName());
+        String key = jt.getBuildNameFor(repo);
+        String url = jsc.getUrl() + "/job/" + key + "/"
+            + Long.toString(buildNumber);
         return url;
     }
 

@@ -1,20 +1,21 @@
-//   Copyright 2013 Palantir Technologies
+// Copyright 2013 Palantir Technologies
 //
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package com.palantir.stash.stashbot.admin;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -27,8 +28,11 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 public class BuildTriggerServlet extends HttpServlet {
@@ -44,46 +48,64 @@ public class BuildTriggerServlet extends HttpServlet {
      * 
      */
     private static final long serialVersionUID = 1L;
-    // 1 => repoId, 2 => type, 3 => build_head, 4 => mergeHead, 5 => pullRequestId
+    // 1 => repoId, 2 => type, 3 => build_head, 4 => mergeHead, 5 =>
+    // pullRequestId
     private static final String URL_FORMAT = "BASE_URL/REPO_ID/TYPE/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
 
     private final RepositoryService repositoryService;
     private final PullRequestService pullRequestService;
+    private final JobTemplateManager jtm;
+    private final ConfigurationPersistenceManager cpm;
     private final JenkinsManager jenkinsManager;
     private final Logger log;
 
-    public BuildTriggerServlet(RepositoryService repositoryService, PullRequestService pullRequestService,
-        JenkinsManager jenkinsManager, StashbotLoggerFactory lf) {
+    public BuildTriggerServlet(RepositoryService repositoryService,
+        PullRequestService pullRequestService, JobTemplateManager jtm,
+        ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
+        StashbotLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.pullRequestService = pullRequestService;
         this.jenkinsManager = jenkinsManager;
+        this.jtm = jtm;
+        this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
     }
 
     @Override
-    public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    public void doGet(HttpServletRequest req, HttpServletResponse res)
+        throws ServletException, IOException {
 
         final String pathInfo = req.getPathInfo();
         final String[] parts = pathInfo.split("/");
 
         if (parts.length != 4 && parts.length != 6) {
-            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT);
+            throw new IllegalArgumentException("The format of the URL is "
+                + URL_FORMAT);
         }
         final int repoId;
         final Repository repo;
+        final RepositoryConfiguration rc;
+        final JobTemplate jt;
         try {
             repoId = Integer.valueOf(parts[1]);
             repo = repositoryService.getById(repoId);
             if (repo == null) {
-                throw new IllegalArgumentException("Unable to get a repository for id " + repoId);
+                throw new IllegalArgumentException(
+                    "Unable to get a repository for id " + repoId);
             }
+            rc = cpm.getRepositoryConfigurationForRepository(repo);
+            jt = jtm.fromString(rc, parts[2].toLowerCase());
+        } catch (SQLException e) {
+            throw new IllegalArgumentException("SQLException occured", e);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("The format of the URL is " + URL_FORMAT, e);
+            throw new IllegalArgumentException("The format of the URL is "
+                + URL_FORMAT, e);
         }
 
-        final JenkinsBuildTypes type = JenkinsBuildTypes.fromString(parts[2].toUpperCase());
-        if (type == null) {
-            throw new IllegalArgumentException("Unable to get a valid JenkinsBuildType from " + parts[2]);
+        if (jt == null) {
+            throw new IllegalArgumentException(
+                "Unable to get a valid JobTemplate from " + parts[2]
+                    + " for repository " + repo.toString());
         }
 
         // TODO: ensure this hash actually exists?
@@ -96,13 +118,17 @@ public class BuildTriggerServlet extends HttpServlet {
             mergeHead = parts[4];
             try {
                 pullRequestId = parts[5];
-                pullRequest = pullRequestService.getById(repo.getId(), Long.parseLong(pullRequestId));
+                pullRequest = pullRequestService.getById(repo.getId(),
+                    Long.parseLong(pullRequestId));
                 if (pullRequest == null) {
-                    throw new IllegalArgumentException("Unable to find pull request for repo id "
-                        + repo.getId().toString() + " pr id " + pullRequestId);
+                    throw new IllegalArgumentException(
+                        "Unable to find pull request for repo id "
+                            + repo.getId().toString() + " pr id "
+                            + pullRequestId);
                 }
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("Unable to parse pull request id " + parts[5], e);
+                throw new IllegalArgumentException(
+                    "Unable to parse pull request id " + parts[5], e);
             }
         } else {
             mergeHead = null;
@@ -113,16 +139,18 @@ public class BuildTriggerServlet extends HttpServlet {
         if (mergeHead == null) {
             log.debug("Triggering build for buildHead " + buildHead);
             try {
-                jenkinsManager.triggerBuild(repo, type, buildHead);
+                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead);
+                printOutput(req, res);
+                return;
             } catch (Exception e) {
                 printErrorOutput(req, res, e);
                 return;
             }
         }
 
-        // mergeHead is not null *and* pullRequest is not null if we reach here.
+        // pullRequest is not null if we reach here.
         try {
-            jenkinsManager.triggerBuild(repo, type, buildHead, mergeHead, pullRequestId);
+            jenkinsManager.triggerBuild(repo, jt.getJobType(), pullRequest);
         } catch (Exception e) {
             printErrorOutput(req, res, e);
             return;
@@ -131,7 +159,8 @@ public class BuildTriggerServlet extends HttpServlet {
         return;
     }
 
-    private void printOutput(HttpServletRequest req, HttpServletResponse res) throws IOException {
+    private void printOutput(HttpServletRequest req, HttpServletResponse res)
+        throws IOException {
         res.reset();
         res.setStatus(200);
         res.setContentType("text/plain;charset=UTF-8");
@@ -140,7 +169,8 @@ public class BuildTriggerServlet extends HttpServlet {
         w.close();
     }
 
-    private void printErrorOutput(HttpServletRequest req, HttpServletResponse res, Exception e) throws IOException {
+    private void printErrorOutput(HttpServletRequest req,
+        HttpServletResponse res, Exception e) throws IOException {
         res.reset();
         res.setStatus(500);
         res.setContentType("text/plain;charset=UTF-8");

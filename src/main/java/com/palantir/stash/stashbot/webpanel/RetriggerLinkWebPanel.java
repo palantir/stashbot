@@ -1,16 +1,16 @@
-//   Copyright 2013 Palantir Technologies
+// Copyright 2013 Palantir Technologies
 //
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package com.palantir.stash.stashbot.webpanel;
 
 import java.io.IOException;
@@ -26,18 +26,18 @@ import com.atlassian.stash.content.Changeset;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
-import com.palantir.stash.stashbot.urlbuilder.TriggerBuildUrlBuilder;
+import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class RetriggerLinkWebPanel implements WebPanel {
 
     private final ConfigurationPersistenceManager cpm;
-    private final TriggerBuildUrlBuilder ub;
+    private final StashbotUrlBuilder ub;
     private final Logger log;
 
-    public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm, TriggerBuildUrlBuilder ub,
-        StashbotLoggerFactory lf) {
+    public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm,
+        StashbotUrlBuilder ub, StashbotLoggerFactory lf) {
         this.cpm = cpm;
         this.ub = ub;
         this.log = lf.getLoggerForThis(this);
@@ -56,10 +56,12 @@ public class RetriggerLinkWebPanel implements WebPanel {
     }
 
     @Override
-    public void writeHtml(Writer writer, Map<String, Object> context) throws IOException {
+    public void writeHtml(Writer writer, Map<String, Object> context)
+        throws IOException {
         try {
             Repository repo = (Repository) context.get("repository");
-            RepositoryConfiguration rc = cpm.getRepositoryConfigurationForRepository(repo);
+            RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(repo);
 
             if (!rc.getCiEnabled()) {
                 // No link
@@ -67,7 +69,8 @@ public class RetriggerLinkWebPanel implements WebPanel {
             }
 
             Changeset changeset = (Changeset) context.get("changeset");
-            String url = ub.getJenkinsTriggerUrl(repo, JenkinsBuildTypes.VERIFICATION, changeset.getId(), null, null);
+            String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT,
+                changeset.getId(), null);
 
             writer.append("<a href=\"" + url + "\">Retrigger</a>");
         } catch (SQLException e) {

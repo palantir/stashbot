@@ -103,11 +103,8 @@ disallowed until that build has succeeded.
 ## Eclipse
 
 1. Generate project files by running `atlas-mvn eclipse:eclipse`
-2. Load the code formatter settings by going to preferences, filtering on
-"formatter", selecting Java -> Code Style -> Formatter, and importing the xml
-file in code-style directory.
-3. Load the cleanup settings by going to preferences, filtering on "cleanup" (also under code style) and import the cleanup xml file from the code-style directory.
-4. Finally, again under preferences, filter on "save actions" for the java editor and check the options for "format source code", "format all lines", and "organize imports".
+2. Load the code formatter settings by going to File -> Import -> Preferences and loading the .epf file in code-style/
+3. Finally, again under preferences, filter on "save actions" for the java editor and check the options for "format source code", "format all lines", and "organize imports".
 
 Doing these 4 things will ensure you do not introduce unneccessary whitespace changes.
 
@@ -123,6 +120,21 @@ following to configure it:
 3. Install the git plugin and post build task (required!)
 4. Ensure you navigate to a repository settings page and click "save", that is what initially creates/updates jobs in jenkins.
 
+## Test Plan
+
+Currently there are no integration tests.  After major changes, the following tests should be performed manually:
+* Plugin successfully loads in stash (if fails, did you forget to add a new class to atlassian-plugin.xml?)
+* Go to stashbot settings in rep_1, enable stashbot and save, ensure jobs are updated in jenkins
+* Clone rep_1, create empty commit, push, ensure build is triggered
+* Create new branch, push to branch, create Pull Request, ensure verify build is triggered
+* Ensure PR cannot merge until build succeeds
+* Ensure PR can merge after build succeeds
+* Ensure edits to PR that do not change from/to sha do not trigger a new build
+* Repeat the above 4 steps with a PR from forked repo to parent
+* Ensure publish builds are triggered properly
+* Ensure failing build of each type correctly reports its failed status
+* Ensure "Retrigger" links work
+* Ensure comments to PRs override and report success/failure
 
 ## Custom Jenkins Client
 

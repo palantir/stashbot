@@ -1,16 +1,16 @@
-//   Copyright 2013 Palantir Technologies
+// Copyright 2013 Palantir Technologies
 //
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//       http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 //
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 package com.palantir.stash.stashbot.hooks;
 
 import java.sql.SQLException;
@@ -31,8 +31,8 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
-import com.palantir.stash.stashbot.managers.JenkinsBuildTypes;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.mocks.MockGitCommandBuilderFactory;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
@@ -112,7 +112,7 @@ public class TriggerJenkinsBuildHookTest {
     public void testTriggersBuildOnPush() {
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 
     @Test
@@ -120,7 +120,8 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getCiEnabled()).thenReturn(false);
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD));
     }
 
     @Test
@@ -128,7 +129,8 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(change.getType()).thenReturn(RefChangeType.DELETE);
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD));
     }
 
     @Test
@@ -136,7 +138,8 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn("blahblahnomatch");
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD));
     }
 
     @Test
@@ -145,7 +148,7 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getPublishBranchRegex()).thenReturn("master");
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.PUBLISH, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.PUBLISH, HEAD);
     }
 
     @Test
@@ -156,8 +159,8 @@ public class TriggerJenkinsBuildHookTest {
 
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 
     @Test
@@ -170,9 +173,9 @@ public class TriggerJenkinsBuildHookTest {
 
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION,
-            HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
+            Mockito.eq(HEAD_MINUS_ONE));
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 
     @Test
@@ -186,7 +189,7 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         // TODO: verify the git rev-list is invoked with proper args?
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JenkinsBuildTypes.VERIFICATION, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
     }
 }
