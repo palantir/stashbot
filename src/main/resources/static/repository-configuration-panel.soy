@@ -87,6 +87,12 @@
             {param value: $maxVerifyChain /}
             {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of builds to trigger from a single reference update') /}
           {/call}
+          {call aui.form.textField}
+            {param id: 'buildArtifactsPath' /}
+            {param labelContent: stash_i18n('stash.web.stash.buildArtifactsPath.label', 'Path for build artifacts') /}
+            {param value: $buildArtifactsPath /}
+            {param descriptionText: stash_i18n('stash.web.stash.buildArtifactsPath.description', 'Files matching this path (with Ant-style wildcards) will be saved by jenkins as build artifacts (e.g. "target/build/reports/tests/**/*.html"') /}
+          {/call}
           {call aui.form.buttons}
             {param content}
 	          {call aui.form.submit}

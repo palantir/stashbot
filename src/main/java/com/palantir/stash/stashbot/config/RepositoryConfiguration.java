@@ -83,4 +83,10 @@ public interface RepositoryConfiguration extends Entity {
     public Integer getMaxVerifyChain();
 
     public void setMaxVerifyChain(Integer max);
+
+    @NotNull
+    @Default("empty")
+    public String getBuildArtifactsPath();
+
+    public void setBuildArtifactsPath();
 }
