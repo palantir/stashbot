@@ -110,6 +110,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("prebuildCommand", rc.getPrebuildCommand())
                     .put("jenkinsServerName", rc.getJenkinsServerName())
                     .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
+                    .put("buildArtifactsPath", rc.getBuildArtifactsPath())
                     .put("jenkinsServersData", jenkinsServersData)
                     .build()
                 );
