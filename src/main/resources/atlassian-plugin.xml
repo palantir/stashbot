@@ -116,6 +116,7 @@
     However they depend upon PermissionService which is not included automatically as a transitive dependency, so we need this:
     -->
     <component-import key="permissionService" interface="com.atlassian.stash.user.PermissionService"/>
+    <component-import key="permissionValidationService" interface="com.atlassian.stash.user.PermissionValidationService"/>
 
     <component key="commandOutputHandlerFactory" class="com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory" />
     <component key="configurationPersistenceManager" class="com.palantir.stash.stashbot.config.ConfigurationPersistenceManager" />
