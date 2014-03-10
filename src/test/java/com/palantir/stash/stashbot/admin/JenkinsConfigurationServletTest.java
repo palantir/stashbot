@@ -31,7 +31,11 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
+import com.atlassian.stash.exception.AuthorisationException;
+import com.atlassian.stash.i18n.KeyedMessage;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.atlassian.webresource.api.assembler.WebResourceAssembler;
@@ -68,6 +72,8 @@ public class JenkinsConfigurationServletTest {
     private PluginUserManager pum;
     @Mock
     private LoginUriProvider lup;
+    @Mock
+    private PermissionValidationService pvs;
 
     private JenkinsConfigurationServlet jcs;
 
@@ -122,18 +128,34 @@ public class JenkinsConfigurationServletTest {
         Mockito.when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
         Mockito.when(webResourceAssembler.resources()).thenReturn(rr);
 
-        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null, lup, lf);
+        jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null, lup, lf, pvs);
     }
 
     @Test
     public void getTestWhenNotLoggedIn() throws Exception {
 
         Mockito.when(req.getRemoteUser()).thenReturn(null);
+        Mockito.doThrow(
+            new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
+            .when(pvs).validateAuthenticated();
 
         jcs.doGet(req, res);
 
         Mockito.verify(res).sendRedirect(Mockito.anyString());
         Mockito.verify(res, Mockito.never()).getWriter();
+    }
+
+    @Test
+    public void getTestWhenNotSysAdmin() throws Exception {
+
+        Mockito.when(req.getRemoteUser()).thenReturn("nonAdminStashUser");
+        Mockito.doThrow(
+            new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
+            .when(pvs).validateForGlobal(Permission.SYS_ADMIN);
+
+        jcs.doGet(req, res);
+
+        Mockito.verify(res).sendError(Mockito.eq(HttpServletResponse.SC_UNAUTHORIZED), Mockito.any(String.class));
     }
 
     @Test
