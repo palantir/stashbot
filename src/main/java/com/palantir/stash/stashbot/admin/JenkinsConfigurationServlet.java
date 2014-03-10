@@ -27,6 +27,9 @@ import org.slf4j.Logger;
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
+import com.atlassian.stash.exception.AuthorisationException;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
@@ -50,17 +53,20 @@ public class JenkinsConfigurationServlet extends HttpServlet {
     private final PluginUserManager pluginUserManager;
     private final JenkinsManager jenkinsManager;
     private final LoginUriProvider lup;
+    private final PermissionValidationService permissionValidationService;
     private final Logger log;
 
     public JenkinsConfigurationServlet(SoyTemplateRenderer soyTemplateRenderer,
         PageBuilderService pageBuilderService,
         ConfigurationPersistenceManager configurationPersistenceManager, PluginUserManager pluginUserManager,
-        JenkinsManager jenkinsManager, LoginUriProvider lup, StashbotLoggerFactory lf) {
+        JenkinsManager jenkinsManager, LoginUriProvider lup, StashbotLoggerFactory lf,
+        PermissionValidationService permissionValidationService) {
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.pageBuilderService = pageBuilderService;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.pluginUserManager = pluginUserManager;
         this.jenkinsManager = jenkinsManager;
+        this.permissionValidationService = permissionValidationService;
         this.log = lf.getLoggerForThis(this);
         this.lup = lup;
     }
@@ -68,14 +74,24 @@ public class JenkinsConfigurationServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        String user = req.getRemoteUser();
-        if (user == null) {
+        // Authenticate user
+        try {
+            permissionValidationService.validateAuthenticated();
+        } catch (AuthorisationException notLoggedInException) { 
             log.debug("User not logged in, redirecting to login page");
             // not logged in, redirect
             res.sendRedirect(lup.getLoginUri(getUri(req)).toASCIIString());
             return;
         }
-        log.debug("User " + user + " logged in");
+        log.debug("User {} logged in", req.getRemoteUser());
+        try {
+            permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
+        } catch (AuthorisationException notAdminException) {
+            log.warn("User {} is not a system administrator", req.getRemoteUser());
+            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You do not have permission to access this page.");
+            return;
+        }
+
         // Handle deletes
         String pathInfo = req.getPathInfo();
         String relUrl = req.getRequestURL().toString();
