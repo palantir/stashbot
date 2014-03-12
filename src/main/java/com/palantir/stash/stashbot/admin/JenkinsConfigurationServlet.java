@@ -160,6 +160,13 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        try {
+            permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
+        } catch (AuthorisationException e) {
+            // Skip form processing
+            doGet(req, res);
+            return;
+        }
 
         String name = req.getParameter("name");
         String url = req.getParameter("url");

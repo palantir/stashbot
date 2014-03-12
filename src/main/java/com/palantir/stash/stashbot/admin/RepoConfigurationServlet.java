@@ -29,8 +29,11 @@ import org.slf4j.Logger;
 
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
+import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -53,16 +56,19 @@ public class RepoConfigurationServlet extends HttpServlet {
     private final ConfigurationPersistenceManager configurationPersistanceManager;
     private final JenkinsManager jenkinsManager;
     private final PluginUserManager pluginUserManager;
+    private final PermissionValidationService permissionValidationService;
     private final Logger log;
 
     public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
         PageBuilderService pageBuilderService, ConfigurationPersistenceManager configurationPersistenceManager,
-        JenkinsManager jenkinsManager, PluginUserManager pluginUserManager, StashbotLoggerFactory lf) {
+        JenkinsManager jenkinsManager, PluginUserManager pluginUserManager,
+        PermissionValidationService permissionValidationService, StashbotLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.pageBuilderService = pageBuilderService;
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.jenkinsManager = jenkinsManager;
+        this.permissionValidationService = permissionValidationService;
         this.pluginUserManager = pluginUserManager;
         this.log = lf.getLoggerForThis(this);
     }
@@ -73,6 +79,15 @@ public class RepoConfigurationServlet extends HttpServlet {
         Repository rep = getRepository(req);
         if (rep == null) {
             res.sendError(404);
+            return;
+        }
+
+        try {
+            permissionValidationService.validateForRepository(rep, Permission.REPO_ADMIN);
+        } catch (AuthorisationException notRepoAdmin) {
+            log.warn("User {} tried to access the stashbot admin page for {}",
+                req.getRemoteUser(), rep.getSlug());
+            res.sendError(HttpServletResponse.SC_UNAUTHORIZED, "You do not have permission to access this page.");
             return;
         }
 
@@ -132,6 +147,14 @@ public class RepoConfigurationServlet extends HttpServlet {
         if (rep == null) {
             log.error("Failed to get repo for request" + req.toString());
             res.sendError(404);
+            return;
+        }
+
+        try {
+            permissionValidationService.validateForRepository(rep, Permission.REPO_ADMIN);
+        } catch (AuthorisationException notRepoAdmin) {
+            // Skip form processing
+            doGet(req, res);
             return;
         }
 

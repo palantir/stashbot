@@ -28,8 +28,12 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
+import com.atlassian.stash.exception.AuthorisationException;
+import com.atlassian.stash.i18n.KeyedMessage;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.atlassian.webresource.api.assembler.WebResourceAssembler;
@@ -60,6 +64,8 @@ public class RepoConfigurationServletTest {
     private JenkinsManager jenkinsManager;
     @Mock
     private PluginUserManager pum;
+    @Mock
+    private PermissionValidationService pvs;
 
     @Mock
     private HttpServletRequest req;
@@ -132,7 +138,19 @@ public class RepoConfigurationServletTest {
 
         rcs =
             new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, pageBuilderService, cpm,
-                jenkinsManager, pum, lf);
+                jenkinsManager, pum, pvs, lf);
+    }
+
+    @Test
+    public void getTestWhenNotRepoAdmin() throws Exception {
+
+        Mockito.doThrow(
+            new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
+            .when(pvs).validateForRepository(Mockito.any(Repository.class), Mockito.eq(Permission.REPO_ADMIN));
+
+        rcs.doGet(req, res);
+
+        Mockito.verify(res).sendError(Mockito.eq(HttpServletResponse.SC_UNAUTHORIZED), Mockito.any(String.class));
     }
 
     @Test
