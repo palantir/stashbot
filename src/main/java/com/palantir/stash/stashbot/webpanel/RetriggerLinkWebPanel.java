@@ -72,7 +72,7 @@ public class RetriggerLinkWebPanel implements WebPanel {
             String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT,
                 changeset.getId(), null);
 
-            writer.append("<a href=\"" + url + "\">Retrigger</a>");
+            writer.append("<a href=\"" + url + "\">Re-verify</a>");
         } catch (SQLException e) {
             throw new IOException(e);
         }
