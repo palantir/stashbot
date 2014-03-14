@@ -25,6 +25,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.pull.MergeRequest;
+import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -35,6 +36,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
     private static final int REPO_ID = 1;
     private static final long PULL_REQUEST_ID = 1234L;
     private static final String TO_SHA = "refs/heads/master";
+    private static final String TO_SHA2 = "OTHER";
+    private static final String FROM_SHA = "FROMSHA";
     private static final String VERIFY_REGEX = ".*master";
 
     @Mock
@@ -56,8 +59,10 @@ public class PullRequestBuildSuccessMergeCheckTest {
     private PullRequestBuildSuccessMergeCheck prmc;
     @Mock
     private PullRequestMetadata prm;
+    @Mock
+    private PullRequestMetadata prm2;
 
-    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
     @Before
     public void setUp() throws SQLException {
@@ -68,6 +73,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(VERIFY_REGEX);
+        Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(true);
 
         Mockito.when(mr.getPullRequest()).thenReturn(pr);
 
@@ -80,6 +86,13 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(toRef.getId()).thenReturn(TO_SHA);
 
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
+        Mockito.when(cpm.getPullRequestMetadataWithoutToRef(pr)).thenReturn(ImmutableList.of(prm, prm2));
+
+        // prm and prm2 have same from sha, but different to shas.
+        Mockito.when(prm.getToSha()).thenReturn(TO_SHA);
+        Mockito.when(prm.getFromSha()).thenReturn(FROM_SHA);
+        Mockito.when(prm2.getToSha()).thenReturn(TO_SHA2);
+        Mockito.when(prm2.getFromSha()).thenReturn(FROM_SHA);
 
         prmc = new PullRequestBuildSuccessMergeCheck(cpm, lf);
     }
@@ -108,6 +121,39 @@ public class PullRequestBuildSuccessMergeCheckTest {
     public void testFailsMergeCheckTest() {
         Mockito.when(prm.getSuccess()).thenReturn(false);
         Mockito.when(prm.getOverride()).thenReturn(false);
+
+        prmc.check(mr);
+
+        Mockito.verify(mr).veto(Mockito.anyString(), Mockito.anyString());
+    }
+
+    @Test
+    public void testSuccessMergeCheckWhenPartialMatchTest() {
+        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA2); // instead of TO_SHA
+        // returns only prm2, not prm (so no success)
+        Mockito.when(cpm.getPullRequestMetadataWithoutToRef(pr)).thenReturn(ImmutableList.of(prm2));
+        Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(false);
+
+        Mockito.when(prm.getSuccess()).thenReturn(true);
+        Mockito.when(prm.getOverride()).thenReturn(false);
+        Mockito.when(prm2.getSuccess()).thenReturn(false);
+        Mockito.when(prm2.getOverride()).thenReturn(false);
+
+        prmc.check(mr);
+
+        Mockito.verify(mr, Mockito.never()).veto(Mockito.anyString(), Mockito.anyString());
+    }
+
+    @Test
+    public void testFailsMergeCheckWhenPartialMatchTest() {
+        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA2); // instead of TO_SHA
+        Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(false);
+
+        // neither exact match nor inexact match have success
+        Mockito.when(prm.getSuccess()).thenReturn(false);
+        Mockito.when(prm.getOverride()).thenReturn(false);
+        Mockito.when(prm2.getSuccess()).thenReturn(false);
+        Mockito.when(prm2.getOverride()).thenReturn(false);
 
         prmc.check(mr);
 

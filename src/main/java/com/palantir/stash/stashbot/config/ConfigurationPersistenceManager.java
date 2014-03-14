@@ -128,18 +128,18 @@ public class ConfigurationPersistenceManager {
     public void setRepositoryConfigurationForRepository(Repository repo,
         boolean isCiEnabled, String verifyBranchRegex,
         String verifyBuildCommand, String publishBranchRegex,
-        String publishBuildCommand, String prebuildCommand)
+        String publishBuildCommand, String prebuildCommand, boolean rebuildOnUpdate)
         throws SQLException, IllegalArgumentException {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, publishBranchRegex,
-            publishBuildCommand, prebuildCommand, null, null);
+            publishBuildCommand, prebuildCommand, null, rebuildOnUpdate, null);
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo,
         boolean isCiEnabled, String verifyBranchRegex,
         String verifyBuildCommand, String publishBranchRegex,
         String publishBuildCommand, String prebuildCommand,
-        String jenkinsServerName, Integer maxVerifyChain)
+        String jenkinsServerName, boolean rebuildOnUpdate, Integer maxVerifyChain)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -160,7 +160,8 @@ public class ConfigurationPersistenceManager {
                 new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
                 new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
                 new DBParam("PREBUILD_COMMAND", prebuildCommand),
-                new DBParam("JENKINS_SERVER_NAME", jenkinsServerName));
+                new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
+                new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate));
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
@@ -174,6 +175,7 @@ public class ConfigurationPersistenceManager {
         repos[0].setPublishBuildCommand(publishBuildCommand);
         repos[0].setPrebuildCommand(prebuildCommand);
         repos[0].setJenkinsServerName(jenkinsServerName);
+        repos[0].setRebuildOnTargetUpdate(rebuildOnUpdate);
         if (maxVerifyChain != null) {
             repos[0].setMaxVerifyChain(maxVerifyChain);
         }
@@ -257,6 +259,30 @@ public class ConfigurationPersistenceManager {
 
         }
         return prms[0];
+    }
+
+    public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
+        Long id = pr.getId();
+        String fromSha = pr.getFromRef().getLatestChangeset().toString();
+        String toSha = pr.getToRef().getLatestChangeset().toString();
+
+        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
+            "PULL_REQUEST_ID = ? and FROM_SHA = ?", id, fromSha);
+        if (prms.length == 0) {
+            // new/updated PR, create a new object
+            log.info("Creating PR Metadata for pull request: "
+                + pullRequestToString(pr));
+            PullRequestMetadata prm =
+                ao.create(
+                    PullRequestMetadata.class,
+                    new DBParam("PULL_REQUEST_ID", id),
+                    new DBParam("TO_SHA", toSha),
+                    new DBParam("FROM_SHA", fromSha));
+            prm.save();
+            return ImmutableList.of(prm);
+
+        }
+        return ImmutableList.copyOf(prms);
     }
 
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
