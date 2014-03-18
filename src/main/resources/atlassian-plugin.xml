@@ -88,7 +88,7 @@
     </web-section>
 
     <web-panel key="build-retrigger-panel"  name="Panel to display per-commit retrigger links" location="build-action-section" class="com.palantir.stash.stashbot.webpanel.RetriggerLinkWebPanel">
-        <label key="build-retrigger-panel-label">Retrigger</label>
+        <label key="build-retrigger-panel-label">Re-verify</label>
         <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
     </web-panel>
 

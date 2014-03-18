@@ -14,6 +14,7 @@
 package com.palantir.stash.stashbot.hooks;
 
 import java.sql.SQLException;
+import java.util.Collection;
 
 import org.slf4j.Logger;
 
@@ -90,19 +91,31 @@ public class PullRequestListener {
                 return;
             }
 
-            // Before we can get the merged sha1, we have to force it to be
-            // generated if it hasn't been generated already. these refs are
-            // generated lazily.
-            // prs.canMerge(pr.getToRef().getRepository().getId(), pr.getId());
-
-            // If we have built this combination of PR, mergeHash then we're
-            // done
             PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
-            if (prm.getBuildStarted()) {
-                log.debug("Verification build already triggered for PR "
-                    + pr.toString() + ", fromSha " + prm.getFromSha()
-                    + " toSha " + prm.getToSha());
-                return;
+            if (rc.getRebuildOnTargetUpdate()) {
+                // If we have built this combination of PR, mergeHash then we're
+                // done
+                if (prm.getBuildStarted()) {
+                    log.debug("Verification build already triggered for PR "
+                        + pr.toString() + ", fromSha " + prm.getFromSha()
+                        + " toSha " + prm.getToSha());
+                    return;
+                }
+            } else {
+                // If we are only triggering when from ref updates, not too, then we need to search for PRM based upon that data instead.  this method does that.
+                // We have to look through all "similar" PRMs to see if any are only different by toSha.
+                Collection<PullRequestMetadata> prms = cpm.getPullRequestMetadataWithoutToRef(pr);
+                for (PullRequestMetadata cur : prms) {
+                    if (!cur.getBuildStarted()) {
+                        // build not started, so don't consider this PRM
+                        continue;
+                    }
+                    if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())) {
+                        // we found a PRM for which buildstarted = true and fromSha matches, so return
+                        return;
+                    }
+                }
+                // At this point, there is no PRM where buildstarted = true and fromSha matches the current sha1
             }
 
             // At this point, we know a build hasn't been triggered yet, so

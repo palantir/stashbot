@@ -11,6 +11,7 @@
  * @param jenkinsServerName
  * @param jenkinsServersData
  * @param maxVerifyChain
+ * @param rebuildOnUpdate
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -86,6 +87,14 @@
             {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
             {param value: $maxVerifyChain /}
             {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of builds to trigger from a single reference update') /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild merge verifies when target branch updates') /}
+            {param fields: [[
+              'id': 'rebuildOnUpdate',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Rebuild merge verifies when target branch updates'),
+              'isChecked': $rebuildOnUpdate
+              ]] /}
           {/call}
           {call aui.form.buttons}
             {param content}

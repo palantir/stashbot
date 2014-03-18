@@ -14,6 +14,7 @@
 package com.palantir.stash.stashbot.hooks;
 
 import java.sql.SQLException;
+import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
@@ -67,14 +68,31 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             return;
         }
 
-        PullRequestMetadata prm = cpm.getPullRequestMetadata(pr);
+        PullRequestMetadata prm = null;
+        if (!rc.getRebuildOnTargetUpdate()) {
+            // we want a PRM which simply matches the fromSha and the pull request ID.
+            Collection<PullRequestMetadata> prms = cpm.getPullRequestMetadataWithoutToRef(pr);
+            for (PullRequestMetadata cur : prms) {
+                if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())) {
+                    log.debug("Found partial match PRM");
+                    prm = cur;
+                    break;
+                }
+            }
+            if (prm == null) {
+                // This will create an exact matching row.
+                prm = cpm.getPullRequestMetadata(pr);
+            }
+        } else {
+            // Then we want to ensure a build that matches exactly succeeded / was overridden
+            prm = cpm.getPullRequestMetadata(pr);
+        }
+
         log.debug("PRM: success " + prm.getSuccess().toString() + " override "
             + prm.getOverride().toString());
-
         if (prm.getOverride() || prm.getSuccess()) {
             return;
         }
-
         mr.veto(
             "Green build required to merge",
             "Either retrigger the build so it succeeds, or add a comment with the string '==OVERRIDE==' to override the requirement");

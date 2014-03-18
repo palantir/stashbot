@@ -28,6 +28,7 @@ import com.atlassian.stash.event.pull.PullRequestUpdatedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
+import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -72,6 +73,8 @@ public class PullRequestListenerTest {
     private Comment comment;
     @Mock
     private PullRequestMetadata prm;
+    @Mock
+    private PullRequestMetadata prm2;
 
     private static final String COMMENT_TEXT = "comment text";
     private static final String OVERRIDE_COMMENT_TEXT = "Comment added with ==OVERRIDE==";
@@ -104,6 +107,12 @@ public class PullRequestListenerTest {
         Mockito.when(prm.getSuccess()).thenReturn(false);
         Mockito.when(prm.getOverride()).thenReturn(false);
         Mockito.when(prm.getBuildStarted()).thenReturn(false);
+        Mockito.when(prm2.getPullRequestId()).thenReturn(PULL_REQUEST_ID);
+        Mockito.when(prm2.getToSha()).thenReturn(MERGE_HEAD);
+        Mockito.when(prm2.getFromSha()).thenReturn(HEAD);
+        Mockito.when(prm2.getSuccess()).thenReturn(false);
+        Mockito.when(prm2.getOverride()).thenReturn(false);
+        Mockito.when(prm2.getBuildStarted()).thenReturn(false);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
         Mockito.when(proEvent.getPullRequest()).thenReturn(pr);
@@ -115,6 +124,7 @@ public class PullRequestListenerTest {
             .thenReturn(rc);
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(".*master.*");
+        Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(true);
 
         prl = new PullRequestListener(cpm, jenkinsManager, lf);
 
@@ -196,4 +206,21 @@ public class PullRequestListenerTest {
         Mockito.verify(jenkinsManager)
             .triggerBuild(repo, JobType.VERIFY_PR, pr);
     }
+
+    @Test
+    public void testDOESNOTTriggerBuildOnPullRequestTargetUpdateWithUpdateDisabled() {
+        Mockito.when(prm.getBuildStarted()).thenReturn(true);
+        Mockito.when(prm2.getBuildStarted()).thenReturn(true);
+        Mockito.when(prm2.getToSha()).thenReturn("different value");
+        Mockito.when(toRef.getLatestChangeset()).thenReturn("different value");
+        Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
+        Mockito.when(cpm.getPullRequestMetadataWithoutToRef(pr)).thenReturn(ImmutableList.of(prm, prm2));
+        Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(false);
+
+        prl.listen(prUpdatedEvent);
+        // ensure build is NOT triggered
+        Mockito.verify(jenkinsManager, Mockito.never())
+            .triggerBuild(repo, JobType.VERIFY_PR, pr);
+    }
+
 }

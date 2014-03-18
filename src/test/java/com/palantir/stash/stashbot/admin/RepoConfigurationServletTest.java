@@ -94,8 +94,9 @@ public class RepoConfigurationServletTest {
     private static final String VBC = "verifyBranchCommandString";
     private static final String PREBC = "prebuildCommandString";
     private static final String JSN = "default";
+    private static final boolean RB = true;
 
-    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
     @SuppressWarnings("deprecation")
     @Before
@@ -116,12 +117,14 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getVerifyBuildCommand()).thenReturn(VBC);
         Mockito.when(rc.getPrebuildCommand()).thenReturn(PREBC);
         Mockito.when(rc.getJenkinsServerName()).thenReturn(JSN);
+        Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(RB);
         Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
         Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
         Mockito.when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
         Mockito.when(rc2.getVerifyBuildCommand()).thenReturn(VBC + "2");
         Mockito.when(rc2.getPrebuildCommand()).thenReturn(PREBC + "2");
         Mockito.when(rc2.getJenkinsServerName()).thenReturn(JSN + "2");
+        Mockito.when(rc2.getRebuildOnTargetUpdate()).thenReturn(RB);
 
         Mockito.when(jsc.getName()).thenReturn(JSN);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
@@ -162,7 +165,7 @@ public class RepoConfigurationServletTest {
         Mockito.verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        Class<Map<String, Object>> cls = (Class<Map<String, Object>>) (Class) Map.class;
+        Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 
         Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
@@ -191,6 +194,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(req.getParameter("verifyBranchRegex")).thenReturn(VBR + "2");
         Mockito.when(req.getParameter("verifyBuildCommand")).thenReturn(VBC + "2");
         Mockito.when(req.getParameter("prebuildCommand")).thenReturn(PREBC + "2");
+        Mockito.when(req.getParameter("rebuildOnUpdate")).thenReturn("checked");
         Mockito.when(req.getParameter("jenkinsServerName")).thenReturn("default");
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
@@ -199,14 +203,14 @@ public class RepoConfigurationServletTest {
 
         // Verify it persists
         Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", PBR + "2",
-            PBC + "2", PREBC + "2", "default", null);
+            PBC + "2", PREBC + "2", "default", RB, null);
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
         Mockito.verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        Class<Map<String, Object>> cls = (Class<Map<String, Object>>) (Class) Map.class;
+        Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 
         Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
