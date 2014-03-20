@@ -237,29 +237,30 @@ public class ConfigurationPersistenceManager {
     }
 
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
-        Long id = pr.getId();
-        String fromSha = pr.getFromRef().getLatestChangeset().toString();
-        String toSha = pr.getToRef().getLatestChangeset().toString();
-
-        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id,
-            toSha, fromSha);
-        if (prms.length == 0) {
-            // new/updated PR, create a new object
-            log.info("Creating PR Metadata for pull request: "
-                + pullRequestToString(pr));
-            PullRequestMetadata prm =
-                ao.create(
-                    PullRequestMetadata.class,
-                    new DBParam("PULL_REQUEST_ID", id),
-                    new DBParam("TO_SHA", toSha),
-                    new DBParam("FROM_SHA", fromSha));
-            prm.save();
-            return prm;
-
-        }
-        return prms[0];
+        return getPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset().toString(), 
+              pr.getToRef().getLatestChangeset().toString());
     }
+    
+    public PullRequestMetadata getPullRequestMetadata(Long id, String fromSha, String toSha) {
+       PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
+           "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id,
+           toSha, fromSha);
+       if (prms.length == 0) {
+           // new/updated PR, create a new object
+           log.info("Creating PR Metadata for pull request: "
+               + "id: " + id + ", fromSha: " + fromSha + ", toSha: " + toSha);
+           PullRequestMetadata prm =
+               ao.create(
+                   PullRequestMetadata.class,
+                   new DBParam("PULL_REQUEST_ID", id),
+                   new DBParam("TO_SHA", toSha),
+                   new DBParam("FROM_SHA", fromSha));
+           prm.save();
+           return prm;
+
+       }
+       return prms[0];
+   }
 
     public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
         Long id = pr.getId();
@@ -286,8 +287,14 @@ public class ConfigurationPersistenceManager {
     }
 
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
+          Boolean success, Boolean override) {
+          setPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset(), 
+                pr.getToRef().getLatestChangeset(), buildStarted, success, override);
+      }
+    
+    public void setPullRequestMetadata(Long prId, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
-        PullRequestMetadata prm = getPullRequestMetadata(pr);
+        PullRequestMetadata prm = getPullRequestMetadata(prId, fromHash, toHash);
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }

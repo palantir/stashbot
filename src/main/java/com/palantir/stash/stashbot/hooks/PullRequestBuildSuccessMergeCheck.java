@@ -73,23 +73,20 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             // we want a PRM which simply matches the fromSha and the pull request ID.
             Collection<PullRequestMetadata> prms = cpm.getPullRequestMetadataWithoutToRef(pr);
             for (PullRequestMetadata cur : prms) {
-                if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())) {
-                    log.debug("Found partial match PRM");
-                    prm = cur;
-                    break;
+                if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())
+                      && (cur.getOverride() || cur.getSuccess())) {
+                    log.debug("Found match PRM");
+                    log.debug("PRM: success " + prm.getSuccess().toString() + " override "
+                          + prm.getOverride().toString());
+                    return;
                 }
             }
-            if (prm == null) {
-                // This will create an exact matching row.
-                prm = cpm.getPullRequestMetadata(pr);
-            }
+            prm = cpm.getPullRequestMetadata(pr);
         } else {
             // Then we want to ensure a build that matches exactly succeeded / was overridden
             prm = cpm.getPullRequestMetadata(pr);
         }
 
-        log.debug("PRM: success " + prm.getSuccess().toString() + " override "
-            + prm.getOverride().toString());
         if (prm.getOverride() || prm.getSuccess()) {
             return;
         }
