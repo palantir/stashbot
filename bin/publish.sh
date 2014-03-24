@@ -4,9 +4,9 @@ set -e
 
 ./bin/invoke-sdk.sh clean test package
 
-creds=$HOME/.artifactory-credentials
+creds=$HOME/.gradle/gradle.properties
 
-version=`git describe --abbrev=12`
+version=`git describe --abbrev=12 | sed -e 's/-/./g'`
 # TODO: if contains -gXXXX, publish snapshot?
 
 if [ "$version" == "" ]; then
@@ -14,24 +14,23 @@ if [ "$version" == "" ]; then
   exit 3
 fi
 
-deploy_path=ivy-libs-release/com.palantir.stash/stashbot/$version/
+deploy_path=com.palantir.stash/stashbot/$version
 
 if [ ! -f "$creds" ]; then
   echo "Error: missing credentials file: $creds"
   exit 1
 fi
 
-host=`grep "^host="     "$creds" | sed 's/^host=//' | sed 's/.pg-bd//'`
-user=`grep "^user="     "$creds" | sed 's/^user=//'`
-pass=`grep "^password=" "$creds" | sed 's/^password=//'`
+pub_url=`grep "^palantirPublish.releaseUrl=" "$creds" | sed 's/^palantirPublish.releaseUrl=//' | sed 's/.pg-bd//'`
+user=`grep "^palantirPublish.username=" "$creds" | sed 's/^palantirPublish.username=//'`
+pass=`grep "^palantirPublish.password=" "$creds" | sed 's/^palantirPublish.password=//'`
 
-if [ "$host" == "" -o "$user" == "" -o "$pass" == "" ]; then
+if [ "$pub_url" == "" -o "$user" == "" -o "$pass" == "" ]; then
   echo "Error: could not parse credentials file: $creds"
   exit 2
 fi
 
-
-file="stashbot-$version.jar"
+file=`ls target/stashbot-*.jar | sed -e 's/target\///'`
 
 if [ ! -f "target/$file" ]; then
   echo "Artifact not found: $file"
@@ -46,5 +45,5 @@ curl -XPUT -L                    \
      -H "X-Checksum-Md5: $md5"   \
      -u "$user:$pass"            \
       --data-binary @"target/${file}"   \
-     "https://${host}/artifactory/${deploy_path}/${file}"
+     "${pub_url}/${deploy_path}/stashbot-${version}.jar"
 
