@@ -1,5 +1,7 @@
 package com.palantir.stash.stashbot.urlbuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 
 import com.atlassian.stash.nav.NavBuilder;
@@ -45,7 +47,7 @@ public class StashbotUrlBuilder {
                 + jobType.toString() + "/" + status
                 + "/$BUILD_NUMBER/$buildHead/$mergeHead/$pullRequestId");
         url = url.replace("://",
-            "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+            "://" + mask(jsc.getStashUsername()) + ":" + mask(jsc.getStashPassword())
                 + "@");
         return url;
     }
@@ -53,8 +55,16 @@ public class StashbotUrlBuilder {
     public String buildCloneUrl(Repository repo, JenkinsServerConfiguration jsc) {
         String url = nb.repo(repo).clone("git").buildAbsoluteWithoutUsername();
         url = url.replace("://",
-            "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+            "://" + mask(jsc.getStashUsername()) + ":" + mask(jsc.getStashPassword())
                 + "@");
         return url;
+    }
+
+    private String mask( String str ) {
+        try {
+            return URLEncoder.encode( str, "UTF-8" );
+        } catch( UnsupportedEncodingException e ) {
+            return str;
+        }
     }
 }
