@@ -32,6 +32,7 @@ import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.ssh.api.SshCloneUrlResolver;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.atlassian.stash.util.PageRequestImpl;
@@ -63,10 +64,12 @@ public class JenkinsManager {
     private final StashbotUrlBuilder sub;
     private final Logger log;
     private final StashbotLoggerFactory lf;
+    private final SshCloneUrlResolver sshCloneUrlResolver;
 
     public JenkinsManager(RepositoryService repositoryService, RepositoryHookService rhs,
         ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
-        JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, StashbotLoggerFactory lf) {
+        JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, StashbotLoggerFactory lf,
+        SshCloneUrlResolver sshCloneUrlResolver) {
         this.repositoryService = repositoryService;
         this.rhs = rhs;
         this.cpm = cpm;
@@ -76,6 +79,7 @@ public class JenkinsManager {
         this.sub = sub;
         this.lf = lf;
         this.log = lf.getLoggerForThis(this);
+        this.sshCloneUrlResolver = sshCloneUrlResolver;
     }
 
     public void updateRepo(Repository repo) {
@@ -261,7 +265,12 @@ public class JenkinsManager {
                     .getLatestChangeset().toString());
                 // fromRef may be in a different repo
                 builder.put("mergeRef", pullRequest.getFromRef().getDisplayId());
-                builder.put("mergeRefUrl", sub.buildCloneUrl(repo, jsc));
+                if( rc.getUseSsh().booleanValue() ) {
+                    builder.put("mergeRefUrl", sshCloneUrlResolver.getCloneUrl(repo));
+                }
+                else {
+                    builder.put("mergeRefUrl", sub.buildCloneUrl(repo, jsc));
+                }
                 builder.put("mergeHead", pullRequest.getFromRef()
                     .getLatestChangeset().toString());
             }
