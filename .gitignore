@@ -9,3 +9,5 @@
 target/*
 *.log
 %PRODUCT_HOME_DIR%
+.sdk/
+.sdk.tar.gz
