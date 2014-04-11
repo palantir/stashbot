@@ -118,6 +118,10 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getPrebuildCommand()).thenReturn(PREBC);
         Mockito.when(rc.getJenkinsServerName()).thenReturn(JSN);
         Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(RB);
+        Mockito.when(rc.getVerifyPinned()).thenReturn(false);
+        Mockito.when(rc.getVerifyLabel()).thenReturn("N/A");
+        Mockito.when(rc.getPublishPinned()).thenReturn(false);
+        Mockito.when(rc.getPublishLabel()).thenReturn("N/A");
         Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
         Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
         Mockito.when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
@@ -125,6 +129,10 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc2.getPrebuildCommand()).thenReturn(PREBC + "2");
         Mockito.when(rc2.getJenkinsServerName()).thenReturn(JSN + "2");
         Mockito.when(rc2.getRebuildOnTargetUpdate()).thenReturn(RB);
+        Mockito.when(rc2.getVerifyPinned()).thenReturn(false);
+        Mockito.when(rc2.getVerifyLabel()).thenReturn("N/A");
+        Mockito.when(rc2.getPublishPinned()).thenReturn(false);
+        Mockito.when(rc2.getPublishLabel()).thenReturn("N/A");
 
         Mockito.when(jsc.getName()).thenReturn(JSN);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
@@ -196,14 +204,18 @@ public class RepoConfigurationServletTest {
         Mockito.when(req.getParameter("prebuildCommand")).thenReturn(PREBC + "2");
         Mockito.when(req.getParameter("rebuildOnUpdate")).thenReturn("checked");
         Mockito.when(req.getParameter("jenkinsServerName")).thenReturn("default");
+        Mockito.when(req.getParameter("isVerifyPinned")).thenReturn(null);
+        Mockito.when(req.getParameter("isPublishPinned")).thenReturn(null);
+        Mockito.when(req.getParameter("verifyLabel")).thenReturn("N/A");
+        Mockito.when(req.getParameter("publishLabel")).thenReturn("N/A");
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
 
         rcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", PBR + "2",
-            PBC + "2", PREBC + "2", "default", RB, null);
+        Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", false,
+            "N/A", PBR + "2", PBC + "2", false, "N/A", PREBC + "2", "default", RB, null);
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");

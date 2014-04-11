@@ -72,6 +72,31 @@ public interface RepositoryConfiguration extends Entity {
 
     public void setJenkinsServerName(String jenkinsServerName);
 
+    // Labels
+    @NotNull
+    @Default("false")
+    public Boolean getVerifyPinned();
+
+    public void setVerifyPinned(Boolean isPinned);
+
+    @NotNull
+    @Default("N/A")
+    public String getVerifyLabel();
+
+    public void setVerifyLabel(String label);
+
+    @NotNull
+    @Default("false")
+    public Boolean getPublishPinned();
+
+    public void setPublishPinned(Boolean isPinned);
+
+    @NotNull
+    @Default("N/A")
+    public String getPublishLabel();
+
+    public void setPublishLabel(String label);
+
     /**
      * Maximum number of verify builds to trigger when pushed all at once. This limit makes it so that if you push a
      * chain of 100 new commits all at once, instead of saturating your build hardware, only the N most recent commits

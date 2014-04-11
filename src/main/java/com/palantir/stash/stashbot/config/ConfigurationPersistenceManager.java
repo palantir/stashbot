@@ -131,14 +131,15 @@ public class ConfigurationPersistenceManager {
         String publishBuildCommand, String prebuildCommand, boolean rebuildOnUpdate)
         throws SQLException, IllegalArgumentException {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
-            verifyBranchRegex, verifyBuildCommand, publishBranchRegex,
-            publishBuildCommand, prebuildCommand, null, rebuildOnUpdate, null);
+            verifyBranchRegex, verifyBuildCommand, false,
+            "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate, null);
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo,
         boolean isCiEnabled, String verifyBranchRegex,
-        String verifyBuildCommand, String publishBranchRegex,
-        String publishBuildCommand, String prebuildCommand,
+        String verifyBuildCommand, boolean isVerifyPinned,
+        String verifyLabel, String publishBranchRegex,
+        String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
         String jenkinsServerName, boolean rebuildOnUpdate, Integer maxVerifyChain)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
@@ -157,8 +158,12 @@ public class ConfigurationPersistenceManager {
                     "CI_ENABLED", isCiEnabled), new DBParam(
                     "VERIFY_BRANCH_REGEX", verifyBranchRegex),
                 new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
+                new DBParam("VERIFY_PINNED", isVerifyPinned),
+                new DBParam("VERIFY_LABEL", verifyLabel),
                 new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
                 new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
+                new DBParam("PUBLISH_PINNED", isPublishPinned),
+                new DBParam("PUBLISH_LABEL", publishLabel),
                 new DBParam("PREBUILD_COMMAND", prebuildCommand),
                 new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
                 new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate));
@@ -171,8 +176,12 @@ public class ConfigurationPersistenceManager {
         repos[0].setCiEnabled(isCiEnabled);
         repos[0].setVerifyBranchRegex(verifyBranchRegex);
         repos[0].setVerifyBuildCommand(verifyBuildCommand);
+        repos[0].setVerifyPinned(isVerifyPinned);
+        repos[0].setVerifyLabel(verifyLabel);
         repos[0].setPublishBranchRegex(publishBranchRegex);
         repos[0].setPublishBuildCommand(publishBuildCommand);
+        repos[0].setPublishPinned(isPublishPinned);
+        repos[0].setPublishLabel(publishLabel);
         repos[0].setPrebuildCommand(prebuildCommand);
         repos[0].setJenkinsServerName(jenkinsServerName);
         repos[0].setRebuildOnTargetUpdate(rebuildOnUpdate);
@@ -237,30 +246,30 @@ public class ConfigurationPersistenceManager {
     }
 
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
-        return getPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset().toString(), 
-              pr.getToRef().getLatestChangeset().toString());
+        return getPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset().toString(),
+            pr.getToRef().getLatestChangeset().toString());
     }
-    
-    public PullRequestMetadata getPullRequestMetadata(Long id, String fromSha, String toSha) {
-       PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-           "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id,
-           toSha, fromSha);
-       if (prms.length == 0) {
-           // new/updated PR, create a new object
-           log.info("Creating PR Metadata for pull request: "
-               + "id: " + id + ", fromSha: " + fromSha + ", toSha: " + toSha);
-           PullRequestMetadata prm =
-               ao.create(
-                   PullRequestMetadata.class,
-                   new DBParam("PULL_REQUEST_ID", id),
-                   new DBParam("TO_SHA", toSha),
-                   new DBParam("FROM_SHA", fromSha));
-           prm.save();
-           return prm;
 
-       }
-       return prms[0];
-   }
+    public PullRequestMetadata getPullRequestMetadata(Long id, String fromSha, String toSha) {
+        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
+            "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id,
+            toSha, fromSha);
+        if (prms.length == 0) {
+            // new/updated PR, create a new object
+            log.info("Creating PR Metadata for pull request: "
+                + "id: " + id + ", fromSha: " + fromSha + ", toSha: " + toSha);
+            PullRequestMetadata prm =
+                ao.create(
+                    PullRequestMetadata.class,
+                    new DBParam("PULL_REQUEST_ID", id),
+                    new DBParam("TO_SHA", toSha),
+                    new DBParam("FROM_SHA", fromSha));
+            prm.save();
+            return prm;
+
+        }
+        return prms[0];
+    }
 
     public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
         Long id = pr.getId();
@@ -287,11 +296,11 @@ public class ConfigurationPersistenceManager {
     }
 
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
-          Boolean success, Boolean override) {
-          setPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset(), 
-                pr.getToRef().getLatestChangeset(), buildStarted, success, override);
-      }
-    
+        Boolean success, Boolean override) {
+        setPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset(),
+            pr.getToRef().getLatestChangeset(), buildStarted, success, override);
+    }
+
     public void setPullRequestMetadata(Long prId, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
         PullRequestMetadata prm = getPullRequestMetadata(prId, fromHash, toHash);
