@@ -130,6 +130,8 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("verifyLabel", rc.getVerifyLabel())
                     .put("isPublishPinned", rc.getPublishPinned())
                     .put("publishLabel", rc.getPublishLabel())
+                    .put("isJunit", rc.getJunitEnabled())
+                    .put("junitPath", rc.getJunitPath())
                     .put("jenkinsServersData", jenkinsServersData)
                     .build()
                 );
@@ -175,6 +177,8 @@ public class RepoConfigurationServlet extends HttpServlet {
         String prebuildCommand = req.getParameter("prebuildCommand");
         String jenkinsServerName = req.getParameter("jenkinsServerName");
         String maxVerifyChainStr = req.getParameter("maxVerifyChain");
+        Boolean junitEnabled = (req.getParameter("isJunit") == null) ? false : true;
+        String junitPath = req.getParameter("junitPath");
         Boolean rebuildOnUpdate = (req.getParameter("rebuildOnUpdate") == null) ? false : true;
 
         Integer maxVerifyChain = null;
@@ -185,7 +189,8 @@ public class RepoConfigurationServlet extends HttpServlet {
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
                 verifyBuildCommand, isVerifyPinned, verifyLabel, publishBranchRegex, publishBuildCommand,
-                isPublishPinned, publishLabel, prebuildCommand, jenkinsServerName, rebuildOnUpdate, maxVerifyChain);
+                isPublishPinned, publishLabel, prebuildCommand, jenkinsServerName, rebuildOnUpdate, junitEnabled,
+                junitPath, maxVerifyChain);
             // add permission to the requisite user
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);

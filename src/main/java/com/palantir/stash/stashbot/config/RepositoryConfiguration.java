@@ -97,6 +97,18 @@ public interface RepositoryConfiguration extends Entity {
 
     public void setPublishLabel(String label);
 
+    @NotNull
+    @Default("false")
+    public Boolean getJunitEnabled();
+
+    public void setJunitEnabled(Boolean enabled);
+
+    @NotNull
+    @Default("N/A")
+    public String getJunitPath();
+
+    public void setJunitPath(String path);
+
     /**
      * Maximum number of verify builds to trigger when pushed all at once. This limit makes it so that if you push a
      * chain of 100 new commits all at once, instead of saturating your build hardware, only the N most recent commits

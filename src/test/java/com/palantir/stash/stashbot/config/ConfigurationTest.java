@@ -169,7 +169,7 @@ public class ConfigurationTest {
         cpm.setRepositoryConfigurationForRepository(repo, true,
             "verifyBranchRegex", "verifyBuildCommand",
             false, "N/A", "publishBranchRegex",
-            "publishBuildCommand", false, "N/A", "prebuildCommand", "default", true, null);
+            "publishBuildCommand", false, "N/A", "prebuildCommand", "default", true, false, "N/A", null);
 
         RepositoryConfiguration rc = cpm
             .getRepositoryConfigurationForRepository(repo);
@@ -195,7 +195,8 @@ public class ConfigurationTest {
             cpm.setRepositoryConfigurationForRepository(repo, true,
                 "verifyBranchRegex", "verifyBuildCommand",
                 false, "N/A",
-                "publishBranchRegex", "publishBuildCommand", false, "N/A", "prebuildCommand", "BADNAME", true, null);
+                "publishBranchRegex", "publishBuildCommand", false, "N/A", "prebuildCommand", "BADNAME", true, false,
+                "N/A", null);
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success
