@@ -165,6 +165,21 @@ public class JenkinsJobXmlFormatter {
         }
         vc.put("paramaterList", paramBuilder.build());
 
+        // insert pinned data
+        switch (jobTemplate.getJobType()) {
+        case VERIFY_COMMIT:
+        case VERIFY_PR:
+            vc.put("isPinned", rc.getVerifyPinned());
+            vc.put("label", rc.getVerifyLabel());
+            break;
+        case PUBLISH:
+            vc.put("isPinned", rc.getPublishPinned());
+            vc.put("label", rc.getPublishLabel());
+            break;
+        case NOOP:
+            vc.put("isPinned", false);
+            break;
+        }
         StringWriter xml = new StringWriter();
 
         VelocityEngine ve = velocityManager.getVelocityEngine();

@@ -90,7 +90,12 @@
     <includedRegions></includedRegions>
     <scmName></scmName>
   </scm>
+#if ( $isPinned )
+  <assignedNode>$label</assignedNode>
+  <canRoam>false</canRoam>
+#else
   <canRoam>true</canRoam>
+#end
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>

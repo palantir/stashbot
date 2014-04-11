@@ -10,6 +10,8 @@
   buildCommand
   successCommand
   failedCommand
+  isPinned
+  label
 
   esc - escape tool - required
   @author cmyers
@@ -69,7 +71,12 @@
     <includedRegions></includedRegions>
     <scmName></scmName>
   </scm>
+#if ( $isPinned )
+  <assignedNode>$label</assignedNode>
+  <canRoam>false</canRoam>
+#else
   <canRoam>true</canRoam>
+#end
   <disabled>false</disabled>
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>

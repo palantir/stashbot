@@ -126,6 +126,10 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("jenkinsServerName", rc.getJenkinsServerName())
                     .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
                     .put("rebuildOnUpdate", rc.getRebuildOnTargetUpdate())
+                    .put("isVerifyPinned", rc.getVerifyPinned())
+                    .put("verifyLabel", rc.getVerifyLabel())
+                    .put("isPublishPinned", rc.getPublishPinned())
+                    .put("publishLabel", rc.getPublishLabel())
                     .put("jenkinsServersData", jenkinsServersData)
                     .build()
                 );
@@ -162,8 +166,12 @@ public class RepoConfigurationServlet extends HttpServlet {
         Boolean ciEnabled = (req.getParameter("ciEnabled") == null) ? false : true;
         String publishBranchRegex = req.getParameter("publishBranchRegex");
         String publishBuildCommand = req.getParameter("publishBuildCommand");
+        Boolean isPublishPinned = (req.getParameter("isPublishPinned") == null) ? false : true;
+        String publishLabel = req.getParameter("publishLabel");
         String verifyBranchRegex = req.getParameter("verifyBranchRegex");
         String verifyBuildCommand = req.getParameter("verifyBuildCommand");
+        Boolean isVerifyPinned = (req.getParameter("isVerifyPinned") == null) ? false : true;
+        String verifyLabel = req.getParameter("verifyLabel");
         String prebuildCommand = req.getParameter("prebuildCommand");
         String jenkinsServerName = req.getParameter("jenkinsServerName");
         String maxVerifyChainStr = req.getParameter("maxVerifyChain");
@@ -176,8 +184,8 @@ public class RepoConfigurationServlet extends HttpServlet {
 
         try {
             configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
-                verifyBuildCommand, publishBranchRegex, publishBuildCommand, prebuildCommand, jenkinsServerName,
-                rebuildOnUpdate, maxVerifyChain);
+                verifyBuildCommand, isVerifyPinned, verifyLabel, publishBranchRegex, publishBuildCommand,
+                isPublishPinned, publishLabel, prebuildCommand, jenkinsServerName, rebuildOnUpdate, maxVerifyChain);
             // add permission to the requisite user
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);

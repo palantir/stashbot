@@ -5,8 +5,12 @@
  * @param ciEnabled
  * @param publishBranchRegex
  * @param publishBuildCommand
+ * @param isPublishPinned
+ * @param publishLabel
  * @param verifyBranchRegex
  * @param verifyBuildCommand
+ * @param isVerifyPinned
+ * @param verifyLabel
  * @param prebuildCommand
  * @param jenkinsServerName
  * @param jenkinsServersData
@@ -70,6 +74,22 @@
             {param value: $publishBuildCommand /}
             {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'Command to run for a publish build') /}
           {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.publish-pinned-checkbox.button.description', 'Pin publish builds to a label') /}
+            {param fields: [[
+              'id': 'isPublishPinned',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Pinned'),
+              'isChecked': $isPublishPinned
+              ]] /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'publishLabel' /}
+            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Label to pin publish builds to') /}
+            {param value: $publishLabel /}
+            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Build node label to pin publish builds to') /}
+          {/call}
+
           {call aui.form.textField}
             {param id: 'verifyBranchRegex' /}
             {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex for branches to verify') /}
@@ -82,6 +102,22 @@
             {param value: $verifyBuildCommand /}
             {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'Command to run for a verify build') /}
           {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.verify-pinned-checkbox.button.description', 'Pin verify builds to a label') /}
+            {param fields: [[
+              'id': 'isVerifyPinned',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Pinned'),
+              'isChecked': $isVerifyPinned
+              ]] /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'verifyLabel' /}
+            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Label to pin verify builds to') /}
+            {param value: $verifyLabel /}
+            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Build node label to pin verify builds to') /}
+          {/call}
+
           {call aui.form.textField}
             {param id: 'maxVerifyChain' /}
             {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
@@ -122,6 +158,10 @@ Examples:
 <h3>Verify Versus Publish:</h3>
 <p>
 When a new change is added to a reference which matches both publish and verify regular expressions, the publish build is triggered first.  A verify build is never done on a sha1 which has already triggered a publish build.  Also, publish builds are always only triggered on the most recent change to a ref, so if a chain of commits are pushed, only the latest is published (though depending on other settings, multiple verify builds could be triggered, see next section).
+</p>
+<h3>Build Pinning</h3>
+<p>
+If your jenkins instance has applied labels to build nodes, you can have verifiy or publish builds pinned to a specific build node label by checking these checkboxes, and entering the desired label.
 </p>
 <h3>Max Verify Chain:</h3>
 <p>
