@@ -165,6 +165,10 @@ public class JenkinsJobXmlFormatter {
         }
         vc.put("paramaterList", paramBuilder.build());
 
+        // Junit settings
+        vc.put("isJunit", rc.getJunitEnabled());
+        vc.put("junitPath", rc.getJunitPath());
+
         // insert pinned data
         switch (jobTemplate.getJobType()) {
         case VERIFY_COMMIT:

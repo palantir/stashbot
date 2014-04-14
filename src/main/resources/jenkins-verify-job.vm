@@ -10,6 +10,8 @@
   buildCommand
   successCommand
   failedCommand
+  isJunit
+  junitPath
 
   esc - escape tool - required
   @author cmyers
@@ -122,6 +124,13 @@
         </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>
+#if ($isJunit)
+    <hudson.tasks.junit.JUnitResultArchiver>
+      <testResults>$junitPath</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <testDataPublishers/>
+    </hudson.tasks.junit.JUnitResultArchiver>
+#end
   </publishers>
   <buildWrappers/>
 </project>

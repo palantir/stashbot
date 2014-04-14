@@ -14,6 +14,8 @@
  * @param prebuildCommand
  * @param jenkinsServerName
  * @param jenkinsServersData
+ * @param isJunit
+ * @param junitPath
  * @param maxVerifyChain
  * @param rebuildOnUpdate
  **/
@@ -116,6 +118,21 @@
             {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Label to pin verify builds to') /}
             {param value: $verifyLabel /}
             {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Build node label to pin verify builds to') /}
+          {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.junit-enabled.button.description', 'Enable Junit Test Results') /}
+            {param fields: [[
+              'id': 'isJunit',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isJunit
+              ]] /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'junitPath' /}
+            {param labelContent: stash_i18n('stash.web.stash.junitPath.label', 'e.g. build/test-results/*.xml') /}
+            {param value: $junitPath /}
+            {param descriptionText: stash_i18n('stash.web.stash.junitPath.description', 'Path to use for junit results') /}
           {/call}
 
           {call aui.form.textField}
