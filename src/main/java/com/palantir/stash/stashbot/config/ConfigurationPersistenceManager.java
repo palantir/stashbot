@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import net.java.ao.DBParam;
 import net.java.ao.Query;
 
@@ -134,6 +136,35 @@ public class ConfigurationPersistenceManager {
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
             false, "N/A", null);
+    }
+
+    public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
+        throws SQLException, NumberFormatException {
+
+        Boolean ciEnabled = (req.getParameter("ciEnabled") == null) ? false : true;
+        String publishBranchRegex = req.getParameter("publishBranchRegex");
+        String publishBuildCommand = req.getParameter("publishBuildCommand");
+        Boolean isPublishPinned = (req.getParameter("isPublishPinned") == null) ? false : true;
+        String publishLabel = req.getParameter("publishLabel");
+        String verifyBranchRegex = req.getParameter("verifyBranchRegex");
+        String verifyBuildCommand = req.getParameter("verifyBuildCommand");
+        Boolean isVerifyPinned = (req.getParameter("isVerifyPinned") == null) ? false : true;
+        String verifyLabel = req.getParameter("verifyLabel");
+        String prebuildCommand = req.getParameter("prebuildCommand");
+        String jenkinsServerName = req.getParameter("jenkinsServerName");
+        String maxVerifyChainStr = req.getParameter("maxVerifyChain");
+        Integer maxVerifyChain = null;
+        if (maxVerifyChainStr != null && !maxVerifyChainStr.isEmpty()) {
+            maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
+        }
+
+        Boolean junitEnabled = (req.getParameter("isJunit") == null) ? false : true;
+        String junitPath = req.getParameter("junitPath");
+        Boolean rebuildOnUpdate = (req.getParameter("rebuildOnUpdate") == null) ? false : true;
+
+        setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
+            verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
+            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain);
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo,

@@ -165,32 +165,11 @@ public class RepoConfigurationServlet extends HttpServlet {
             return;
         }
 
-        Boolean ciEnabled = (req.getParameter("ciEnabled") == null) ? false : true;
-        String publishBranchRegex = req.getParameter("publishBranchRegex");
-        String publishBuildCommand = req.getParameter("publishBuildCommand");
-        Boolean isPublishPinned = (req.getParameter("isPublishPinned") == null) ? false : true;
-        String publishLabel = req.getParameter("publishLabel");
-        String verifyBranchRegex = req.getParameter("verifyBranchRegex");
-        String verifyBuildCommand = req.getParameter("verifyBuildCommand");
-        Boolean isVerifyPinned = (req.getParameter("isVerifyPinned") == null) ? false : true;
-        String verifyLabel = req.getParameter("verifyLabel");
-        String prebuildCommand = req.getParameter("prebuildCommand");
-        String jenkinsServerName = req.getParameter("jenkinsServerName");
-        String maxVerifyChainStr = req.getParameter("maxVerifyChain");
-        Boolean junitEnabled = (req.getParameter("isJunit") == null) ? false : true;
-        String junitPath = req.getParameter("junitPath");
-        Boolean rebuildOnUpdate = (req.getParameter("rebuildOnUpdate") == null) ? false : true;
-
-        Integer maxVerifyChain = null;
-        if (maxVerifyChainStr != null && !maxVerifyChainStr.isEmpty()) {
-            maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
-        }
-
         try {
-            configurationPersistanceManager.setRepositoryConfigurationForRepository(rep, ciEnabled, verifyBranchRegex,
-                verifyBuildCommand, isVerifyPinned, verifyLabel, publishBranchRegex, publishBuildCommand,
-                isPublishPinned, publishLabel, prebuildCommand, jenkinsServerName, rebuildOnUpdate, junitEnabled,
-                junitPath, maxVerifyChain);
+            String jenkinsServerName = req.getParameter("jenkinsServerName");
+
+            configurationPersistanceManager.setRepositoryConfigurationForRepositoryFromRequest(rep, req);
+
             // add permission to the requisite user
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
