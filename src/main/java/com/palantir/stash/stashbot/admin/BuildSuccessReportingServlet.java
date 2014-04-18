@@ -184,6 +184,9 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             final StringBuffer sb = new StringBuffer();
             final String url = getJenkinsUrl(repo, jt, buildNumber);
 
+            String mergeHead1 = (mergeHead != null)? mergeHead.substring(0, 8) : null;
+            String buildHead1 = (buildHead != null)? buildHead.substring(0, 8) : null;
+
             /* NOTE: mergeHead and buildHead are the reverse of what you might
              * think, because we have to check out the "toRef" becasue it is
              * the ref that is guaranteed to be in the correct repo.
@@ -192,8 +195,8 @@ public class BuildSuccessReportingServlet extends HttpServlet {
              */
             sb.append("Jenkins Build now has status ");
             sb.append("==" + state.toString() + "==");
-            sb.append(" for hash " + mergeHead);
-            sb.append(" merged into head " + buildHead);
+            sb.append(" for hash " + mergeHead1);
+            sb.append(" merged into head " + buildHead1);
             sb.append(" <a href=\"" + url + "\">Link</a>");
             sb.append(" (<a href=\"" + retUrl + "\">Retrigger</a>)");
 
