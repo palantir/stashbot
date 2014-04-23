@@ -22,6 +22,7 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.event.pull.PullRequestCommentEvent;
 import com.atlassian.stash.event.pull.PullRequestEvent;
+import com.atlassian.stash.event.pull.PullRequestOpenRequestedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -58,8 +59,16 @@ public class PullRequestListener {
     @EventListener
     public void listen(PullRequestEvent event) {
         try {
+
             // First, update pull request metadata
             final PullRequest pr = event.getPullRequest();
+
+            if (event instanceof PullRequestOpenRequestedEvent) {
+                // This listener will be retriggered later by PullRequestOpenedEvent
+                // SEE: https://developer.atlassian.com/static/javadoc/stash/2.12.1/api/reference/com/atlassian/stash/event/pull/PullRequestOpenRequestedEvent.html
+                log.debug("Ignoring OpenRequestedEvent because there is no PR ID to use yet");
+                return;
+            }
 
             // More correct to use the "to ref" to find the repo - this is the
             // destination repo.
