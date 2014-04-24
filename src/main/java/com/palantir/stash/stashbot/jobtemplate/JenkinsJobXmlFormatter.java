@@ -87,6 +87,9 @@ public class JenkinsJobXmlFormatter {
 
         // Put build command depending on build type
         // TODO: figure out build command some other way?
+
+        vc.put("prebuildCommand", buildCommand(rc.getPrebuildCommand()));
+
         switch (jobTemplate.getJobType()) {
         case VERIFY_COMMIT:
             vc.put("buildCommand", buildCommand(rc.getVerifyBuildCommand()));
