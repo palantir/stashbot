@@ -79,9 +79,23 @@ public class ConfigurationPersistenceManager {
         return configs[0];
     }
 
+    public void setJenkinsServerConfigurationFromRequest(HttpServletRequest req) throws SQLException,
+        NumberFormatException {
+
+        String name = req.getParameter("name");
+        String url = req.getParameter("url");
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
+        String stashUsername = req.getParameter("stashUsername");
+        String stashPassword = req.getParameter("stashPassword");
+        Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
+
+        setJenkinsServerConfiguration(name, url, username, password, stashUsername, stashPassword, maxVerifyChain);
+    }
+
     public void setJenkinsServerConfiguration(String name, String url,
-        String username, String password, String stashUsername,
-        String stashPassword, Integer maxVerifyChain) throws SQLException {
+        String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
+        throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }

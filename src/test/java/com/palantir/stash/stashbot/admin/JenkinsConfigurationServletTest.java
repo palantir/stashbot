@@ -200,8 +200,7 @@ public class JenkinsConfigurationServletTest {
         jcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setJenkinsServerConfiguration(JN + "2", JURL + "2", JU + "2", JP + "2", SU + "2", SP + "2",
-            MVC);
+        Mockito.verify(cpm).setJenkinsServerConfigurationFromRequest(req);
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
