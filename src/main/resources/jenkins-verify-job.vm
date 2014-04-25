@@ -12,6 +12,7 @@
   failedCommand
   isJunit
   junitPath
+  credentialUUID
 
   esc - escape tool - required
   @author cmyers
@@ -40,6 +41,9 @@
         <url>$esc.xml($repositoryUrl)</url>
         <name>origin</name>
         <refspec></refspec>
+#if ( $credentialUUID )
+        <credentialsId>$credentialUUID</credentialsId>
+#end
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
     <branches>

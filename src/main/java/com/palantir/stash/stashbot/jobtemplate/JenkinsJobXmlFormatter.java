@@ -76,20 +76,25 @@ public class JenkinsJobXmlFormatter {
 
         String repositoryUrl = navBuilder.repo(repo).clone(repo.getScmId())
             .buildAbsoluteWithoutUsername();
-        // manually insert the username and pw we are configured to use
-        repositoryUrl = repositoryUrl.replace("://",
-            "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
-                + "@");
 
+        // Handle the various Authentication modes
+        switch (jsc.getAuthenticationMode()) {
+        case USERNAME_AND_PASSWORD:
+            // manually insert the username and pw we are configured to use
+            repositoryUrl = repositoryUrl.replace("://",
+                "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+                    + "@");
+            break;
+        case CREDENTIAL_MANUALLY_CONFIGURED:
+            vc.put("credentialUUID", jsc.getStashPassword());
+            break;
+        }
         vc.put("repositoryUrl", repositoryUrl);
-
-        vc.put("prebuildCommand", rc.getPrebuildCommand());
-
-        // Put build command depending on build type
-        // TODO: figure out build command some other way?
 
         vc.put("prebuildCommand", buildCommand(rc.getPrebuildCommand()));
 
+        // Put build command depending on build type
+        // TODO: figure out build command some other way?
         switch (jobTemplate.getJobType()) {
         case VERIFY_COMMIT:
             vc.put("buildCommand", buildCommand(rc.getVerifyBuildCommand()));

@@ -14,15 +14,99 @@
 package com.palantir.stash.stashbot.config;
 
 import net.java.ao.Entity;
+import net.java.ao.Implementation;
 import net.java.ao.Preload;
 import net.java.ao.schema.Default;
 import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 @Table("JSConfig001")
 @Preload
+@Implementation(JenkinsServerConfigurationImpl.class)
 public interface JenkinsServerConfiguration extends Entity {
+
+    static public enum AuthenticationMode {
+        USERNAME_AND_PASSWORD(Constants.UAP_VALUE, "Username and Password"),
+        CREDENTIAL_MANUALLY_CONFIGURED(Constants.CMC_VALUE, "Manually Configured Credential UUID");
+
+        // TODO?
+        //CREDENTIAL_USERNAME_AND_PASSWORD(Constants.CUAP_VALUE),
+        //CREDENTIAL_SSH_KEY(Constants.CSSH_VALUE);
+        private final String description;
+        private final String mode;
+
+        // This is necessary because AO annotations require static string constants
+        public static class Constants {
+
+            public static final String UAP_VALUE = "USERNAME_AND_PASSWORD";
+            public static final String CMC_VALUE = "CREDENTIAL_MANUALLY_CONFIGURED";
+            //public static final String CUAP_VALUE = "CUAP";
+            //public static final String CSSH_VALUE = "CSSH";
+        }
+
+        AuthenticationMode(String mode, String description) {
+            this.description = description;
+            this.mode = mode;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String getMode() {
+            return mode;
+        }
+
+        public static AuthenticationMode fromMode(String mode) {
+            if (mode.equals(Constants.UAP_VALUE)) {
+                return USERNAME_AND_PASSWORD;
+            }
+            if (mode.equals(Constants.CMC_VALUE)) {
+                return CREDENTIAL_MANUALLY_CONFIGURED;
+            }
+            throw new IllegalArgumentException("invalid value for enum: " + mode);
+        }
+
+        public static String toMode(AuthenticationMode am) {
+            return am.getMode();
+        }
+
+        /**
+         * Helper method for populating a dropdown option box with metadata
+         * 
+         * @param selected
+         * @return
+         */
+        public ImmutableMap<String, String> getSelectListEntry(boolean selected) {
+            if (selected) {
+                return ImmutableMap.of("text", this.getDescription(), "value", this.toString(), "selected", "true");
+            } else {
+                return ImmutableMap.of("text", this.getDescription(), "value", this.toString());
+            }
+        }
+
+        /**
+         * Helper method for populating a dropdown option box with metadata
+         * 
+         * @param selected
+         * @return
+         */
+        public static ImmutableList<ImmutableMap<String, String>> getSelectList(AuthenticationMode selected) {
+            ImmutableList.Builder<ImmutableMap<String, String>> builder = ImmutableList.builder();
+            for (AuthenticationMode ae : AuthenticationMode.values()) {
+                if (selected != null && selected.equals(ae)) {
+                    builder.add(ae.getSelectListEntry(true));
+                } else {
+                    builder.add(ae.getSelectListEntry(false));
+                }
+            }
+            return builder.build();
+        }
+    }
 
     @NotNull
     @Unique
@@ -47,6 +131,20 @@ public interface JenkinsServerConfiguration extends Entity {
     public String getPassword();
 
     public void setPassword(String password);
+
+    // New Credential handling - enum stored as Const TXT in the DB
+    @NotNull
+    @Default(AuthenticationMode.Constants.UAP_VALUE)
+    public String getAuthenticationModeStr();
+
+    public void setAuthenticationModeStr(String authMode);
+
+    /////
+    // These are implemented in JenkinsServerConfigurationImpl - so the user can use enums
+    /////
+    public AuthenticationMode getAuthenticationMode();
+
+    public void setAuthenticationMode(AuthenticationMode authMode);
 
     @NotNull
     @Default("empty")

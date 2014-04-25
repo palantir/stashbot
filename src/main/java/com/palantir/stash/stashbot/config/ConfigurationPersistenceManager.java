@@ -29,6 +29,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class ConfigurationPersistenceManager {
@@ -86,15 +87,31 @@ public class ConfigurationPersistenceManager {
         String url = req.getParameter("url");
         String username = req.getParameter("username");
         String password = req.getParameter("password");
+        AuthenticationMode am = AuthenticationMode.fromMode(req.getParameter("authenticationMode")); // TODO
         String stashUsername = req.getParameter("stashUsername");
         String stashPassword = req.getParameter("stashPassword");
         Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
 
-        setJenkinsServerConfiguration(name, url, username, password, stashUsername, stashPassword, maxVerifyChain);
+        setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain);
+    }
+
+    /**
+     * @deprecated Use
+     *             {@link #setJenkinsServerConfiguration(String,String,String,String,AuthenticationMethod,String,String,Integer)}
+     *             instead
+     */
+    @Deprecated
+    public void setJenkinsServerConfiguration(String name, String url,
+        String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
+        throws SQLException {
+        setJenkinsServerConfiguration(name, url, username, password, AuthenticationMode.USERNAME_AND_PASSWORD,
+            stashUsername, stashPassword,
+            maxVerifyChain);
     }
 
     public void setJenkinsServerConfiguration(String name, String url,
-        String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
+        String username, String password, AuthenticationMode authenticationMode, String stashUsername,
+        String stashPassword, Integer maxVerifyChain)
         throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -119,6 +136,7 @@ public class ConfigurationPersistenceManager {
         configs[0].setUrl(url);
         configs[0].setUsername(username);
         configs[0].setPassword(password);
+        configs[0].setAuthenticationMode(authenticationMode);
         configs[0].setStashUsername(stashUsername);
         configs[0].setStashPassword(stashPassword);
         configs[0].setMaxVerifyChain(maxVerifyChain);

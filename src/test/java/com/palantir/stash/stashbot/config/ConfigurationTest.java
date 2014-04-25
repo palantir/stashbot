@@ -38,7 +38,10 @@ import com.atlassian.activeobjects.test.TestActiveObjects;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
@@ -98,7 +101,7 @@ public class ConfigurationTest {
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
         cpm.setJenkinsServerConfiguration(null, url, username, password,
-            stashUsername, stashPassword, maxVerifyChain);
+            null, stashUsername, stashPassword, maxVerifyChain);
         JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(null);
         Assert.assertEquals("default", jsc.getName());
@@ -138,9 +141,9 @@ public class ConfigurationTest {
     public void getsAllJenkinsServerConfigurationsNotEmpty() throws Exception {
 
         cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw",
-            "stashuser", "stashpw", 10);
+            null, "stashuser", "stashpw", 10);
         cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw",
-            "stashuser", "stashpw", 10);
+            null, "stashuser", "stashpw", 10);
 
         Collection<JenkinsServerConfiguration> jscs = cpm
             .getAllJenkinsServerConfigurations();
@@ -266,5 +269,28 @@ public class ConfigurationTest {
         JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration("sometest");
         Assert.assertEquals(url, jsc.getUrl());
+    }
+
+    @Test
+    public void testJenkinsServerConfigurationAuthModes() throws Exception {
+        ImmutableList<ImmutableMap<String, String>> test = AuthenticationMode.getSelectList(null);
+        Assert.assertTrue(test.contains(AuthenticationMode.USERNAME_AND_PASSWORD.getSelectListEntry(false)));
+        Assert.assertTrue(test.contains(AuthenticationMode.CREDENTIAL_MANUALLY_CONFIGURED.getSelectListEntry(false)));
+
+        test = AuthenticationMode.getSelectList(AuthenticationMode.USERNAME_AND_PASSWORD);
+        Assert.assertTrue(test.contains(AuthenticationMode.USERNAME_AND_PASSWORD.getSelectListEntry(true)));
+        Assert.assertTrue(test.contains(AuthenticationMode.CREDENTIAL_MANUALLY_CONFIGURED.getSelectListEntry(false)));
+
+        ImmutableMap<String, String> entry = AuthenticationMode.USERNAME_AND_PASSWORD.getSelectListEntry(false);
+
+        Assert.assertTrue(entry.containsKey("text"));
+        Assert.assertTrue(entry.containsKey("value"));
+        Assert.assertFalse(entry.containsKey("selected"));
+
+        entry = AuthenticationMode.USERNAME_AND_PASSWORD.getSelectListEntry(true);
+
+        Assert.assertTrue(entry.containsKey("text"));
+        Assert.assertTrue(entry.containsKey("value"));
+        Assert.assertTrue(entry.containsKey("selected"));
     }
 }

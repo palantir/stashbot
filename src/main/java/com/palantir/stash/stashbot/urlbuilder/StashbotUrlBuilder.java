@@ -44,17 +44,23 @@ public class StashbotUrlBuilder {
             .concat("/plugins/servlet/stashbot/build-reporting/$repoId/"
                 + jobType.toString() + "/" + status
                 + "/$BUILD_NUMBER/$buildHead/$mergeHead/$pullRequestId");
-        url = url.replace("://",
-            "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
-                + "@");
         return url;
     }
 
     public String buildCloneUrl(Repository repo, JenkinsServerConfiguration jsc) {
         String url = nb.repo(repo).clone("git").buildAbsoluteWithoutUsername();
-        url = url.replace("://",
-            "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
-                + "@");
+        switch (jsc.getAuthenticationMode()) {
+        case USERNAME_AND_PASSWORD:
+            url = url.replace("://",
+                "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+                    + "@");
+            break;
+        case CREDENTIAL_MANUALLY_CONFIGURED:
+            // do nothing
+            break;
+        default:
+            throw new IllegalStateException("Invalid value - update this code after adding an authentication mode");
+        }
         return url;
     }
 }
