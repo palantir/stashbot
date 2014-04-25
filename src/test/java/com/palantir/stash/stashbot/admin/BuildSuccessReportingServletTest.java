@@ -29,6 +29,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import com.atlassian.stash.build.BuildStatus;
 import com.atlassian.stash.build.BuildStatus.State;
@@ -38,6 +40,9 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.SecurityService;
+import com.atlassian.stash.util.Operation;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
@@ -71,6 +76,8 @@ public class BuildSuccessReportingServletTest {
     private RepositoryConfiguration rc;
     @Mock
     private JenkinsServerConfiguration jsc;
+    @Mock
+    private SecurityService ss;
 
     @Mock
     private HttpServletRequest req;
@@ -99,8 +106,9 @@ public class BuildSuccessReportingServletTest {
 
     private MockJobTemplateFactory jtf;
 
+    @SuppressWarnings("unchecked")
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws Throwable {
         MockitoAnnotations.initMocks(this);
 
         Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString()))
@@ -126,11 +134,28 @@ public class BuildSuccessReportingServletTest {
         jtf = new MockJobTemplateFactory(jtm);
         jtf.generateDefaultsForRepo(repo, rc);
 
+        // Let's use the actual operation classes here for test coverage
+        Answer<Void> frobber = new Answer<Void>() {
+
+            @Override
+            public Void answer(InvocationOnMock invocation) throws Throwable {
+                @SuppressWarnings("unchecked")
+                Operation<Void, Exception> op = (Operation<Void, Exception>) invocation.getArguments()[2];
+
+                op.perform();
+                return null;
+            }
+        };
+        Mockito.doAnswer(frobber).when(ss)
+            .doAsUser(Mockito.anyString(), Mockito.anyString(), Mockito.any(Operation.class));
+        Mockito.doAnswer(frobber).when(ss)
+            .doWithPermission(Mockito.anyString(), Mockito.any(Permission.class), Mockito.any(Operation.class));
+
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
         bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss,
-            prs, ub, jtm, lf);
+            prs, ub, jtm, ss, lf);
     }
 
     @Test
