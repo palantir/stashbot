@@ -34,6 +34,7 @@ import com.atlassian.stash.nav.NavBuilder.Repo;
 import com.atlassian.stash.nav.NavBuilder.RepoClone;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.ssh.api.SshCloneUrlResolver;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -71,6 +72,8 @@ public class JenkinsJobXmlFormatterTest {
     // nav builder intermediaries - god damn this is annoying to mock
     @Mock
     private NavBuilder navBuilder;
+    @Mock
+    private SshCloneUrlResolver sshCloneUrlResolver;
     @Mock
     private Repo nbRepo;
     @Mock
@@ -128,7 +131,7 @@ public class JenkinsJobXmlFormatterTest {
             }
         }).when(velocityTemplate).merge(Mockito.eq(velocityContext), writerCaptor.capture());
 
-        jjxf = new JenkinsJobXmlFormatter(velocityManager, cpm, sub, navBuilder);
+        jjxf = new JenkinsJobXmlFormatter(velocityManager, cpm, sub, navBuilder, sshCloneUrlResolver);
     }
 
     @Test

@@ -18,6 +18,7 @@
  * @param junitPath
  * @param maxVerifyChain
  * @param rebuildOnUpdate
+ * @param useSsh
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -147,6 +148,14 @@
               'id': 'rebuildOnUpdate',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Rebuild merge verifies when target branch updates'),
               'isChecked': $rebuildOnUpdate
+              ]] /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.use-ssh-radio.button.description', 'Use SSH for SCM') /}
+            {param fields: [[
+              'id': 'useSsh',
+              'labelText': stash_i18n('stash.web.stash.use-ssh-radio.button.label', 'Use SSH to interact with SCM repository'),
+              'isChecked': $useSsh
               ]] /}
           {/call}
           {call aui.form.buttons}

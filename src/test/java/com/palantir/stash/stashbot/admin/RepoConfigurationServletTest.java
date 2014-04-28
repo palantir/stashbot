@@ -124,6 +124,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getPublishLabel()).thenReturn("N/A");
         Mockito.when(rc.getJunitEnabled()).thenReturn(false);
         Mockito.when(rc.getJunitPath()).thenReturn("N/A");
+        Mockito.when(rc.getUseSsh()).thenReturn(true);
         Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
         Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
         Mockito.when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
@@ -214,6 +215,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(req.getParameter("junitPath")).thenReturn("N/A");
         Mockito.when(req.getParameter("verifyLabel")).thenReturn("N/A");
         Mockito.when(req.getParameter("publishLabel")).thenReturn("N/A");
+        Mockito.when(req.getParameter("useSsh")).thenReturn(null);
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
 
@@ -221,7 +223,7 @@ public class RepoConfigurationServletTest {
 
         // Verify it persists
         Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", false,
-            "N/A", PBR + "2", PBC + "2", false, "N/A", PREBC + "2", "default", RB, false, "N/A", null);
+            "N/A", PBR + "2", PBC + "2", false, "N/A", PREBC + "2", "default", RB, false, "N/A", null, false);
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");
@@ -247,5 +249,6 @@ public class RepoConfigurationServletTest {
         Assert.assertEquals(VBR + "2", map.get("verifyBranchRegex"));
         Assert.assertEquals(VBC + "2", map.get("verifyBuildCommand"));
         Assert.assertEquals(PREBC + "2", map.get("prebuildCommand"));
+        Assert.assertEquals(false, map.get("useSsh"));
     }
 }
