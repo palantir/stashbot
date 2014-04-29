@@ -76,8 +76,8 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
                 if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())
                       && (cur.getOverride() || cur.getSuccess())) {
                     log.debug("Found match PRM");
-                    log.debug("PRM: success " + prm.getSuccess().toString() + " override "
-                          + prm.getOverride().toString());
+                    log.debug("PRM: success " + cur.getSuccess().toString() + " override "
+                          + cur.getOverride().toString());
                     return;
                 }
             }
