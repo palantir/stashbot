@@ -38,7 +38,10 @@ public class JenkinsJobXmlFormatter {
     // "BUILD SUCCESS0" on success and
     // "BUILD FAILURE1" on failure.
     private static final String BUILD_COMMAND_POSTFIX =
-        "&& echo \"BUILD SUCCESS$?\" || /bin/false || (echo \"BUILD FAILURE$?\" && /bin/false)";
+        "|| (echo \"BUILD FAILURE1 with status $?\" ; /bin/false) && echo \"BUILD SUCCESS0\"";
+
+    private static final String PREBUILD_COMMAND_POSTFIX =
+        "|| (echo \"PREBUILD FAILURE1 with status $?\" ; /bin/false) && echo \"PREBUILD SUCCESS\"";
 
     private final VelocityManager velocityManager;
     private final ConfigurationPersistenceManager cpm;
@@ -91,7 +94,7 @@ public class JenkinsJobXmlFormatter {
         }
         vc.put("repositoryUrl", repositoryUrl);
 
-        vc.put("prebuildCommand", buildCommand(rc.getPrebuildCommand()));
+        vc.put("prebuildCommand", prebuildCommand(rc.getPrebuildCommand()));
 
         // Put build command depending on build type
         // TODO: figure out build command some other way?
@@ -222,6 +225,9 @@ public class JenkinsJobXmlFormatter {
      */
     private String buildCommand(String command) {
         return command + " " + BUILD_COMMAND_POSTFIX;
+    }
+    private String prebuildCommand(String command) {
+        return command + " " + PREBUILD_COMMAND_POSTFIX;
     }
 
 }
