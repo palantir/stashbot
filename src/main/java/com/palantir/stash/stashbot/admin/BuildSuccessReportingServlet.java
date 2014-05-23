@@ -34,6 +34,8 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.user.Permission;
+import com.atlassian.stash.user.SecurityService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -41,6 +43,10 @@ import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
+import com.palantir.stash.stashbot.util.BuildStatusAddOperation;
+import com.palantir.stash.stashbot.util.PullRequestCommentAddOperation;
+import com.palantir.stash.stashbot.util.PullRequestFetcherOperation;
+import com.palantir.stash.stashbot.util.RepoIdFetcherOperation;
 
 public class BuildSuccessReportingServlet extends HttpServlet {
 
@@ -64,15 +70,31 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final PullRequestService pullRequestService;
     private final StashbotUrlBuilder ub;
     private final JobTemplateManager jtm;
+    private final SecurityService ss;
 
-    // private final PullRequestCommentService pullRequestCommentService;
-
+    /**
+     * @deprecated Use
+     *             {@link #BuildSuccessReportingServlet(ConfigurationPersistenceManager,RepositoryService,BuildStatusService,PullRequestService,StashbotUrlBuilder,JobTemplateManager,SecurityService,StashbotLoggerFactory)}
+     *             instead
+     */
+    @Deprecated
     public BuildSuccessReportingServlet(
         ConfigurationPersistenceManager configurationPersistenceManager,
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
         PullRequestService pullRequestService, StashbotUrlBuilder ub,
         JobTemplateManager jtm, StashbotLoggerFactory lf) {
+        this(configurationPersistenceManager, repositoryService, buildStatusService, pullRequestService, ub, jtm,
+            null, lf);
+
+    }
+
+    public BuildSuccessReportingServlet(
+        ConfigurationPersistenceManager configurationPersistenceManager,
+        RepositoryService repositoryService,
+        BuildStatusService buildStatusService,
+        PullRequestService pullRequestService, StashbotUrlBuilder ub,
+        JobTemplateManager jtm, SecurityService ss, StashbotLoggerFactory lf) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
@@ -80,16 +102,17 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         this.ub = ub;
         this.jtm = jtm;
         this.log = lf.getLoggerForThis(this);
+        this.ss = ss;
     }
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse res)
         throws ServletException, IOException {
-
         try {
             // Look at JenkinsManager class if you change this:
             // final two arguments could be empty...
-            final String URL_FORMAT = "BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
+            final String URL_FORMAT =
+                "BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]";
             final String pathInfo = req.getPathInfo();
 
             final String[] parts = pathInfo.split("/");
@@ -99,20 +122,24 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                     + URL_FORMAT);
             }
             final int repoId;
-            final Repository repo;
             final RepositoryConfiguration rc;
             try {
                 repoId = Integer.valueOf(parts[1]);
-                repo = repositoryService.getById(repoId);
-                rc = configurationPersistanceManager
-                    .getRepositoryConfigurationForRepository(repo);
-                if (repo == null) {
-                    throw new IllegalArgumentException(
-                        "Unable to get a repository for id " + repoId);
-                }
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("The format of the URL is "
                     + URL_FORMAT, e);
+            }
+
+            // This is necessary if we want unauthenticated users to be able to call this.  *sigh*
+            RepoIdFetcherOperation getRepoId = new RepoIdFetcherOperation(repositoryService, repoId);
+            ss.doWithPermission("BUILD SUCCESS REPORT", Permission.REPO_READ, getRepoId);
+            final Repository repo = getRepoId.getRepo();
+
+            rc = configurationPersistanceManager
+                .getRepositoryConfigurationForRepository(repo);
+            if (repo == null) {
+                throw new IllegalArgumentException(
+                    "Unable to get a repository for id " + repoId);
             }
 
             JobTemplate jt = jtm.fromString(rc, parts[2].toLowerCase());
@@ -147,8 +174,11 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 try {
                     // This is a pull request, so add a comment
                     pullRequestId = Long.parseLong(parts[7]);
-                    pullRequest = pullRequestService.getById(repo.getId(),
-                        pullRequestId);
+                    PullRequestFetcherOperation prfo =
+                        new PullRequestFetcherOperation(pullRequestService, repoId, pullRequestId);
+                    ss.doWithPermission("BUILD SUCCESS REPORT", Permission.REPO_READ, prfo);
+                    pullRequest = prfo.getPullRequest();
+
                     if (pullRequest == null) {
                         throw new IllegalArgumentException(
                             "Unable to find pull request for repo id "
@@ -174,7 +204,10 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 bs = getSuccessStatus(repo, jt, state, buildNumber, buildHead);
                 log.debug("Registering build status for buildHead " + buildHead
                     + " " + bsToString(bs));
-                buildStatusService.add(buildHead, bs);
+                BuildStatusAddOperation bssAdder = new BuildStatusAddOperation(buildStatusService, buildHead, bs);
+                // Yeah, I know what you are thinking... "Admin permission?  To add a build status?"
+                // I tried REPO_WRITE and REPO_ADMIN and neither was enough, but this worked!
+                ss.doWithPermission("BUILD SUCCESS REPORT", Permission.SYS_ADMIN, bssAdder);
                 printOutput(req, res);
                 return;
             }
@@ -200,8 +233,14 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             log.debug("Registering comment on pr for buildHead " + buildHead
                 + " mergeHead " + mergeHead);
             // Still make comment so users can see links to build
-            pullRequestService.addComment(repo.getId(), pullRequest.getId(),
-                sb.toString());
+            PullRequestCommentAddOperation prcao =
+                new PullRequestCommentAddOperation(pullRequestService, repo.getId(), pullRequest.getId(), sb.toString());
+
+            // So in order to create comments, we have to do it AS some user.  ss.doAsUser rather than ss.doWithPermission is the magic sauce here.
+            JenkinsServerConfiguration jsc =
+                configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+            ss.doAsUser("BUILD SUCCESS REPORT", jsc.getStashUsername(), prcao);
+
             // but also update metadata
 
             if (state.equals(State.SUCCESSFUL)) {
@@ -215,6 +254,8 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             printOutput(req, res);
         } catch (SQLException e) {
             throw new RuntimeException("Unable to get configuration", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to report build status", e);
         }
     }
 

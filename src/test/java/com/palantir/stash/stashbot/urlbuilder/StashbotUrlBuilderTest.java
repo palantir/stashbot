@@ -17,6 +17,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 
 public class StashbotUrlBuilderTest {
@@ -51,6 +52,7 @@ public class StashbotUrlBuilderTest {
         Mockito.when(nb.buildAbsolute()).thenReturn(ABS_URL);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
         Mockito.when(jsc.getStashPassword()).thenReturn("somepw");
+        Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
         Mockito.when(pr.getId()).thenReturn(PULL_REQUEST_ID);
         Mockito.when(pr.getFromRef()).thenReturn(fromRef);
         Mockito.when(pr.getToRef()).thenReturn(toRef);
@@ -78,7 +80,7 @@ public class StashbotUrlBuilderTest {
             "successful");
         Assert
             .assertEquals(
-                ABS_URL_WITH_CREDS
+                ABS_URL
                     + "/plugins/servlet/stashbot/build-reporting/$repoId/verification/successful/$BUILD_NUMBER/$buildHead/$mergeHead/$pullRequestId",
                 url);
     }

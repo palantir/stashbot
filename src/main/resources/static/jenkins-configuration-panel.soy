@@ -5,6 +5,8 @@
  * @param jenkinsConfigs
  * @param error
  * @param notice
+ * @param authenticationModeData
+ * Xparam authenticationModeDataSelected
  **/
 {template .jenkinsConfigurationPanel}
 <html>
@@ -60,6 +62,13 @@
               {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
               {param value: $jenkinsConfig.url /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+            {/call}
+            {call aui.form.selectField}
+              {param id: 'authenticationMode' /}
+              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
+              {param options: $authenticationModeData[$jenkinsConfig.name] /}
+              {param value: $jenkinsConfig.authenticationModeStr /}
+              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
             {/call}
             {call aui.form.textField}
               {param id: 'username' /}
@@ -174,6 +183,7 @@ Jenkins configurations include the following fields:
 <ul>
 <li><b>name</b>: The name users will see when they select this jenkins server</li>
 <li><b>url</b>: The URL for the jenkins instance.  (e.g. https://jenkins.example.com:8080/)</li>
+<li><b>Authentication Mode</b>: The authentication mode to use for jenkins to talk back to stash.  If you select Manual Credentials, create it in jenkins first then add the UUID of the credential in the password field, while using a valid username for stash in the username field (which is still used for comments on pull requests, etc.)</li>
 <li><b>username</b>: The username to use to log into jenkins (value is ignored if authentication is not enabled).
 <li><b>password</b>: The password to use to log into jenkins (value is ignored if authentication is not enabled).
 <li><b>stashUsername</b>: The username to use to log into stash from jenkins (for cloning repos and reporting build results).  This account is automatically created if it does not exist already.  It is recommended you generate a reasonable username/password pair.  If you prefer for auditing purposes, you may use an account from crowd/LDAP by using the existing credentials in this field.</li>

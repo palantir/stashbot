@@ -32,9 +32,11 @@ import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionValidationService;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
@@ -77,7 +79,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
         // Authenticate user
         try {
             permissionValidationService.validateAuthenticated();
-        } catch (AuthorisationException notLoggedInException) { 
+        } catch (AuthorisationException notLoggedInException) {
             log.debug("User not logged in, redirecting to login page");
             // not logged in, redirect
             res.sendRedirect(lup.getLoginUri(getUri(req)).toASCIIString());
@@ -133,6 +135,24 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
         res.setContentType("text/html;charset=UTF-8");
         try {
+            // Build select data for authentication modes
+            // Structure is:  { "jenkinsServerName" => [ { "text" => "auth description", "value" => "auth code" }, { ... } ], ... }
+            ImmutableMap.Builder<String, ImmutableList<ImmutableMap<String, String>>> authDataBuilder =
+                ImmutableMap.builder();
+
+            ImmutableMap.Builder<String, String> authDataSelectedBuilder = ImmutableMap.builder();
+
+            for (JenkinsServerConfiguration jsc : configurationPersistanceManager.getAllJenkinsServerConfigurations()) {
+                AuthenticationMode am = jsc.getAuthenticationMode();
+                ImmutableList<ImmutableMap<String, String>> selectList = AuthenticationMode.getSelectList(am);
+
+                authDataBuilder.put(jsc.getName(), selectList);
+
+                // For convenience, store the value of the selected field in a separate map
+                authDataSelectedBuilder.put(jsc.getName(),
+                    jsc.getAuthenticationMode().getSelectListEntry(false).get("value"));
+
+            }
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             ImmutableCollection<JenkinsServerConfiguration> jenkinsConfigs =
                 configurationPersistanceManager.getAllJenkinsServerConfigurations();
@@ -144,6 +164,8 @@ public class JenkinsConfigurationServlet extends HttpServlet {
                     .put("jenkinsConfigs", jenkinsConfigs)
                     .put("error", error)
                     .put("notice", notice)
+                    .put("authenticationModeData", authDataBuilder.build())
+                    .put("authenticationModeDataSelected", authDataSelectedBuilder.build())
                     .build()
                 );
         } catch (SoyException e) {
@@ -169,16 +191,9 @@ public class JenkinsConfigurationServlet extends HttpServlet {
         }
 
         String name = req.getParameter("name");
-        String url = req.getParameter("url");
-        String username = req.getParameter("username");
-        String password = req.getParameter("password");
-        String stashUsername = req.getParameter("stashUsername");
-        String stashPassword = req.getParameter("stashPassword");
-        Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
 
         try {
-            configurationPersistanceManager.setJenkinsServerConfiguration(name, url, username, password, stashUsername,
-                stashPassword, maxVerifyChain);
+            configurationPersistanceManager.setJenkinsServerConfigurationFromRequest(req);
             pluginUserManager.createStashbotUser(configurationPersistanceManager.getJenkinsServerConfiguration(name));
         } catch (SQLException e) {
             res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());

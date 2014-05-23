@@ -36,6 +36,7 @@ import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
@@ -52,6 +53,7 @@ public class JenkinsJobXmlFormatterTest {
     private static final String ABSOLUTE_PATH = "http://www.example.com/stash";
     private static final String ABSOLUTE_PATH2 = "http://www.example.com/stash/browse";
     private static final String REPO_URL = "http://www.example.com/stash/repo.git";
+    private static final String STASH_PW = "somepassword";
 
     @Mock
     private VelocityManager velocityManager;
@@ -104,7 +106,8 @@ public class JenkinsJobXmlFormatterTest {
 
         Mockito.when(jsc.getUrl()).thenReturn(REPO_URL);
         Mockito.when(jsc.getStashUsername()).thenReturn(REPO_URL);
-        Mockito.when(jsc.getStashPassword()).thenReturn(REPO_URL);
+        Mockito.when(jsc.getStashPassword()).thenReturn(STASH_PW);
+        Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
 
         Mockito.when(velocityManager.getVelocityEngine()).thenReturn(velocityEngine);
         Mockito.when(velocityManager.getVelocityContext()).thenReturn(velocityContext);
@@ -137,6 +140,20 @@ public class JenkinsJobXmlFormatterTest {
         String jobXml = jjxf.generateJobXml(jobTemplate, repo);
 
         Mockito.verify(velocityTemplate).merge(Mockito.eq(velocityContext), Mockito.any(Writer.class));
+        Mockito.verify(velocityContext, Mockito.never()).put(Mockito.eq("credentailUUID"), Mockito.anyObject());
+
+        Assert.assertEquals(EXAMPLE_XML_TEXT, jobXml);
+    }
+
+    @Test
+    public void testJJXFWithAuthMode() throws Exception {
+
+        Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.CREDENTIAL_MANUALLY_CONFIGURED);
+
+        String jobXml = jjxf.generateJobXml(jobTemplate, repo);
+
+        Mockito.verify(velocityTemplate).merge(Mockito.eq(velocityContext), Mockito.any(Writer.class));
+        Mockito.verify(velocityContext).put(Mockito.eq("credentialUUID"), Mockito.eq(STASH_PW));
 
         Assert.assertEquals(EXAMPLE_XML_TEXT, jobXml);
     }

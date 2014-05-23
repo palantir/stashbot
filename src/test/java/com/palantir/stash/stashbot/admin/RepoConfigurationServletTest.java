@@ -199,29 +199,14 @@ public class RepoConfigurationServletTest {
     @Test
     public void postTest() throws Exception {
 
-        // test that things are actually updated
-        Mockito.when(req.getParameter("ciEnabled")).thenReturn(null);
-        Mockito.when(req.getParameter("publishBranchRegex")).thenReturn(PBR + "2");
-        Mockito.when(req.getParameter("publishBuildCommand")).thenReturn(PBC + "2");
-        Mockito.when(req.getParameter("verifyBranchRegex")).thenReturn(VBR + "2");
-        Mockito.when(req.getParameter("verifyBuildCommand")).thenReturn(VBC + "2");
-        Mockito.when(req.getParameter("prebuildCommand")).thenReturn(PREBC + "2");
-        Mockito.when(req.getParameter("rebuildOnUpdate")).thenReturn("checked");
         Mockito.when(req.getParameter("jenkinsServerName")).thenReturn("default");
-        Mockito.when(req.getParameter("isVerifyPinned")).thenReturn(null);
-        Mockito.when(req.getParameter("isPublishPinned")).thenReturn(null);
-        Mockito.when(req.getParameter("isJunit")).thenReturn(null);
-        Mockito.when(req.getParameter("junitPath")).thenReturn("N/A");
-        Mockito.when(req.getParameter("verifyLabel")).thenReturn("N/A");
-        Mockito.when(req.getParameter("publishLabel")).thenReturn("N/A");
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
 
         rcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setRepositoryConfigurationForRepository(mockRepo, false, VBR + "2", VBC + "2", false,
-            "N/A", PBR + "2", PBC + "2", false, "N/A", PREBC + "2", "default", RB, false, "N/A", null);
+        Mockito.verify(cpm).setRepositoryConfigurationForRepositoryFromRequest(mockRepo, req);
 
         // doGet() is then called, so this is the same as getTest()...
         Mockito.verify(res).setContentType("text/html;charset=UTF-8");

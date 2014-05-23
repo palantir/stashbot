@@ -17,6 +17,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import net.java.ao.DBParam;
 import net.java.ao.Query;
 
@@ -27,6 +29,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class ConfigurationPersistenceManager {
@@ -77,9 +80,39 @@ public class ConfigurationPersistenceManager {
         return configs[0];
     }
 
+    public void setJenkinsServerConfigurationFromRequest(HttpServletRequest req) throws SQLException,
+        NumberFormatException {
+
+        String name = req.getParameter("name");
+        String url = req.getParameter("url");
+        String username = req.getParameter("username");
+        String password = req.getParameter("password");
+        AuthenticationMode am = AuthenticationMode.fromMode(req.getParameter("authenticationMode")); // TODO
+        String stashUsername = req.getParameter("stashUsername");
+        String stashPassword = req.getParameter("stashPassword");
+        Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
+
+        setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain);
+    }
+
+    /**
+     * @deprecated Use
+     *             {@link #setJenkinsServerConfiguration(String,String,String,String,AuthenticationMethod,String,String,Integer)}
+     *             instead
+     */
+    @Deprecated
     public void setJenkinsServerConfiguration(String name, String url,
-        String username, String password, String stashUsername,
-        String stashPassword, Integer maxVerifyChain) throws SQLException {
+        String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
+        throws SQLException {
+        setJenkinsServerConfiguration(name, url, username, password, AuthenticationMode.USERNAME_AND_PASSWORD,
+            stashUsername, stashPassword,
+            maxVerifyChain);
+    }
+
+    public void setJenkinsServerConfiguration(String name, String url,
+        String username, String password, AuthenticationMode authenticationMode, String stashUsername,
+        String stashPassword, Integer maxVerifyChain)
+        throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
@@ -103,6 +136,7 @@ public class ConfigurationPersistenceManager {
         configs[0].setUrl(url);
         configs[0].setUsername(username);
         configs[0].setPassword(password);
+        configs[0].setAuthenticationMode(authenticationMode);
         configs[0].setStashUsername(stashUsername);
         configs[0].setStashPassword(stashPassword);
         configs[0].setMaxVerifyChain(maxVerifyChain);
@@ -134,6 +168,35 @@ public class ConfigurationPersistenceManager {
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
             false, "N/A", null);
+    }
+
+    public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
+        throws SQLException, NumberFormatException {
+
+        Boolean ciEnabled = (req.getParameter("ciEnabled") == null) ? false : true;
+        String publishBranchRegex = req.getParameter("publishBranchRegex");
+        String publishBuildCommand = req.getParameter("publishBuildCommand");
+        Boolean isPublishPinned = (req.getParameter("isPublishPinned") == null) ? false : true;
+        String publishLabel = req.getParameter("publishLabel");
+        String verifyBranchRegex = req.getParameter("verifyBranchRegex");
+        String verifyBuildCommand = req.getParameter("verifyBuildCommand");
+        Boolean isVerifyPinned = (req.getParameter("isVerifyPinned") == null) ? false : true;
+        String verifyLabel = req.getParameter("verifyLabel");
+        String prebuildCommand = req.getParameter("prebuildCommand");
+        String jenkinsServerName = req.getParameter("jenkinsServerName");
+        String maxVerifyChainStr = req.getParameter("maxVerifyChain");
+        Integer maxVerifyChain = null;
+        if (maxVerifyChainStr != null && !maxVerifyChainStr.isEmpty()) {
+            maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
+        }
+
+        Boolean junitEnabled = (req.getParameter("isJunit") == null) ? false : true;
+        String junitPath = req.getParameter("junitPath");
+        Boolean rebuildOnUpdate = (req.getParameter("rebuildOnUpdate") == null) ? false : true;
+
+        setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
+            verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
+            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain);
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo,
