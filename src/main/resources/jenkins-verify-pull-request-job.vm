@@ -139,7 +139,7 @@
             </hudson.plugins.postbuildtask.LogProperties>
           </logTexts>
           <EscalateStatus>false</EscalateStatus>
-          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <RunIfJobSuccessful>true</RunIfJobSuccessful>
           <script>$esc.xml($successCommand)</script>
         </hudson.plugins.postbuildtask.TaskProperties>
         <hudson.plugins.postbuildtask.TaskProperties>
