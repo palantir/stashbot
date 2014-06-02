@@ -248,7 +248,7 @@ public class BuildSuccessReportingServletTest {
         Mockito.verify(prs).addComment(Mockito.eq(REPO_ID),
             Mockito.eq(PULL_REQUEST_ID), stringCaptor.capture());
         Mockito.verify(res).setStatus(200);
-        Mockito.verify(cpm).setPullRequestMetadata(pr.getId(), HEAD, MERGE_HEAD, null, true, null);
+        Mockito.verify(cpm).setPullRequestMetadata(PULL_REQUEST_ID, MERGE_HEAD, HEAD, null, true, null);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Status Updated"));
