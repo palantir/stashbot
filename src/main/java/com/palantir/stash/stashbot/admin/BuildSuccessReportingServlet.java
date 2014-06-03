@@ -212,6 +212,17 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 return;
             }
 
+            // Update the metadata.  We do this before adding the comment so that any listeners consuming
+            // comment events will have the updated state.
+
+            if (state.equals(State.SUCCESSFUL)) {
+                configurationPersistanceManager.setPullRequestMetadata(
+                    pullRequest.getId(), mergeHead, buildHead, null, true, null);
+            } else {
+                configurationPersistanceManager.setPullRequestMetadata(
+                    pullRequest.getId(), mergeHead, buildHead, null, false, null);
+            }
+
             // mergeHead is not null *and* pullRequest is not null if we reach
             // here.
             final StringBuffer sb = new StringBuffer();
@@ -240,16 +251,6 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
             ss.doAsUser("BUILD SUCCESS REPORT", jsc.getStashUsername(), prcao);
-
-            // but also update metadata
-
-            if (state.equals(State.SUCCESSFUL)) {
-                configurationPersistanceManager.setPullRequestMetadata(
-                    pullRequest.getId(), mergeHead, buildHead, null, true, null);
-            } else {
-                configurationPersistanceManager.setPullRequestMetadata(
-                    pullRequest.getId(), mergeHead, buildHead, null, false, null);
-            }
 
             printOutput(req, res);
         } catch (SQLException e) {
