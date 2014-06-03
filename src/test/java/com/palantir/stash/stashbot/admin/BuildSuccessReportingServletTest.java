@@ -37,6 +37,7 @@ import com.atlassian.stash.build.BuildStatus.State;
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
@@ -95,6 +96,8 @@ public class BuildSuccessReportingServletTest {
     private StashbotUrlBuilder ub;
     @Mock
     private JobTemplateManager jtm;
+    @Mock
+    private PullRequestRef toRef;
 
     private StringWriter mockWriter;
 
@@ -121,6 +124,8 @@ public class BuildSuccessReportingServletTest {
         Mockito.when(repositoryService.getById(REPO_ID)).thenReturn(repo);
         Mockito.when(prs.getById(REPO_ID, PULL_REQUEST_ID)).thenReturn(pr);
         Mockito.when(pr.getId()).thenReturn(PULL_REQUEST_ID);
+        Mockito.when(pr.getToRef()).thenReturn(toRef);
+        Mockito.when(toRef.getRepository()).thenReturn(repo);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
         Mockito.when(repo.getSlug()).thenReturn("slug");
         Mockito.when(repo.getProject()).thenReturn(proj);
@@ -248,7 +253,7 @@ public class BuildSuccessReportingServletTest {
         Mockito.verify(prs).addComment(Mockito.eq(REPO_ID),
             Mockito.eq(PULL_REQUEST_ID), stringCaptor.capture());
         Mockito.verify(res).setStatus(200);
-        Mockito.verify(cpm).setPullRequestMetadata(PULL_REQUEST_ID, MERGE_HEAD, HEAD, null, true, null);
+        Mockito.verify(cpm).setPullRequestMetadata(pr, MERGE_HEAD, HEAD, null, true, null);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Status Updated"));

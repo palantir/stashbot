@@ -118,6 +118,7 @@
     -->
     <component-import key="permissionService" interface="com.atlassian.stash.user.PermissionService"/>
     <component-import key="permissionValidationService" interface="com.atlassian.stash.user.PermissionValidationService"/>
+    <component-import key="eventPublisher" interface="com.atlassian.event.api.EventPublisher"/>
 
     <component key="commandOutputHandlerFactory" class="com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory" />
     <component key="configurationPersistenceManager" class="com.palantir.stash.stashbot.config.ConfigurationPersistenceManager" />

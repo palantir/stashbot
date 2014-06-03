@@ -35,6 +35,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
@@ -42,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
@@ -66,6 +68,8 @@ public class ConfigurationTest {
     private PullRequest pr;
     @Mock
     private Repository repo;
+    @Mock
+    private EventPublisher publisher;
 
     private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
@@ -86,7 +90,7 @@ public class ConfigurationTest {
 
         ao = new TestActiveObjects(entityManager);
 
-        cpm = new ConfigurationPersistenceManager(ao, lf);
+        cpm = new ConfigurationPersistenceManager(ao, lf, publisher);
     }
 
     @Test
@@ -252,6 +256,17 @@ public class ConfigurationTest {
         Assert.assertEquals(PR_ID, prm.getPullRequestId());
         Assert.assertEquals(FROM_SHA, prm.getFromSha());
         Assert.assertEquals(TO_SHA, prm.getToSha());
+        pr.getToRef().getRepository().getId();
+        cpm.setPullRequestMetadata(pr, true, false, null);
+        PullRequestMetadata prm2 = cpm.getPullRequestMetadata(pr);
+        Assert.assertEquals(1, ao.count(PullRequestMetadata.class));
+        Assert.assertEquals(PR_ID, prm2.getPullRequestId());
+        Assert.assertEquals(FROM_SHA, prm2.getFromSha());
+        Assert.assertEquals(TO_SHA, prm2.getToSha());
+        Assert.assertEquals(true, prm2.getBuildStarted().booleanValue());
+        Assert.assertEquals(false, prm2.getSuccess().booleanValue());
+        Assert.assertEquals(false, prm2.getOverride().booleanValue());
+        Mockito.verify(publisher).publish(Mockito.any(StashbotMetadataUpdatedEvent.class));
     }
 
     @Test
