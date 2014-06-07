@@ -29,9 +29,7 @@
         <entity>com.palantir.stash.stashbot.config.RepositoryConfiguration</entity>
         <entity>com.palantir.stash.stashbot.jobtemplate.JobTemplate</entity>
         <entity>com.palantir.stash.stashbot.jobtemplate.JobMapping</entity>
-        <!-- unneeded - yet:
-           <upgradeTask>com <dot> palantir.stash.stashbothelper.upgrade.Version1UpgradeTask</upgradeTask>
-        -->
+        <upgradeTask>com.palantir.stash.stashbot.upgrade.ConfigurationV1UpgradeTask</upgradeTask>
     </ao>
 
     <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.stashbot.admin.RepoConfigurationServlet">

@@ -24,9 +24,9 @@ import net.java.ao.schema.Table;
 public interface PullRequestMetadata extends Entity {
 
 	@NotNull
-	public int getRepoId();
+	public Integer getRepoId();
 
-	public void setRepoId(int id);
+	public void setRepoId(Integer id);
 
     @NotNull
     public Long getPullRequestId();

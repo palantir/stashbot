@@ -325,8 +325,9 @@ public class ConfigurationPersistenceManager {
     }
 
     public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
+        // We have to check repoId being equal to -1 so that this works with old data.
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "REPO_ID = ? AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
+            "(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
             toSha, fromSha);
         if (prms.length == 0) {
             // new/updated PR, create a new object
