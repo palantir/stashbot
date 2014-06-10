@@ -30,6 +30,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
@@ -65,6 +66,8 @@ public class JenkinsJobTest {
     private Repository repo;
     @Mock
     private Project project;
+    @Mock
+    private EventPublisher publisher;
 
     @Before
     public void setUp() throws Exception {
@@ -86,7 +89,7 @@ public class JenkinsJobTest {
         ao = new TestActiveObjects(entityManager);
 
         jtm = new JobTemplateManager(ao, lf);
-        cpm = new ConfigurationPersistenceManager(ao, lf);
+        cpm = new ConfigurationPersistenceManager(ao, lf, publisher);
 
         verifyCommitJT = jtm.getDefaultVerifyJob();
         verifyPRJT = jtm.getDefaultVerifyPullRequestJob();

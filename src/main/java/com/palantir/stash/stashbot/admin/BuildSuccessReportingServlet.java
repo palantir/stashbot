@@ -217,10 +217,10 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 
             if (state.equals(State.SUCCESSFUL)) {
                 configurationPersistanceManager.setPullRequestMetadata(
-                    pullRequest.getId(), mergeHead, buildHead, null, true, null);
+                    pullRequest, mergeHead, buildHead, null, true, null);
             } else {
                 configurationPersistanceManager.setPullRequestMetadata(
-                    pullRequest.getId(), mergeHead, buildHead, null, false, null);
+                    pullRequest, mergeHead, buildHead, null, false, null);
             }
 
             // mergeHead is not null *and* pullRequest is not null if we reach

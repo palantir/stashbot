@@ -23,6 +23,11 @@ import net.java.ao.schema.Table;
 @Preload
 public interface PullRequestMetadata extends Entity {
 
+	@NotNull
+	public Integer getRepoId();
+
+	public void setRepoId(Integer id);
+
     @NotNull
     public Long getPullRequestId();
 

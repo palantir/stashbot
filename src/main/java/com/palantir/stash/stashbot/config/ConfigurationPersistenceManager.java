@@ -25,24 +25,28 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 
 public class ConfigurationPersistenceManager {
 
     private final ActiveObjects ao;
     private final Logger log;
+    private final EventPublisher publisher;
 
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
     public ConfigurationPersistenceManager(ActiveObjects ao,
-        StashbotLoggerFactory lf) {
+        StashbotLoggerFactory lf, EventPublisher publisher) {
         this.ao = ao;
         this.log = lf.getLoggerForThis(this);
+        this.publisher = publisher;
     }
 
     public void deleteJenkinsServerConfiguration(String name) {
@@ -315,22 +319,25 @@ public class ConfigurationPersistenceManager {
     }
 
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
-        return getPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset().toString(),
-            pr.getToRef().getLatestChangeset().toString());
+        return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
+                pr.getFromRef().getLatestChangeset().toString(),
+                pr.getToRef().getLatestChangeset().toString());
     }
 
-    public PullRequestMetadata getPullRequestMetadata(Long id, String fromSha, String toSha) {
+    public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
+        // We have to check repoId being equal to -1 so that this works with old data.
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", id,
+            "(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
             toSha, fromSha);
         if (prms.length == 0) {
             // new/updated PR, create a new object
-            log.info("Creating PR Metadata for pull request: "
-                + "id: " + id + ", fromSha: " + fromSha + ", toSha: " + toSha);
+            log.info("Creating PR Metadata for pull request: repo id:" + repoId
+                + "pr id: " + prId + ", fromSha: " + fromSha + ", toSha: " + toSha);
             PullRequestMetadata prm =
                 ao.create(
                     PullRequestMetadata.class,
-                    new DBParam("PULL_REQUEST_ID", id),
+                    new DBParam("REPO_ID", repoId),
+                    new DBParam("PULL_REQUEST_ID", prId),
                     new DBParam("TO_SHA", toSha),
                     new DBParam("FROM_SHA", fromSha));
             prm.save();
@@ -364,15 +371,17 @@ public class ConfigurationPersistenceManager {
         return ImmutableList.copyOf(prms);
     }
 
+    // Automatically sets the fromHash and toHash from the PullRequest object
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
         Boolean success, Boolean override) {
-        setPullRequestMetadata(pr.getId(), pr.getFromRef().getLatestChangeset(),
+        setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
             pr.getToRef().getLatestChangeset(), buildStarted, success, override);
     }
-
-    public void setPullRequestMetadata(Long prId, String fromHash, String toHash, Boolean buildStarted,
+    // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
+    public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
-        PullRequestMetadata prm = getPullRequestMetadata(prId, fromHash, toHash);
+        PullRequestMetadata prm = getPullRequestMetadata(pr.getToRef().getRepository().getId(), 
+                pr.getId(), fromHash, toHash);
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }
@@ -383,5 +392,6 @@ public class ConfigurationPersistenceManager {
             prm.setOverride(override);
         }
         prm.save();
+        publisher.publish(new StashbotMetadataUpdatedEvent(this, pr));
     }
 }
