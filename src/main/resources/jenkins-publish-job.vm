@@ -103,6 +103,16 @@
       <command>$esc.xml($buildCommand)</command>
     </hudson.tasks.Shell>
   </builders>
+  <reporters>
+#if ($isSendEmail)
+    <hudson.maven.reporters.MavenMailer>
+      <recipients>$emailRecipients</recipients>
+      <dontNotifyEveryUnstableBuild>$emailDontNotifyEveryUnstableBuild</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>$emailSendToIndividuals</sendToIndividuals>
+      <perModuleEmail>$emailPerModuleEmail</perModuleEmail>
+    </hudson.maven.reporters.MavenMailer>
+#end
+  </reporters>
   <publishers>
     <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.8">
       <tasks>
