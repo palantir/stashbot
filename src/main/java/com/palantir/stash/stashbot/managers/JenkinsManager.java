@@ -261,7 +261,7 @@ public class JenkinsManager {
                     .getLatestChangeset().toString());
                 // fromRef may be in a different repo
                 builder.put("mergeRef", pullRequest.getFromRef().getDisplayId());
-                builder.put("mergeRefUrl", sub.buildCloneUrl(repo, jsc));
+                builder.put("mergeRefUrl", sub.buildCloneUrl(pullRequest.getFromRef().getRepository(), jsc));
                 builder.put("mergeHead", pullRequest.getFromRef()
                     .getLatestChangeset().toString());
             }
