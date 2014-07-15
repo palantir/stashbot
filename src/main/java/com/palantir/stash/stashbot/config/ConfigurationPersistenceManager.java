@@ -217,7 +217,7 @@ public class ConfigurationPersistenceManager {
         validateNameExists(jenkinsServerName);
         RepositoryConfiguration[] repos = ao.find(
             RepositoryConfiguration.class,
-            Query.select().where("repo_id = ?", repo.getId()));
+            Query.select().where("REPO_ID = ?", repo.getId()));
         if (repos.length == 0) {
             log.info("Creating repository configuration for id: "
                 + repo.getId().toString());
