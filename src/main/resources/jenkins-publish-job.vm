@@ -107,9 +107,9 @@
 #if ($isEmailNotificationsEnabled)
     <hudson.maven.reporters.MavenMailer>
       <recipients>$emailRecipients</recipients>
-      <dontNotifyEveryUnstableBuild>${!emailForEveryUnstableBuild}</dontNotifyEveryUnstableBuild>
-      <sendToIndividuals>$emailSendToIndividuals</sendToIndividuals>
-      <perModuleEmail>$emailPerModuleEmail</perModuleEmail>
+      <dontNotifyEveryUnstableBuild>${!isEmailForEveryUnstableBuild}</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>$isEmailSendToIndividuals</sendToIndividuals>
+      <perModuleEmail>$isEmailPerModuleEmail</perModuleEmail>
     </hudson.maven.reporters.MavenMailer>
 #end
   </reporters>

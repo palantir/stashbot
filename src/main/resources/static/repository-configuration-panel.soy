@@ -150,27 +150,27 @@
             {param descriptionText: stash_i18n('stash.web.stash.emailRecipients.description', 'Email recipients') /}
           {/call}
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.emailDontNotifyEveryUnstableBuild.button.description', 'Send e-mail for every unstable build') /}
+            {param legendContent: stash_i18n('stash.web.stash.emailForEveryUnstableBuild.button.description', 'Send e-mail for every unstable build') /}
             {param fields: [[
-              'id': 'emailDontNotifyEveryUnstableBuild',
+              'id': 'isEmailForEveryUnstableBuild',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': $emailDontNotifyEveryUnstableBuild
+              'isChecked': {!$isEmailForEveryUnstableBuild}
               ]] /}
           {/call}
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.emailSendToIndividuals.button.description', 'Send separate e-mails to individuals who broke the build') /}
             {param fields: [[
-              'id': 'emailSendToIndividuals',
+              'id': 'isEmailSendToIndividuals',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': $emailSendToIndividuals
+              'isChecked': $isEmailSendToIndividuals
               ]] /}
           {/call}
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.emailPerModuleEmail.button.description', 'Send e-mail for each failed module') /}
             {param fields: [[
-              'id': 'emailPerModuleEmail',
+              'id': 'isEmailPerModuleEmail',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': $emailPerModuleEmail
+              'isChecked': $isEmailPerModuleEmail
               ]] /}
           {/call}
 

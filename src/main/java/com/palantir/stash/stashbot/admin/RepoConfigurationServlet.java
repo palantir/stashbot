@@ -132,11 +132,11 @@ public class RepoConfigurationServlet extends HttpServlet {
                             .put("isJunit", rc.getJunitEnabled())
                             .put("junitPath", rc.getJunitPath())
                             .put("jenkinsServersData", jenkinsServersData)
-                            .put("emailNotificationsEnabled", rc.getEmailNotificationsEnabled())
-                            .put("emailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
-                            .put("emailPerModuleEmail", rc.getEmailPerModuleEmail())
+                            .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
+                            .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
+                            .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
                             .put("emailRecipients", rc.getEmailRecipients())
-                            .put("emailSendToIndividuals", rc.getEmailSendToIndividuals())
+                            .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
                             .build()
             );
         } catch (SoyException e) {
