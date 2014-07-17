@@ -13,20 +13,6 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.admin;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.exception.AuthorisationException;
@@ -42,6 +28,18 @@ import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
+import org.slf4j.Logger;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RepoConfigurationServlet extends HttpServlet {
 
@@ -111,30 +109,36 @@ public class RepoConfigurationServlet extends HttpServlet {
                 }
                 jenkinsServersData.add(m);
             }
+
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             soyTemplateRenderer.render(res.getWriter(),
-                "com.palantir.stash.stashbot:stashbotConfigurationResources",
-                "plugin.page.stashbot.repositoryConfigurationPanel",
-                ImmutableMap.<String, Object> builder()
-                    .put("repository", rep)
-                    .put("ciEnabled", rc.getCiEnabled())
-                    .put("publishBranchRegex", rc.getPublishBranchRegex())
-                    .put("publishBuildCommand", rc.getPublishBuildCommand())
-                    .put("verifyBranchRegex", rc.getVerifyBranchRegex())
-                    .put("verifyBuildCommand", rc.getVerifyBuildCommand())
-                    .put("prebuildCommand", rc.getPrebuildCommand())
-                    .put("jenkinsServerName", rc.getJenkinsServerName())
-                    .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
-                    .put("rebuildOnUpdate", rc.getRebuildOnTargetUpdate())
-                    .put("isVerifyPinned", rc.getVerifyPinned())
-                    .put("verifyLabel", rc.getVerifyLabel())
-                    .put("isPublishPinned", rc.getPublishPinned())
-                    .put("publishLabel", rc.getPublishLabel())
-                    .put("isJunit", rc.getJunitEnabled())
-                    .put("junitPath", rc.getJunitPath())
-                    .put("jenkinsServersData", jenkinsServersData)
-                    .build()
-                );
+                    "com.palantir.stash.stashbot:stashbotConfigurationResources",
+                    "plugin.page.stashbot.repositoryConfigurationPanel",
+                    ImmutableMap.<String, Object>builder()
+                            .put("repository", rep)
+                            .put("ciEnabled", rc.getCiEnabled())
+                            .put("publishBranchRegex", rc.getPublishBranchRegex())
+                            .put("publishBuildCommand", rc.getPublishBuildCommand())
+                            .put("verifyBranchRegex", rc.getVerifyBranchRegex())
+                            .put("verifyBuildCommand", rc.getVerifyBuildCommand())
+                            .put("prebuildCommand", rc.getPrebuildCommand())
+                            .put("jenkinsServerName", rc.getJenkinsServerName())
+                            .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
+                            .put("rebuildOnUpdate", rc.getRebuildOnTargetUpdate())
+                            .put("isVerifyPinned", rc.getVerifyPinned())
+                            .put("verifyLabel", rc.getVerifyLabel())
+                            .put("isPublishPinned", rc.getPublishPinned())
+                            .put("publishLabel", rc.getPublishLabel())
+                            .put("isJunit", rc.getJunitEnabled())
+                            .put("junitPath", rc.getJunitPath())
+                            .put("jenkinsServersData", jenkinsServersData)
+                            .put("emailNotificationsEnabled", rc.getEmailNotificationsEnabled())
+                            .put("emailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
+                            .put("emailPerModuleEmail", rc.getEmailPerModuleEmail())
+                            .put("emailRecipients", rc.getEmailRecipients())
+                            .put("emailSendToIndividuals", rc.getEmailSendToIndividuals())
+                            .build()
+            );
         } catch (SoyException e) {
             Throwable cause = e.getCause();
             if (cause instanceof IOException) {

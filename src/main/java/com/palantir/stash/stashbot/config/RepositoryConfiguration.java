@@ -126,4 +126,35 @@ public interface RepositoryConfiguration extends Entity {
     public Boolean getRebuildOnTargetUpdate();
 
     public void setRebuildOnTargetUpdate(Boolean rebuild);
+
+    @NotNull
+    @Default("false")
+    public Boolean getEmailNotificationsEnabled();
+
+    public void setEmailNotificationsEnabled(Boolean emailNotificationsEnabled);
+
+    @NotNull
+    @Default("empty")
+    public String getEmailRecipients();
+
+    public void setEmailRecipients(String emailRecipients);
+
+    @NotNull
+    @Default("false")
+    public Boolean getEmailForEveryUnstableBuild();
+
+    public void setEmailForEveryUnstableBuild(Boolean emailForEveryUnstableBuild);
+
+    @NotNull
+    @Default("false")
+    public Boolean getEmailSendToIndividuals();
+
+    public void setEmailSendToIndividuals(Boolean emailSendToIndividuals);
+
+    @NotNull
+    @Default("false")
+    public Boolean getEmailPerModuleEmail();
+
+    public void setEmailPerModuleEmail(Boolean emailPerModuleEmail);
+
 }

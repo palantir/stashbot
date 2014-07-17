@@ -104,10 +104,10 @@
     </hudson.tasks.Shell>
   </builders>
   <reporters>
-#if ($isSendEmail)
+#if ($isEmailNotificationsEnabled)
     <hudson.maven.reporters.MavenMailer>
       <recipients>$emailRecipients</recipients>
-      <dontNotifyEveryUnstableBuild>$emailDontNotifyEveryUnstableBuild</dontNotifyEveryUnstableBuild>
+      <dontNotifyEveryUnstableBuild>${!emailForEveryUnstableBuild}</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>$emailSendToIndividuals</sendToIndividuals>
       <perModuleEmail>$emailPerModuleEmail</perModuleEmail>
     </hudson.maven.reporters.MavenMailer>

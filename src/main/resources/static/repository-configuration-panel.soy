@@ -136,11 +136,11 @@
           {/call}
 
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.email-enabled.button.description', 'E-mail Notification') /}
+            {param legendContent: stash_i18n('stash.web.stash.email-enabled.button.description', 'Enable e-mail notifications') /}
             {param fields: [[
-              'id': 'isSendEmail',
+              'id': 'isEmailNotificationsEnabled',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': $isSendEmail
+              'isChecked': $isEmailNotificationsEnabled
               ]] /}
           {/call}
           {call aui.form.textField}

@@ -13,17 +13,6 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.config;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
-import net.java.ao.DBParam;
-import net.java.ao.Query;
-
-import org.slf4j.Logger;
-
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.pull.PullRequest;
@@ -33,6 +22,14 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import net.java.ao.DBParam;
+import net.java.ao.Query;
+import org.slf4j.Logger;
+
+import javax.servlet.http.HttpServletRequest;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfigurationPersistenceManager {
 
@@ -101,7 +98,7 @@ public class ConfigurationPersistenceManager {
 
     /**
      * @deprecated Use
-     *             {@link #setJenkinsServerConfiguration(String,String,String,String,AuthenticationMethod,String,String,Integer)}
+     *             {@link ConfigurationPersistenceManager#setJenkinsServerConfiguration(String, String, String, String, AuthenticationMode, String, String, Integer)}
      *             instead
      */
     @Deprecated
@@ -150,8 +147,8 @@ public class ConfigurationPersistenceManager {
     public RepositoryConfiguration getRepositoryConfigurationForRepository(
         Repository repo) throws SQLException {
         RepositoryConfiguration[] repos = ao.find(
-            RepositoryConfiguration.class,
-            Query.select().where("REPO_ID = ?", repo.getId()));
+                RepositoryConfiguration.class,
+                Query.select().where("REPO_ID = ?", repo.getId()));
         if (repos.length == 0) {
             // just use the defaults
             RepositoryConfiguration rc = ao.create(
@@ -169,22 +166,22 @@ public class ConfigurationPersistenceManager {
         String publishBuildCommand, String prebuildCommand, boolean rebuildOnUpdate)
         throws SQLException, IllegalArgumentException {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
-            verifyBranchRegex, verifyBuildCommand, false,
-            "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", null);
+                verifyBranchRegex, verifyBuildCommand, false,
+                "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
+                false, "N/A", null, new EmailSettings());
     }
 
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
         throws SQLException, NumberFormatException {
 
-        Boolean ciEnabled = (req.getParameter("ciEnabled") == null) ? false : true;
+        Boolean ciEnabled = getBoolean(req, "ciEnabled");
         String publishBranchRegex = req.getParameter("publishBranchRegex");
         String publishBuildCommand = req.getParameter("publishBuildCommand");
-        Boolean isPublishPinned = (req.getParameter("isPublishPinned") == null) ? false : true;
+        Boolean isPublishPinned = getBoolean(req, "isPublishPinned");
         String publishLabel = req.getParameter("publishLabel");
         String verifyBranchRegex = req.getParameter("verifyBranchRegex");
         String verifyBuildCommand = req.getParameter("verifyBuildCommand");
-        Boolean isVerifyPinned = (req.getParameter("isVerifyPinned") == null) ? false : true;
+        Boolean isVerifyPinned = getBoolean(req, "isVerifyPinned");
         String verifyLabel = req.getParameter("verifyLabel");
         String prebuildCommand = req.getParameter("prebuildCommand");
         String jenkinsServerName = req.getParameter("jenkinsServerName");
@@ -194,13 +191,28 @@ public class ConfigurationPersistenceManager {
             maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
         }
 
-        Boolean junitEnabled = (req.getParameter("isJunit") == null) ? false : true;
+        Boolean junitEnabled = getBoolean(req, "isJunit");
         String junitPath = req.getParameter("junitPath");
-        Boolean rebuildOnUpdate = (req.getParameter("rebuildOnUpdate") == null) ? false : true;
+        Boolean rebuildOnUpdate = getBoolean(req, "rebuildOnUpdate");
+
+        EmailSettings emailSettings = getEmailSettings(req);
 
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
-            verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
-            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain);
+                verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
+                jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain, emailSettings);
+    }
+
+    private EmailSettings getEmailSettings(HttpServletRequest req) {
+        Boolean emailNotificationsEnabled = getBoolean(req, "emailNotificationsEnabled");
+        String emailRecipients = req.getParameter("emailRecipients");
+        Boolean emailDontNotifyEveryUnstableBuild = getBoolean(req, "emailDontNotifyEveryUnstableBuild");
+        Boolean emailSendToIndividuals = getBoolean(req, "emailSendToIndividuals");
+        Boolean emailPerModuleEmail = getBoolean(req, "emailPerModuleEmail");
+        return new EmailSettings(emailNotificationsEnabled, emailRecipients, emailDontNotifyEveryUnstableBuild, emailSendToIndividuals, emailPerModuleEmail);
+    }
+
+    private boolean getBoolean(HttpServletRequest req, String parameter) {
+        return (req.getParameter(parameter) == null) ? false : true;
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo,
@@ -209,7 +221,7 @@ public class ConfigurationPersistenceManager {
         String verifyLabel, String publishBranchRegex,
         String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
         String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-        Integer maxVerifyChain)
+        Integer maxVerifyChain, EmailSettings emailSettings)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -220,48 +232,60 @@ public class ConfigurationPersistenceManager {
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
             log.info("Creating repository configuration for id: "
-                + repo.getId().toString());
+                    + repo.getId().toString());
             RepositoryConfiguration rc = ao.create(
-                RepositoryConfiguration.class,
-                new DBParam("REPO_ID", repo.getId()), new DBParam(
+                    RepositoryConfiguration.class,
+                    new DBParam("REPO_ID", repo.getId()), new DBParam(
                     "CI_ENABLED", isCiEnabled), new DBParam(
                     "VERIFY_BRANCH_REGEX", verifyBranchRegex),
-                new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
-                new DBParam("VERIFY_PINNED", isVerifyPinned),
-                new DBParam("VERIFY_LABEL", verifyLabel),
-                new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
-                new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
-                new DBParam("PUBLISH_PINNED", isPublishPinned),
-                new DBParam("PUBLISH_LABEL", publishLabel),
-                new DBParam("PREBUILD_COMMAND", prebuildCommand),
-                new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
-                new DBParam("JUNIT_ENABLED", isJunitEnabled),
-                new DBParam("JUNIT_PATH", junitPath),
-                new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate));
+                    new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
+                    new DBParam("VERIFY_PINNED", isVerifyPinned),
+                    new DBParam("VERIFY_LABEL", verifyLabel),
+                    new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
+                    new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
+                    new DBParam("PUBLISH_PINNED", isPublishPinned),
+                    new DBParam("PUBLISH_LABEL", publishLabel),
+                    new DBParam("PREBUILD_COMMAND", prebuildCommand),
+                    new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
+                    new DBParam("JUNIT_ENABLED", isJunitEnabled),
+                    new DBParam("JUNIT_PATH", junitPath),
+                    new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
+                    new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings.getEmailNotificationsEnabled()),
+                    new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
+                    new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
+                    new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
+                    new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals())
+            );
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
             rc.save();
             return;
         }
-        repos[0].setCiEnabled(isCiEnabled);
-        repos[0].setVerifyBranchRegex(verifyBranchRegex);
-        repos[0].setVerifyBuildCommand(verifyBuildCommand);
-        repos[0].setVerifyPinned(isVerifyPinned);
-        repos[0].setVerifyLabel(verifyLabel);
-        repos[0].setPublishBranchRegex(publishBranchRegex);
-        repos[0].setPublishBuildCommand(publishBuildCommand);
-        repos[0].setPublishPinned(isPublishPinned);
-        repos[0].setPublishLabel(publishLabel);
-        repos[0].setPrebuildCommand(prebuildCommand);
-        repos[0].setJenkinsServerName(jenkinsServerName);
-        repos[0].setJunitEnabled(isJunitEnabled);
-        repos[0].setJunitPath(junitPath);
-        repos[0].setRebuildOnTargetUpdate(rebuildOnUpdate);
+        RepositoryConfiguration foundRepo = repos[0];
+        foundRepo.setCiEnabled(isCiEnabled);
+        foundRepo.setVerifyBranchRegex(verifyBranchRegex);
+        foundRepo.setVerifyBuildCommand(verifyBuildCommand);
+        foundRepo.setVerifyPinned(isVerifyPinned);
+        foundRepo.setVerifyLabel(verifyLabel);
+        foundRepo.setPublishBranchRegex(publishBranchRegex);
+        foundRepo.setPublishBuildCommand(publishBuildCommand);
+        foundRepo.setPublishPinned(isPublishPinned);
+        foundRepo.setPublishLabel(publishLabel);
+        foundRepo.setPrebuildCommand(prebuildCommand);
+        foundRepo.setJenkinsServerName(jenkinsServerName);
+        foundRepo.setJunitEnabled(isJunitEnabled);
+        foundRepo.setJunitPath(junitPath);
+        foundRepo.setRebuildOnTargetUpdate(rebuildOnUpdate);
         if (maxVerifyChain != null) {
-            repos[0].setMaxVerifyChain(maxVerifyChain);
+            foundRepo.setMaxVerifyChain(maxVerifyChain);
         }
-        repos[0].save();
+        foundRepo.setEmailNotificationsEnabled(emailSettings.getEmailNotificationsEnabled());
+        foundRepo.setEmailForEveryUnstableBuild(emailSettings.getEmailForEveryUnstableBuild());
+        foundRepo.setEmailPerModuleEmail(emailSettings.getEmailPerModuleEmail());
+        foundRepo.setEmailRecipients(emailSettings.getEmailRecipients());
+        foundRepo.setEmailSendToIndividuals(emailSettings.getEmailSendToIndividuals());
+        foundRepo.save();
     }
 
     public ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
