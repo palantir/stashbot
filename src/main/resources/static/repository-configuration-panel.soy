@@ -154,7 +154,7 @@
             {param fields: [[
               'id': 'isEmailForEveryUnstableBuild',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': {!$isEmailForEveryUnstableBuild}
+              'isChecked': $isEmailForEveryUnstableBuild
               ]] /}
           {/call}
           {call aui.form.checkboxField}
