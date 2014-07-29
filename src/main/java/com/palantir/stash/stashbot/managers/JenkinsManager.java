@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 
 import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.util.Page;
@@ -260,9 +261,16 @@ public class JenkinsManager {
                 builder.put("buildHead", pullRequest.getToRef()
                     .getLatestChangeset().toString());
                 // fromRef may be in a different repo
-                builder.put("mergeRef", pullRequest.getFromRef().getDisplayId());
-                builder.put("mergeRefUrl", sub.buildCloneUrl(repo, jsc));
-                builder.put("mergeHead", pullRequest.getFromRef()
+                PullRequestRef fromRef = pullRequest.getFromRef();
+                builder.put("mergeRef", fromRef.getDisplayId());
+                Repository fromRepo = fromRef.getRepository();
+                if( rc.getUseSsh().booleanValue() ) {
+                    builder.put("mergeRefUrl", sshCloneUrlResolver.getCloneUrl(fromRepo));
+                }
+                else {
+                    builder.put("mergeRefUrl", sub.buildCloneUrl(fromRepo, jsc));
+                }
+                builder.put("mergeHead", fromRef
                     .getLatestChangeset().toString());
             }
 
