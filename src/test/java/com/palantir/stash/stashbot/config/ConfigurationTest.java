@@ -119,7 +119,7 @@ public class ConfigurationTest {
         assertEquals(password, jsc.getPassword());
 
         assertEquals(sizeOfData + 1,
-                ao.count(JenkinsServerConfiguration.class));
+            ao.count(JenkinsServerConfiguration.class));
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ConfigurationTest {
         assertEquals("foo", configs.get("foo").getName());
         assertEquals("url2", configs.get("foo").getUrl());
         assertEquals(new Integer(10), configs.get("foo")
-                .getMaxVerifyChain());
+            .getMaxVerifyChain());
     }
 
     @Test
@@ -241,7 +241,7 @@ public class ConfigurationTest {
 
             RepositoryConfiguration rc = entityManager.create(
                 RepositoryConfiguration.class, new DBParam("REPO_ID",
-                    new Integer(10)));
+                new Integer(10)));
 
             rc.setCiEnabled(true);
             rc.setPublishBranchRegex("publishBranchRegex");

@@ -144,7 +144,7 @@ public class JenkinsConfigurationServletTest {
 
         when(req.getRemoteUser()).thenReturn(null);
         doThrow(
-                new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
+            new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
             .when(pvs).validateAuthenticated();
 
         jcs.doGet(req, res);
@@ -158,7 +158,7 @@ public class JenkinsConfigurationServletTest {
 
         when(req.getRemoteUser()).thenReturn("nonAdminStashUser");
         doThrow(
-                new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
+            new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
             .when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         jcs.doGet(req, res);
@@ -174,7 +174,7 @@ public class JenkinsConfigurationServletTest {
         verify(res).setContentType("text/html;charset=UTF-8");
         verify(rr).requireContext("plugin.page.stashbot");
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 
@@ -215,7 +215,7 @@ public class JenkinsConfigurationServletTest {
         verify(res).setContentType("text/html;charset=UTF-8");
         verify(rr).requireContext("plugin.page.stashbot");
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 

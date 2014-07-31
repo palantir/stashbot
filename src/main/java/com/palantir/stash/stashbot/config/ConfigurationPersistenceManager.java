@@ -39,8 +39,7 @@ public class ConfigurationPersistenceManager {
 
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
-    public ConfigurationPersistenceManager(ActiveObjects ao,
-        StashbotLoggerFactory lf, EventPublisher publisher) {
+    public ConfigurationPersistenceManager(ActiveObjects ao, StashbotLoggerFactory lf, EventPublisher publisher) {
         this.ao = ao;
         this.log = lf.getLoggerForThis(this);
         this.publisher = publisher;
@@ -147,8 +146,8 @@ public class ConfigurationPersistenceManager {
     public RepositoryConfiguration getRepositoryConfigurationForRepository(
         Repository repo) throws SQLException {
         RepositoryConfiguration[] repos = ao.find(
-                RepositoryConfiguration.class,
-                Query.select().where("REPO_ID = ?", repo.getId()));
+            RepositoryConfiguration.class,
+            Query.select().where("REPO_ID = ?", repo.getId()));
         if (repos.length == 0) {
             // just use the defaults
             RepositoryConfiguration rc = ao.create(
@@ -166,9 +165,9 @@ public class ConfigurationPersistenceManager {
         String publishBuildCommand, String prebuildCommand, boolean rebuildOnUpdate)
         throws SQLException, IllegalArgumentException {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
-                verifyBranchRegex, verifyBuildCommand, false,
-                "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-                false, "N/A", null, new EmailSettings());
+            verifyBranchRegex, verifyBuildCommand, false,
+            "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
+            false, "N/A", null, new EmailSettings());
     }
 
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
@@ -198,8 +197,8 @@ public class ConfigurationPersistenceManager {
         EmailSettings emailSettings = getEmailSettings(req);
 
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
-                verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
-                jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain, emailSettings);
+            verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
+            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain, emailSettings);
     }
 
     private EmailSettings getEmailSettings(HttpServletRequest req) {
@@ -208,7 +207,8 @@ public class ConfigurationPersistenceManager {
         Boolean emailDontNotifyEveryUnstableBuild = getBoolean(req, "emailDontNotifyEveryUnstableBuild");
         Boolean emailSendToIndividuals = getBoolean(req, "emailSendToIndividuals");
         Boolean emailPerModuleEmail = getBoolean(req, "emailPerModuleEmail");
-        return new EmailSettings(emailNotificationsEnabled, emailRecipients, emailDontNotifyEveryUnstableBuild, emailSendToIndividuals, emailPerModuleEmail);
+        return new EmailSettings(emailNotificationsEnabled, emailRecipients, emailDontNotifyEveryUnstableBuild,
+            emailSendToIndividuals, emailPerModuleEmail);
     }
 
     private boolean getBoolean(HttpServletRequest req, String parameter) {
@@ -232,29 +232,29 @@ public class ConfigurationPersistenceManager {
             Query.select().where("repo_id = ?", repo.getId()));
         if (repos.length == 0) {
             log.info("Creating repository configuration for id: "
-                    + repo.getId().toString());
+                + repo.getId().toString());
             RepositoryConfiguration rc = ao.create(
-                    RepositoryConfiguration.class,
-                    new DBParam("REPO_ID", repo.getId()), new DBParam(
-                    "CI_ENABLED", isCiEnabled), new DBParam(
-                    "VERIFY_BRANCH_REGEX", verifyBranchRegex),
-                    new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
-                    new DBParam("VERIFY_PINNED", isVerifyPinned),
-                    new DBParam("VERIFY_LABEL", verifyLabel),
-                    new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
-                    new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
-                    new DBParam("PUBLISH_PINNED", isPublishPinned),
-                    new DBParam("PUBLISH_LABEL", publishLabel),
-                    new DBParam("PREBUILD_COMMAND", prebuildCommand),
-                    new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
-                    new DBParam("JUNIT_ENABLED", isJunitEnabled),
-                    new DBParam("JUNIT_PATH", junitPath),
-                    new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
-                    new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings.getEmailNotificationsEnabled()),
-                    new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
-                    new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
-                    new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
-                    new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals())
+                RepositoryConfiguration.class,
+                new DBParam("REPO_ID", repo.getId()), new DBParam(
+                "CI_ENABLED", isCiEnabled), new DBParam(
+                "VERIFY_BRANCH_REGEX", verifyBranchRegex),
+                new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
+                new DBParam("VERIFY_PINNED", isVerifyPinned),
+                new DBParam("VERIFY_LABEL", verifyLabel),
+                new DBParam("PUBLISH_BRANCH_REGEX", publishBranchRegex),
+                new DBParam("PUBLISH_BUILD_COMMAND", publishBuildCommand),
+                new DBParam("PUBLISH_PINNED", isPublishPinned),
+                new DBParam("PUBLISH_LABEL", publishLabel),
+                new DBParam("PREBUILD_COMMAND", prebuildCommand),
+                new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
+                new DBParam("JUNIT_ENABLED", isJunitEnabled),
+                new DBParam("JUNIT_PATH", junitPath),
+                new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
+                new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings.getEmailNotificationsEnabled()),
+                new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
+                new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
+                new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
+                new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals())
             );
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
@@ -344,8 +344,8 @@ public class ConfigurationPersistenceManager {
 
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
-                pr.getFromRef().getLatestChangeset().toString(),
-                pr.getToRef().getLatestChangeset().toString());
+            pr.getFromRef().getLatestChangeset().toString(),
+            pr.getToRef().getLatestChangeset().toString());
     }
 
     public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
@@ -401,11 +401,12 @@ public class ConfigurationPersistenceManager {
         setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
             pr.getToRef().getLatestChangeset(), buildStarted, success, override);
     }
+
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
-        PullRequestMetadata prm = getPullRequestMetadata(pr.getToRef().getRepository().getId(), 
-                pr.getId(), fromHash, toHash);
+        PullRequestMetadata prm = getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(), fromHash,
+            toHash);
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }

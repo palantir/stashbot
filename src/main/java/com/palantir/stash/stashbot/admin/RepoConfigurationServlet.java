@@ -44,7 +44,7 @@ import java.util.Map;
 public class RepoConfigurationServlet extends HttpServlet {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -112,32 +112,32 @@ public class RepoConfigurationServlet extends HttpServlet {
 
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             soyTemplateRenderer.render(res.getWriter(),
-                    "com.palantir.stash.stashbot:stashbotConfigurationResources",
-                    "plugin.page.stashbot.repositoryConfigurationPanel",
-                    ImmutableMap.<String, Object>builder()
-                            .put("repository", rep)
-                            .put("ciEnabled", rc.getCiEnabled())
-                            .put("publishBranchRegex", rc.getPublishBranchRegex())
-                            .put("publishBuildCommand", rc.getPublishBuildCommand())
-                            .put("verifyBranchRegex", rc.getVerifyBranchRegex())
-                            .put("verifyBuildCommand", rc.getVerifyBuildCommand())
-                            .put("prebuildCommand", rc.getPrebuildCommand())
-                            .put("jenkinsServerName", rc.getJenkinsServerName())
-                            .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
-                            .put("rebuildOnUpdate", rc.getRebuildOnTargetUpdate())
-                            .put("isVerifyPinned", rc.getVerifyPinned())
-                            .put("verifyLabel", rc.getVerifyLabel())
-                            .put("isPublishPinned", rc.getPublishPinned())
-                            .put("publishLabel", rc.getPublishLabel())
-                            .put("isJunit", rc.getJunitEnabled())
-                            .put("junitPath", rc.getJunitPath())
-                            .put("jenkinsServersData", jenkinsServersData)
-                            .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
-                            .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
-                            .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
-                            .put("emailRecipients", rc.getEmailRecipients())
-                            .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
-                            .build()
+                "com.palantir.stash.stashbot:stashbotConfigurationResources",
+                "plugin.page.stashbot.repositoryConfigurationPanel",
+                ImmutableMap.<String, Object>builder()
+                    .put("repository", rep)
+                    .put("ciEnabled", rc.getCiEnabled())
+                    .put("publishBranchRegex", rc.getPublishBranchRegex())
+                    .put("publishBuildCommand", rc.getPublishBuildCommand())
+                    .put("verifyBranchRegex", rc.getVerifyBranchRegex())
+                    .put("verifyBuildCommand", rc.getVerifyBuildCommand())
+                    .put("prebuildCommand", rc.getPrebuildCommand())
+                    .put("jenkinsServerName", rc.getJenkinsServerName())
+                    .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
+                    .put("rebuildOnUpdate", rc.getRebuildOnTargetUpdate())
+                    .put("isVerifyPinned", rc.getVerifyPinned())
+                    .put("verifyLabel", rc.getVerifyLabel())
+                    .put("isPublishPinned", rc.getPublishPinned())
+                    .put("publishLabel", rc.getPublishLabel())
+                    .put("isJunit", rc.getJunitEnabled())
+                    .put("junitPath", rc.getJunitPath())
+                    .put("jenkinsServersData", jenkinsServersData)
+                    .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
+                    .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
+                    .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
+                    .put("emailRecipients", rc.getEmailRecipients())
+                    .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
+                    .build()
             );
         } catch (SoyException e) {
             Throwable cause = e.getCause();
