@@ -144,7 +144,6 @@ public class BuildSuccessReportingServletTest {
 
             @Override
             public Void answer(InvocationOnMock invocation) throws Throwable {
-                @SuppressWarnings("unchecked")
                 Operation<Void, Exception> op = (Operation<Void, Exception>) invocation.getArguments()[2];
 
                 op.perform();
