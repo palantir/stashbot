@@ -50,7 +50,7 @@ import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
@@ -105,7 +105,7 @@ public class BuildSuccessReportingServletTest {
 
     private static final String ABSOLUTE_URL = "http://example.com/blah/foo";
 
-    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     private MockJobTemplateFactory jtf;
 
