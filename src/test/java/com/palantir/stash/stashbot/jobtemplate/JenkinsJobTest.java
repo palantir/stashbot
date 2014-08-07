@@ -37,7 +37,7 @@ import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobTest.DataStuff;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
 @Jdbc(DynamicJdbcConfiguration.class)
@@ -47,7 +47,7 @@ public class JenkinsJobTest {
     private EntityManager entityManager;
     private ActiveObjects ao;
 
-    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     private JobTemplateManager jtm;
     private ConfigurationPersistenceManager cpm;

@@ -126,7 +126,7 @@
     <component key="jobTemplateManager" class="com.palantir.stash.stashbot.jobtemplate.JobTemplateManager" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
-    <component key="stashbotLoggerFactory" class="com.palantir.stash.stashbot.logger.StashbotLoggerFactory"/>
+    <component key="stashbotLoggerFactory" class="com.palantir.stash.stashbot.logger.PluginLoggerFactory"/>
     <component key="stashbotUrlBuilder" class="com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder"/>
     <component key="velocityManager" class="com.palantir.stash.stashbot.managers.VelocityManager" />
 

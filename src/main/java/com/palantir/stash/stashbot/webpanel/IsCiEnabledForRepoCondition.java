@@ -10,14 +10,14 @@ import com.atlassian.plugin.web.Condition;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 public class IsCiEnabledForRepoCondition implements Condition {
 
     private final ConfigurationPersistenceManager cpm;
     private final Logger log;
 
-    public IsCiEnabledForRepoCondition(ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
+    public IsCiEnabledForRepoCondition(ConfigurationPersistenceManager cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
     }

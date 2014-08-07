@@ -34,7 +34,7 @@ import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 public class PullRequestListenerTest {
@@ -79,7 +79,7 @@ public class PullRequestListenerTest {
     private static final String COMMENT_TEXT = "comment text";
     private static final String OVERRIDE_COMMENT_TEXT = "Comment added with ==OVERRIDE==";
 
-    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     @Mock
     private JobTemplate jobTemplate;

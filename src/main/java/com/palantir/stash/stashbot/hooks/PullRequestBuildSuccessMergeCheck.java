@@ -27,7 +27,7 @@ import com.atlassian.stash.scm.pull.MergeRequestCheck;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 /**
  * This class is a MergeRequestCheck to disable merging where the target repo
@@ -42,7 +42,7 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
     private final Logger log;
 
     public PullRequestBuildSuccessMergeCheck(
-        ConfigurationPersistenceManager cpm, StashbotLoggerFactory lf) {
+        ConfigurationPersistenceManager cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
     }

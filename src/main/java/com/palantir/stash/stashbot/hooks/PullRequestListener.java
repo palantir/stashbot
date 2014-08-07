@@ -29,7 +29,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 /**
@@ -50,7 +50,7 @@ public class PullRequestListener {
     private final Logger log;
 
     public PullRequestListener(ConfigurationPersistenceManager cpm,
-        JenkinsManager jenkinsManager, StashbotLoggerFactory lf) {
+        JenkinsManager jenkinsManager, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.jenkinsManager = jenkinsManager;
         this.log = lf.getLoggerForThis(this);

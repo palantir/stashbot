@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
 @Jdbc(DynamicJdbcConfiguration.class)
@@ -71,7 +71,7 @@ public class ConfigurationTest {
     @Mock
     private EventPublisher publisher;
 
-    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     @Before
     public void setUp() throws Exception {
