@@ -133,6 +133,12 @@
               {param value: 'http://jenkins.example.com:8080/' /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
             {/call}
+            {call aui.form.selectField}
+              {param id: 'authenticationMode' /}
+              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
+              {param options: $authenticationModeData['default'] /}
+              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
+            {/call}
             {call aui.form.textField}
               {param id: 'username' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
