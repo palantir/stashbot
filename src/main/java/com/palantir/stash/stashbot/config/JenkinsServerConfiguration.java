@@ -13,8 +13,10 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.config;
 
+import net.java.ao.Accessor;
 import net.java.ao.Entity;
 import net.java.ao.Implementation;
+import net.java.ao.Mutator;
 import net.java.ao.Preload;
 import net.java.ao.schema.Default;
 import net.java.ao.schema.NotNull;
@@ -168,4 +170,13 @@ public interface JenkinsServerConfiguration extends Entity {
     public Integer getMaxVerifyChain();
 
     public void setMaxVerifyChain(Integer max);
+
+    // For security - allow a jenkins server config to be locked to non-system-admins
+    @NotNull
+    @Default("false")
+    @Accessor("LOCKED")
+    public Boolean getLocked();
+
+    @Mutator("LOCKED")
+    public void setLocked(Boolean isLocked);
 }

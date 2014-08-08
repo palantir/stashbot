@@ -91,12 +91,15 @@ public class ConfigurationPersistenceManager {
         String url = req.getParameter("url");
         String username = req.getParameter("username");
         String password = req.getParameter("password");
-        AuthenticationMode am = AuthenticationMode.fromMode(req.getParameter("authenticationMode")); // TODO
+        AuthenticationMode am = AuthenticationMode.fromMode(req.getParameter("authenticationMode"));
         String stashUsername = req.getParameter("stashUsername");
         String stashPassword = req.getParameter("stashPassword");
         Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
+        String lockStr = req.getParameter("locked");
+        Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false : true;
 
-        setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain);
+        setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain,
+            isLocked);
     }
 
     /**
@@ -109,13 +112,12 @@ public class ConfigurationPersistenceManager {
         String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
         throws SQLException {
         setJenkinsServerConfiguration(name, url, username, password, AuthenticationMode.USERNAME_AND_PASSWORD,
-            stashUsername, stashPassword,
-            maxVerifyChain);
+            stashUsername, stashPassword, maxVerifyChain, false);
     }
 
     public void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain)
+        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
         throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -132,7 +134,7 @@ public class ConfigurationPersistenceManager {
                 username), new DBParam("PASSWORD", password), new DBParam(
                 "STASH_USERNAME", stashUsername), new DBParam(
                 "STASH_PASSWORD", stashPassword), new DBParam(
-                "MAX_VERIFY_CHAIN", maxVerifyChain));
+                "MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam("LOCKED", isLocked));
             return;
         }
         // already exists, so update it
@@ -144,6 +146,7 @@ public class ConfigurationPersistenceManager {
         configs[0].setStashUsername(stashUsername);
         configs[0].setStashPassword(stashPassword);
         configs[0].setMaxVerifyChain(maxVerifyChain);
+        configs[0].setLocked(isLocked);
         configs[0].save();
     }
 
@@ -320,8 +323,8 @@ public class ConfigurationPersistenceManager {
 
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
-                pr.getFromRef().getLatestChangeset().toString(),
-                pr.getToRef().getLatestChangeset().toString());
+            pr.getFromRef().getLatestChangeset().toString(),
+            pr.getToRef().getLatestChangeset().toString());
     }
 
     public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
@@ -377,11 +380,12 @@ public class ConfigurationPersistenceManager {
         setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
             pr.getToRef().getLatestChangeset(), buildStarted, success, override);
     }
+
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
-        PullRequestMetadata prm = getPullRequestMetadata(pr.getToRef().getRepository().getId(), 
-                pr.getId(), fromHash, toHash);
+        PullRequestMetadata prm = getPullRequestMetadata(pr.getToRef().getRepository().getId(),
+            pr.getId(), fromHash, toHash);
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }
