@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 public class JobTemplateManager {
 
@@ -26,7 +26,7 @@ public class JobTemplateManager {
     private final ActiveObjects ao;
     private final Logger log;
 
-    public JobTemplateManager(ActiveObjects ao, StashbotLoggerFactory lf) {
+    public JobTemplateManager(ActiveObjects ao, PluginLoggerFactory lf) {
         this.ao = ao;
         this.log = lf.getLoggerForThis(this);
     }

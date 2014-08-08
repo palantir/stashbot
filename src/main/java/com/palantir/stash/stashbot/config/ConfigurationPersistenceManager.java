@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 public class ConfigurationPersistenceManager {
 
@@ -43,7 +43,7 @@ public class ConfigurationPersistenceManager {
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
     public ConfigurationPersistenceManager(ActiveObjects ao,
-        StashbotLoggerFactory lf, EventPublisher publisher) {
+        PluginLoggerFactory lf, EventPublisher publisher) {
         this.ao = ao;
         this.log = lf.getLoggerForThis(this);
         this.publisher = publisher;
@@ -217,7 +217,7 @@ public class ConfigurationPersistenceManager {
         validateNameExists(jenkinsServerName);
         RepositoryConfiguration[] repos = ao.find(
             RepositoryConfiguration.class,
-            Query.select().where("repo_id = ?", repo.getId()));
+            Query.select().where("REPO_ID = ?", repo.getId()));
         if (repos.length == 0) {
             log.info("Creating repository configuration for id: "
                 + repo.getId().toString());

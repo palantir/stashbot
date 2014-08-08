@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 public class PullRequestBuildSuccessMergeCheckTest {
 
@@ -62,7 +62,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
     @Mock
     private PullRequestMetadata prm2;
 
-    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     @Before
     public void setUp() throws SQLException {

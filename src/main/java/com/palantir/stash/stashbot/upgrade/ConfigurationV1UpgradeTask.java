@@ -9,7 +9,6 @@ import net.java.ao.schema.Table;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.external.ActiveObjectsUpgradeTask;
 import com.atlassian.activeobjects.external.ModelVersion;
-import com.atlassian.stash.pull.PullRequest;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 
 public class ConfigurationV1UpgradeTask implements ActiveObjectsUpgradeTask {
@@ -22,6 +21,11 @@ public class ConfigurationV1UpgradeTask implements ActiveObjectsUpgradeTask {
         return ModelVersion.valueOf("1");
     }
 
+    /* This is safe to do because the ao.migrate() API uses varargs with a templated type
+     * and there's no way around that, but it's just classes and how the API works, so I
+     * think it's safe.
+     */
+    @SuppressWarnings("unchecked")
     @Override
     public void upgrade(ModelVersion currentVersion, ActiveObjects ao) {
         if (!currentVersion.isSame(ModelVersion.valueOf("0"))) {
@@ -31,17 +35,19 @@ public class ConfigurationV1UpgradeTask implements ActiveObjectsUpgradeTask {
         ao.migrate(TemporaryPullRequestMetadata.class);
         // Migrate to the final one, without default values
         ao.migrate(PullRequestMetadata.class);
-        
 
     }
+
     // This is only used to initialize the repo Id's to -1 during the upgrade.
     @Table("PRMetadata001")
     @Preload
     public interface TemporaryPullRequestMetadata extends Entity {
 
         @NotNull
-        @Default("-1") // Note the default value!  We don't want a default value in the final table, so we need a temp table
-        public Integer getRepoId();
+        @Default("-1")
+        // Note the default value!  We don't want a default value in the final table, so we need a temp table
+            public
+            Integer getRepoId();
 
         public void setRepoId(Integer id);
 

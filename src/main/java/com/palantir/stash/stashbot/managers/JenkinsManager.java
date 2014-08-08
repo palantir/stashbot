@@ -46,7 +46,7 @@ import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManager {
@@ -62,11 +62,11 @@ public class JenkinsManager {
     private final RepositoryHookService rhs;
     private final StashbotUrlBuilder sub;
     private final Logger log;
-    private final StashbotLoggerFactory lf;
+    private final PluginLoggerFactory lf;
 
     public JenkinsManager(RepositoryService repositoryService, RepositoryHookService rhs,
         ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
-        JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, StashbotLoggerFactory lf) {
+        JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, PluginLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.rhs = rhs;
         this.cpm = cpm;
@@ -306,7 +306,7 @@ public class JenkinsManager {
         public CreateMissingRepositoryVisitor(RepositoryHookService rhs,
             JenkinsClientManager jcm, JobTemplateManager jtm,
             ConfigurationPersistenceManager cpm, Repository r,
-            StashbotLoggerFactory lf) {
+            PluginLoggerFactory lf) {
             this.rhs = rhs;
             this.jcm = jcm;
             this.jtm = jtm;
@@ -397,7 +397,7 @@ public class JenkinsManager {
         public UpdateAllRepositoryVisitor(RepositoryHookService rhs,
             JenkinsClientManager jcm, JobTemplateManager jtm,
             ConfigurationPersistenceManager cpm, Repository r,
-            StashbotLoggerFactory lf) {
+            PluginLoggerFactory lf) {
             this.rhs = rhs;
             this.jcm = jcm;
             this.jtm = jtm;

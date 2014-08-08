@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.palantir.stash</groupId>
     <artifactId>stashbot</artifactId>
-    <version>1.1.3</version>
+    <version>1.2.0</version>
     <organization>
         <name>Palantir Technologies, Inc.</name>
         <url>http://www.palantir.com/</url>
@@ -213,7 +213,7 @@
         pom has the same name but isn't imported for some reason.
          -->
         <google.guava.libversion>10.0.1</google.guava.libversion>
-        <amps.version>4.2.20</amps.version>
+        <amps.version>5.0.3</amps.version>
         <plugin.testrunner.version>1.1</plugin.testrunner.version>
         <!-- TODO: I manually figured out this version - can we automatically figure it out? -->
         <ao.version>0.21.2</ao.version>

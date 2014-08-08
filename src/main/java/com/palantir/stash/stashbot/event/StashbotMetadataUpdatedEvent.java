@@ -11,11 +11,13 @@ import com.atlassian.stash.pull.PullRequestAction;
  */
 public class StashbotMetadataUpdatedEvent extends PullRequestEvent {
 
-       // Documentation says that the constructor is turning protected, this is okay
-       @SuppressWarnings("deprecation") 
-       public StashbotMetadataUpdatedEvent(@Nonnull Object source,
-                       @Nonnull PullRequest pullRequest) {
-               super(source, pullRequest, PullRequestAction.UPDATED);
-       }
+    private static final long serialVersionUID = 1L;
+
+    // Documentation says that the constructor is turning protected, this is okay
+    @SuppressWarnings("deprecation")
+    public StashbotMetadataUpdatedEvent(@Nonnull Object source,
+        @Nonnull PullRequest pullRequest) {
+        super(source, pullRequest, PullRequestAction.UPDATED);
+    }
 
 }

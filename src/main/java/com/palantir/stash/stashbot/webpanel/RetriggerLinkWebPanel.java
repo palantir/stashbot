@@ -27,7 +27,7 @@ import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class RetriggerLinkWebPanel implements WebPanel {
@@ -37,7 +37,7 @@ public class RetriggerLinkWebPanel implements WebPanel {
     private final Logger log;
 
     public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm,
-        StashbotUrlBuilder ub, StashbotLoggerFactory lf) {
+        StashbotUrlBuilder ub, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.ub = ub;
         this.log = lf.getLoggerForThis(this);
