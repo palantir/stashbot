@@ -184,7 +184,6 @@ public class RepoConfigurationServlet extends HttpServlet {
         doGet(req, res);
     }
 
-    @SuppressWarnings("deprecation")
     private Repository getRepository(HttpServletRequest req) {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) {
@@ -195,7 +194,7 @@ public class RepoConfigurationServlet extends HttpServlet {
         if (pathParts.length != 3) {
             return null;
         }
-        return repositoryService.findBySlug(pathParts[1], pathParts[2]);
+        return repositoryService.getBySlug(pathParts[1], pathParts[2]);
     }
 
 }

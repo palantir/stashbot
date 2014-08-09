@@ -98,7 +98,6 @@ public class RepoConfigurationServletTest {
 
     private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
-    @SuppressWarnings("deprecation")
     @Before
     public void setUp() throws Exception {
 
@@ -106,7 +105,7 @@ public class RepoConfigurationServletTest {
 
         Mockito.when(res.getWriter()).thenReturn(writer);
         Mockito.when(req.getPathInfo()).thenReturn("/projectName/repoName");
-        Mockito.when(repositoryService.findBySlug("projectName", "repoName")).thenReturn(mockRepo);
+        Mockito.when(repositoryService.getBySlug("projectName", "repoName")).thenReturn(mockRepo);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc);
         Mockito.when(cpm.getAllJenkinsServerNames()).thenReturn(ImmutableList.of("default"));
 
