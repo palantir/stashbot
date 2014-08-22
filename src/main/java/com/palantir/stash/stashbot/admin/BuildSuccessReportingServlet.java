@@ -238,8 +238,8 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             sb.append("==" + state.toString() + "==");
             sb.append(" for hash " + mergeHead);
             sb.append(" merged into head " + buildHead);
-            sb.append(" <a href=\"" + url + "\">Link</a>");
-            sb.append(" (<a href=\"" + retUrl + "\">Retrigger</a>)");
+            sb.append("[Link](" + url + ")");
+            sb.append(" [Retrigger](" + retUrl + ")");
 
             log.debug("Registering comment on pr for buildHead " + buildHead
                 + " mergeHead " + mergeHead);
