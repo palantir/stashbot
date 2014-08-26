@@ -31,6 +31,7 @@ import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.ssh.api.SshCloneUrlResolver;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -79,6 +80,8 @@ public class JenkinsManagerTest {
     private RepositoryConfiguration rc;
     @Mock
     private JenkinsServerConfiguration jsc;
+    @Mock
+    private SshCloneUrlResolver sshCloneUrlResolver;
 
     private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
 
@@ -116,7 +119,7 @@ public class JenkinsManagerTest {
         Mockito.when(proj.getKey()).thenReturn("project_key");
 
         jenkinsManager = new JenkinsManager(repositoryService, rhs, cpm, jtm,
-            xmlFormatter, jenkinsClientManager, sub, lf);
+            xmlFormatter, jenkinsClientManager, sub, lf, sshCloneUrlResolver);
     }
 
     @Test

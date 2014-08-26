@@ -105,6 +105,7 @@
     <component-import key="repositoryHookService" interface="com.atlassian.stash.hook.repository.RepositoryHookService"/>
     <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+    <component-import key="sshCloneUrlResolver" interface="com.atlassian.stash.ssh.api.SshCloneUrlResolver"/>
     <component-import key="userAdminService" interface="com.atlassian.stash.user.UserAdminService"/>
     <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>
 

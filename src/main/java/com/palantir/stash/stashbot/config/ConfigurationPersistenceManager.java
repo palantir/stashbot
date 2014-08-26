@@ -133,7 +133,7 @@ public class ConfigurationPersistenceManager {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", null);
+            false, "N/A", null, false);
     }
 
     public void setRepositoryConfigurationForRepository(Repository repo,
@@ -142,7 +142,7 @@ public class ConfigurationPersistenceManager {
         String verifyLabel, String publishBranchRegex,
         String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
         String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-        Integer maxVerifyChain)
+        Integer maxVerifyChain, boolean isUseSsh)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -170,7 +170,8 @@ public class ConfigurationPersistenceManager {
                 new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
                 new DBParam("JUNIT_ENABLED", isJunitEnabled),
                 new DBParam("JUNIT_PATH", junitPath),
-                new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate));
+                new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
+                new DBParam("USE_SSH", isUseSsh));
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
@@ -191,6 +192,7 @@ public class ConfigurationPersistenceManager {
         repos[0].setJunitEnabled(isJunitEnabled);
         repos[0].setJunitPath(junitPath);
         repos[0].setRebuildOnTargetUpdate(rebuildOnUpdate);
+        repos[0].setUseSsh(isUseSsh);
         if (maxVerifyChain != null) {
             repos[0].setMaxVerifyChain(maxVerifyChain);
         }

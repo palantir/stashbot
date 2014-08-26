@@ -126,4 +126,10 @@ public interface RepositoryConfiguration extends Entity {
     public Boolean getRebuildOnTargetUpdate();
 
     public void setRebuildOnTargetUpdate(Boolean rebuild);
+
+    @NotNull
+    @Default("false")
+    public Boolean getUseSsh();
+
+    public void setUseSsh(Boolean use);
 }

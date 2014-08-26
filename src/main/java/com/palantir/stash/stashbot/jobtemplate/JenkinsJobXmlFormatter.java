@@ -24,6 +24,7 @@ import org.apache.velocity.app.VelocityEngine;
 
 import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.ssh.api.SshCloneUrlResolver;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -44,14 +45,17 @@ public class JenkinsJobXmlFormatter {
     private final ConfigurationPersistenceManager cpm;
     private final StashbotUrlBuilder sub;
     private final NavBuilder navBuilder;
+    private final SshCloneUrlResolver sshCloneUrlResolver;
 
     public JenkinsJobXmlFormatter(VelocityManager velocityManager,
         ConfigurationPersistenceManager cpm, StashbotUrlBuilder sub,
-        NavBuilder navBuilder) throws IOException {
+        NavBuilder navBuilder, SshCloneUrlResolver sshCloneUrlResolver)
+                throws IOException {
         this.velocityManager = velocityManager;
         this.cpm = cpm;
         this.sub = sub;
         this.navBuilder = navBuilder;
+        this.sshCloneUrlResolver = sshCloneUrlResolver;
     }
 
     private String curlCommandBuilder(Repository repo, JobTemplate jobTemplate,
@@ -74,12 +78,18 @@ public class JenkinsJobXmlFormatter {
         final JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
-        String repositoryUrl = navBuilder.repo(repo).clone(repo.getScmId())
-            .buildAbsoluteWithoutUsername();
-        // manually insert the username and pw we are configured to use
-        repositoryUrl = repositoryUrl.replace("://",
-            "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
-                + "@");
+        String repositoryUrl;
+        if( rc.getUseSsh().booleanValue() ) {
+            repositoryUrl = sshCloneUrlResolver.getCloneUrl( repo );
+        }
+        else {
+            repositoryUrl = navBuilder.repo(repo).clone(repo.getScmId())
+                    .buildAbsoluteWithoutUsername();
+            // manually insert the username and pw we are configured to use
+            repositoryUrl = repositoryUrl.replace("://",
+                    "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+                    + "@");
+        }
 
         vc.put("repositoryUrl", repositoryUrl);
 
