@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -96,7 +96,7 @@ public class JenkinsConfigurationServletTest {
 
     private static final String REQUEST_URI = "http://someuri.example.com/blah";
 
-    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     @Before
     public void setUp() throws Exception {

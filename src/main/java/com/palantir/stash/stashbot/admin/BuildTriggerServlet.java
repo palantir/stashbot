@@ -32,7 +32,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 
 public class BuildTriggerServlet extends HttpServlet {
@@ -62,7 +62,7 @@ public class BuildTriggerServlet extends HttpServlet {
     public BuildTriggerServlet(RepositoryService repositoryService,
         PullRequestService pullRequestService, JobTemplateManager jtm,
         ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
-        StashbotLoggerFactory lf) {
+        PluginLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.pullRequestService = pullRequestService;
         this.jenkinsManager = jenkinsManager;

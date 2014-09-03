@@ -13,6 +13,25 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.admin;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.PrintWriter;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.i18n.KeyedMessage;
@@ -28,26 +47,9 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class RepoConfigurationServletTest {
 
@@ -99,64 +101,62 @@ public class RepoConfigurationServletTest {
     private static final String JSN = "default";
     private static final boolean RB = true;
 
-    private final StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
-    @SuppressWarnings("deprecation")
     @Before
     public void setUp() throws Exception {
 
         MockitoAnnotations.initMocks(this);
 
-        when(res.getWriter()).thenReturn(writer);
-        when(req.getPathInfo()).thenReturn("/projectName/repoName");
-        when(repositoryService.findBySlug("projectName", "repoName")).thenReturn(mockRepo);
-        when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc);
-        when(cpm.getAllJenkinsServerNames()).thenReturn(ImmutableList.of("default"));
+        Mockito.when(res.getWriter()).thenReturn(writer);
+        Mockito.when(req.getPathInfo()).thenReturn("/projectName/repoName");
+        Mockito.when(repositoryService.getBySlug("projectName", "repoName")).thenReturn(mockRepo);
+        Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc);
+        Mockito.when(cpm.getAllJenkinsServerNames()).thenReturn(ImmutableList.of("default"));
 
-        when(rc.getCiEnabled()).thenReturn(true);
-        when(rc.getPublishBranchRegex()).thenReturn(PBR);
-        when(rc.getPublishBuildCommand()).thenReturn(PBC);
-        when(rc.getVerifyBranchRegex()).thenReturn(VBR);
-        when(rc.getVerifyBuildCommand()).thenReturn(VBC);
-        when(rc.getPrebuildCommand()).thenReturn(PREBC);
-        when(rc.getJenkinsServerName()).thenReturn(JSN);
-        when(rc.getRebuildOnTargetUpdate()).thenReturn(RB);
-        when(rc.getVerifyPinned()).thenReturn(false);
-        when(rc.getVerifyLabel()).thenReturn("N/A");
-        when(rc.getPublishPinned()).thenReturn(false);
-        when(rc.getPublishLabel()).thenReturn("N/A");
-        when(rc.getJunitEnabled()).thenReturn(false);
-        when(rc.getJunitPath()).thenReturn("N/A");
-        when(rc.getEmailNotificationsEnabled()).thenReturn(false);
-        when(rc.getEmailRecipients()).thenReturn("empty");
-        when(rc.getEmailForEveryUnstableBuild()).thenReturn(false);
-        when(rc.getEmailPerModuleEmail()).thenReturn(false);
-        when(rc.getEmailSendToIndividuals()).thenReturn(false);
+        Mockito.when(rc.getCiEnabled()).thenReturn(true);
+        Mockito.when(rc.getPublishBranchRegex()).thenReturn(PBR);
+        Mockito.when(rc.getPublishBuildCommand()).thenReturn(PBC);
+        Mockito.when(rc.getVerifyBranchRegex()).thenReturn(VBR);
+        Mockito.when(rc.getVerifyBuildCommand()).thenReturn(VBC);
+        Mockito.when(rc.getPrebuildCommand()).thenReturn(PREBC);
+        Mockito.when(rc.getJenkinsServerName()).thenReturn(JSN);
+        Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(RB);
+        Mockito.when(rc.getVerifyPinned()).thenReturn(false);
+        Mockito.when(rc.getVerifyLabel()).thenReturn("N/A");
+        Mockito.when(rc.getPublishPinned()).thenReturn(false);
+        Mockito.when(rc.getPublishLabel()).thenReturn("N/A");
+        Mockito.when(rc.getJunitEnabled()).thenReturn(false);
+        Mockito.when(rc.getJunitPath()).thenReturn("N/A");
+        Mockito.when(rc.getEmailNotificationsEnabled()).thenReturn(false);
+        Mockito.when(rc.getEmailRecipients()).thenReturn("a@example.com");
+        Mockito.when(rc.getEmailForEveryUnstableBuild()).thenReturn(false);
+        Mockito.when(rc.getEmailPerModuleEmail()).thenReturn(false);
+        Mockito.when(rc.getEmailSendToIndividuals()).thenReturn(false);
 
-        when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
-        when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
-        when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
-        when(rc2.getVerifyBuildCommand()).thenReturn(VBC + "2");
-        when(rc2.getPrebuildCommand()).thenReturn(PREBC + "2");
-        when(rc2.getJenkinsServerName()).thenReturn(JSN + "2");
-        when(rc2.getRebuildOnTargetUpdate()).thenReturn(RB);
-        when(rc2.getVerifyPinned()).thenReturn(false);
-        when(rc2.getVerifyLabel()).thenReturn("N/A");
-        when(rc2.getPublishPinned()).thenReturn(false);
-        when(rc2.getPublishLabel()).thenReturn("N/A");
-        when(rc2.getJunitEnabled()).thenReturn(false);
-        when(rc2.getJunitPath()).thenReturn("N/A");
-        when(rc2.getEmailNotificationsEnabled()).thenReturn(true);
-        when(rc2.getEmailRecipients()).thenReturn("a@a.a");
-        when(rc2.getEmailForEveryUnstableBuild()).thenReturn(true);
-        when(rc2.getEmailPerModuleEmail()).thenReturn(true);
-        when(rc2.getEmailSendToIndividuals()).thenReturn(true);
-        when(jsc.getName()).thenReturn(JSN);
-        when(jsc.getStashUsername()).thenReturn("someuser");
-        when(jsc2.getName()).thenReturn(JSN + "2");
-        when(jsc2.getStashUsername()).thenReturn("someuser");
+        Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
+        Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
+        Mockito.when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
+        Mockito.when(rc2.getVerifyBuildCommand()).thenReturn(VBC + "2");
+        Mockito.when(rc2.getPrebuildCommand()).thenReturn(PREBC + "2");
+        Mockito.when(rc2.getJenkinsServerName()).thenReturn(JSN + "2");
+        Mockito.when(rc2.getRebuildOnTargetUpdate()).thenReturn(RB);
+        Mockito.when(rc2.getVerifyPinned()).thenReturn(false);
+        Mockito.when(rc2.getVerifyLabel()).thenReturn("N/A");
+        Mockito.when(rc2.getPublishPinned()).thenReturn(false);
+        Mockito.when(rc2.getPublishLabel()).thenReturn("N/A");
+        Mockito.when(rc2.getJunitEnabled()).thenReturn(false);
+        Mockito.when(rc2.getJunitPath()).thenReturn("N/A");
+        Mockito.when(rc2.getEmailNotificationsEnabled()).thenReturn(true);
+        Mockito.when(rc2.getEmailRecipients()).thenReturn("a@example.com");
+        Mockito.when(rc2.getEmailForEveryUnstableBuild()).thenReturn(true);
+        Mockito.when(rc2.getEmailPerModuleEmail()).thenReturn(true);
+        Mockito.when(rc2.getEmailSendToIndividuals()).thenReturn(true);
 
-
+        Mockito.when(jsc.getName()).thenReturn(JSN);
+        Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
+        Mockito.when(jsc2.getName()).thenReturn(JSN + "2");
+        Mockito.when(jsc2.getStashUsername()).thenReturn("someuser");
 
         allServers = ImmutableList.of(jsc, jsc2);
         when(cpm.getAllJenkinsServerConfigurations()).thenReturn(allServers);

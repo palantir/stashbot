@@ -47,3 +47,12 @@ curl -XPUT -L                    \
       --data-binary @"target/${file}"   \
      "${pub_url}/${deploy_path}/stashbot-${version}.jar"
 
+# publish to releases artifactory server if we are on an exact tag
+if [ $(git describe --exact-match) ]; then
+    echo "Detected official release, publishing"
+    ./bin/publishRelease.sh target/${file} pt-releases/atlassian/stashbot/${version}/stashbot.jar
+else
+    echo "Not a release, not publishing"
+fi
+
+

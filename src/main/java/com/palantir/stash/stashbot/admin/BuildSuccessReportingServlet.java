@@ -41,7 +41,7 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 import com.palantir.stash.stashbot.util.BuildStatusAddOperation;
 import com.palantir.stash.stashbot.util.PullRequestCommentAddOperation;
@@ -74,7 +74,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 
     /**
      * @deprecated Use
-     *             {@link #BuildSuccessReportingServlet(ConfigurationPersistenceManager,RepositoryService,BuildStatusService,PullRequestService,StashbotUrlBuilder,JobTemplateManager,SecurityService,StashbotLoggerFactory)}
+     *             {@link #BuildSuccessReportingServlet(ConfigurationPersistenceManager,RepositoryService,BuildStatusService,PullRequestService,StashbotUrlBuilder,JobTemplateManager,SecurityService,PluginLoggerFactory)}
      *             instead
      */
     @Deprecated
@@ -83,7 +83,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
         PullRequestService pullRequestService, StashbotUrlBuilder ub,
-        JobTemplateManager jtm, StashbotLoggerFactory lf) {
+        JobTemplateManager jtm, PluginLoggerFactory lf) {
         this(configurationPersistenceManager, repositoryService, buildStatusService, pullRequestService, ub, jtm,
             null, lf);
 
@@ -94,7 +94,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
         PullRequestService pullRequestService, StashbotUrlBuilder ub,
-        JobTemplateManager jtm, SecurityService ss, StashbotLoggerFactory lf) {
+        JobTemplateManager jtm, SecurityService ss, PluginLoggerFactory lf) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
@@ -238,8 +238,8 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             sb.append("==" + state.toString() + "==");
             sb.append(" for hash " + mergeHead);
             sb.append(" merged into head " + buildHead);
-            sb.append(" <a href=\"" + url + "\">Link</a>");
-            sb.append(" (<a href=\"" + retUrl + "\">Retrigger</a>)");
+            sb.append("[Link](" + url + ")");
+            sb.append(" [Retrigger](" + retUrl + ")");
 
             log.debug("Registering comment on pr for buildHead " + buildHead
                 + " mergeHead " + mergeHead);

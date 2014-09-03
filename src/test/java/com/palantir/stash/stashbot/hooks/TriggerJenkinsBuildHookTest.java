@@ -32,7 +32,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.mocks.MockGitCommandBuilderFactory;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
@@ -72,7 +72,7 @@ public class TriggerJenkinsBuildHookTest {
 
     private ArrayList<RefChange> changes;
 
-    private StashbotLoggerFactory lf = new StashbotLoggerFactory();
+    private PluginLoggerFactory lf = new PluginLoggerFactory();
 
     @Before
     public void setUp() throws SQLException {

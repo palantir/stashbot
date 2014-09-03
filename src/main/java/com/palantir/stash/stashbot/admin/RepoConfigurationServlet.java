@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 import org.slf4j.Logger;
@@ -60,7 +60,7 @@ public class RepoConfigurationServlet extends HttpServlet {
     public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
         PageBuilderService pageBuilderService, ConfigurationPersistenceManager configurationPersistenceManager,
         JenkinsManager jenkinsManager, PluginUserManager pluginUserManager,
-        PermissionValidationService permissionValidationService, StashbotLoggerFactory lf) {
+        PermissionValidationService permissionValidationService, PluginLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.pageBuilderService = pageBuilderService;
@@ -188,7 +188,6 @@ public class RepoConfigurationServlet extends HttpServlet {
         doGet(req, res);
     }
 
-    @SuppressWarnings("deprecation")
     private Repository getRepository(HttpServletRequest req) {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) {
@@ -199,7 +198,7 @@ public class RepoConfigurationServlet extends HttpServlet {
         if (pathParts.length != 3) {
             return null;
         }
-        return repositoryService.findBySlug(pathParts[1], pathParts[2]);
+        return repositoryService.getBySlug(pathParts[1], pathParts[2]);
     }
 
 }

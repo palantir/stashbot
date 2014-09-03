@@ -36,7 +36,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
-import com.palantir.stash.stashbot.logger.StashbotLoggerFactory;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
 
@@ -52,7 +52,7 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
     private final Logger log;
 
     public TriggerJenkinsBuildHook(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
-        GitCommandBuilderFactory gcbf, CommandOutputHandlerFactory cohf, StashbotLoggerFactory lf) {
+        GitCommandBuilderFactory gcbf, CommandOutputHandlerFactory cohf, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.jenkinsManager = jenkinsManager;
         this.gcbf = gcbf;
