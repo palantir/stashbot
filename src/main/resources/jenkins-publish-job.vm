@@ -107,7 +107,12 @@
 #if ($isEmailNotificationsEnabled)
     <hudson.maven.reporters.MavenMailer>
       <recipients>$emailRecipients</recipients>
-      <dontNotifyEveryUnstableBuild>${!isEmailForEveryUnstableBuild}</dontNotifyEveryUnstableBuild>
+#if ( $isEmailForEveryUnstableBuild )
+#set ( $dontNotifyEveryUnstableBuild = "false" )
+#else
+#set ( $dontNotifyEveryUnstableBuild = "true" )
+#end
+      <dontNotifyEveryUnstableBuild>$dontNotifyEveryUnstableBuild</dontNotifyEveryUnstableBuild>
       <sendToIndividuals>$isEmailSendToIndividuals</sendToIndividuals>
       <perModuleEmail>$isEmailPerModuleEmail</perModuleEmail>
     </hudson.maven.reporters.MavenMailer>

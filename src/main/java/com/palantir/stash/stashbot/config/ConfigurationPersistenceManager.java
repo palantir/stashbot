@@ -13,6 +13,17 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.config;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import net.java.ao.DBParam;
+import net.java.ao.Query;
+
+import org.slf4j.Logger;
+
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.pull.PullRequest;
@@ -22,14 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
-import net.java.ao.DBParam;
-import net.java.ao.Query;
-import org.slf4j.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ConfigurationPersistenceManager {
 
@@ -202,11 +205,11 @@ public class ConfigurationPersistenceManager {
     }
 
     private EmailSettings getEmailSettings(HttpServletRequest req) {
-        Boolean emailNotificationsEnabled = getBoolean(req, "emailNotificationsEnabled");
+        Boolean emailNotificationsEnabled = getBoolean(req, "isEmailNotificationsEnabled");
         String emailRecipients = req.getParameter("emailRecipients");
-        Boolean emailDontNotifyEveryUnstableBuild = getBoolean(req, "emailDontNotifyEveryUnstableBuild");
-        Boolean emailSendToIndividuals = getBoolean(req, "emailSendToIndividuals");
-        Boolean emailPerModuleEmail = getBoolean(req, "emailPerModuleEmail");
+        Boolean emailDontNotifyEveryUnstableBuild = getBoolean(req, "isEmailForEveryUnstableBuild");
+        Boolean emailSendToIndividuals = getBoolean(req, "isEmailSendToIndividuals");
+        Boolean emailPerModuleEmail = getBoolean(req, "isEmailPerModuleEmail");
         return new EmailSettings(emailNotificationsEnabled, emailRecipients, emailDontNotifyEveryUnstableBuild,
             emailSendToIndividuals, emailPerModuleEmail);
     }
