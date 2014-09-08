@@ -13,13 +13,18 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.admin;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.PrintWriter;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -123,6 +128,12 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getPublishLabel()).thenReturn("N/A");
         Mockito.when(rc.getJunitEnabled()).thenReturn(false);
         Mockito.when(rc.getJunitPath()).thenReturn("N/A");
+        Mockito.when(rc.getEmailNotificationsEnabled()).thenReturn(false);
+        Mockito.when(rc.getEmailRecipients()).thenReturn("a@example.com");
+        Mockito.when(rc.getEmailForEveryUnstableBuild()).thenReturn(false);
+        Mockito.when(rc.getEmailPerModuleEmail()).thenReturn(false);
+        Mockito.when(rc.getEmailSendToIndividuals()).thenReturn(false);
+
         Mockito.when(rc2.getPublishBranchRegex()).thenReturn(PBR + "2");
         Mockito.when(rc2.getPublishBuildCommand()).thenReturn(PBC + "2");
         Mockito.when(rc2.getVerifyBranchRegex()).thenReturn(VBR + "2");
@@ -136,6 +147,11 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc2.getPublishLabel()).thenReturn("N/A");
         Mockito.when(rc2.getJunitEnabled()).thenReturn(false);
         Mockito.when(rc2.getJunitPath()).thenReturn("N/A");
+        Mockito.when(rc2.getEmailNotificationsEnabled()).thenReturn(true);
+        Mockito.when(rc2.getEmailRecipients()).thenReturn("a@example.com");
+        Mockito.when(rc2.getEmailForEveryUnstableBuild()).thenReturn(true);
+        Mockito.when(rc2.getEmailPerModuleEmail()).thenReturn(true);
+        Mockito.when(rc2.getEmailSendToIndividuals()).thenReturn(true);
 
         Mockito.when(jsc.getName()).thenReturn(JSN);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
@@ -143,12 +159,12 @@ public class RepoConfigurationServletTest {
         Mockito.when(jsc2.getStashUsername()).thenReturn("someuser");
 
         allServers = ImmutableList.of(jsc, jsc2);
-        Mockito.when(cpm.getAllJenkinsServerConfigurations()).thenReturn(allServers);
-        Mockito.when(cpm.getJenkinsServerConfiguration(JSN)).thenReturn(jsc);
-        Mockito.when(cpm.getJenkinsServerConfiguration(JSN + "2")).thenReturn(jsc2);
+        when(cpm.getAllJenkinsServerConfigurations()).thenReturn(allServers);
+        when(cpm.getJenkinsServerConfiguration(JSN)).thenReturn(jsc);
+        when(cpm.getJenkinsServerConfiguration(JSN + "2")).thenReturn(jsc2);
 
-        Mockito.when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
-        Mockito.when(webResourceAssembler.resources()).thenReturn(rr);
+        when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
+        when(webResourceAssembler.resources()).thenReturn(rr);
 
         rcs =
             new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, pageBuilderService, cpm,
@@ -158,13 +174,12 @@ public class RepoConfigurationServletTest {
     @Test
     public void getTestWhenNotRepoAdmin() throws Exception {
 
-        Mockito.doThrow(
-            new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
-            .when(pvs).validateForRepository(Mockito.any(Repository.class), Mockito.eq(Permission.REPO_ADMIN));
+        doThrow(new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
+            .when(pvs).validateForRepository(Mockito.any(Repository.class), eq(Permission.REPO_ADMIN));
 
         rcs.doGet(req, res);
 
-        Mockito.verify(res).sendError(Mockito.eq(HttpServletResponse.SC_UNAUTHORIZED), Mockito.any(String.class));
+        verify(res).sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), Mockito.any(String.class));
     }
 
     @Test
@@ -172,64 +187,64 @@ public class RepoConfigurationServletTest {
 
         rcs.doGet(req, res);
 
-        Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(rr).requireContext("plugin.page.stashbot");
+        verify(res).setContentType("text/html;charset=UTF-8");
+        verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 
-        Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
-            Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
-            Mockito.eq("plugin.page.stashbot.repositoryConfigurationPanel"), mapCaptor.capture());
+        verify(soyTemplateRenderer).render(eq(writer),
+            eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
+            eq("plugin.page.stashbot.repositoryConfigurationPanel"), mapCaptor.capture());
 
-        Mockito.verify(pum, Mockito.never())
+        verify(pum, Mockito.never())
             .addUserToRepoForReading(Mockito.anyString(), Mockito.any(Repository.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 
-        Assert.assertEquals(true, map.get("ciEnabled"));
-        Assert.assertEquals(PBR, map.get("publishBranchRegex"));
-        Assert.assertEquals(PBC, map.get("publishBuildCommand"));
-        Assert.assertEquals(VBR, map.get("verifyBranchRegex"));
-        Assert.assertEquals(VBC, map.get("verifyBuildCommand"));
+        assertEquals(true, map.get("ciEnabled"));
+        assertEquals(PBR, map.get("publishBranchRegex"));
+        assertEquals(PBC, map.get("publishBuildCommand"));
+        assertEquals(VBR, map.get("verifyBranchRegex"));
+        assertEquals(VBC, map.get("verifyBuildCommand"));
     }
 
     @Test
     public void postTest() throws Exception {
 
-        Mockito.when(req.getParameter("jenkinsServerName")).thenReturn("default");
+        when(req.getParameter("jenkinsServerName")).thenReturn("default");
 
-        Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
+        when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
 
         rcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setRepositoryConfigurationForRepositoryFromRequest(mockRepo, req);
+        verify(cpm).setRepositoryConfigurationForRepositoryFromRequest(mockRepo, req);
 
         // doGet() is then called, so this is the same as getTest()...
-        Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(rr).requireContext("plugin.page.stashbot");
+        verify(res).setContentType("text/html;charset=UTF-8");
+        verify(rr).requireContext("plugin.page.stashbot");
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 
-        Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
-            Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
-            Mockito.eq("plugin.page.stashbot.repositoryConfigurationPanel"), mapCaptor.capture());
+        verify(soyTemplateRenderer).render(eq(writer),
+            eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
+            eq("plugin.page.stashbot.repositoryConfigurationPanel"), mapCaptor.capture());
 
-        Mockito.verify(pum, Mockito.atLeastOnce()).addUserToRepoForReading(Mockito.anyString(),
+        verify(pum, Mockito.atLeastOnce()).addUserToRepoForReading(Mockito.anyString(),
             Mockito.any(Repository.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 
         // Except the details are now changed
-        Assert.assertEquals(false, map.get("ciEnabled"));
-        Assert.assertEquals(PBR + "2", map.get("publishBranchRegex"));
-        Assert.assertEquals(PBC + "2", map.get("publishBuildCommand"));
-        Assert.assertEquals(VBR + "2", map.get("verifyBranchRegex"));
-        Assert.assertEquals(VBC + "2", map.get("verifyBuildCommand"));
-        Assert.assertEquals(PREBC + "2", map.get("prebuildCommand"));
+        assertEquals(false, map.get("ciEnabled"));
+        assertEquals(PBR + "2", map.get("publishBranchRegex"));
+        assertEquals(PBC + "2", map.get("publishBuildCommand"));
+        assertEquals(VBR + "2", map.get("verifyBranchRegex"));
+        assertEquals(VBC + "2", map.get("verifyBuildCommand"));
+        assertEquals(PREBC + "2", map.get("prebuildCommand"));
     }
 }

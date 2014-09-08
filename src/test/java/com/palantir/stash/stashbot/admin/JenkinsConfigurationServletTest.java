@@ -13,22 +13,6 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.admin;
 
-import java.io.PrintWriter;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-
 import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.exception.AuthorisationException;
@@ -45,6 +29,27 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.PrintWriter;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class JenkinsConfigurationServletTest {
 
@@ -98,38 +103,38 @@ public class JenkinsConfigurationServletTest {
 
         MockitoAnnotations.initMocks(this);
 
-        Mockito.when(res.getWriter()).thenReturn(writer);
-        Mockito.when(req.getRequestURL()).thenReturn(new StringBuffer(REQUEST_URI));
-        Mockito.when(req.getPathInfo()).thenReturn("");
-        Mockito.when(req.getRemoteUser()).thenReturn(USER);
+        when(res.getWriter()).thenReturn(writer);
+        when(req.getRequestURL()).thenReturn(new StringBuffer(REQUEST_URI));
+        when(req.getPathInfo()).thenReturn("");
+        when(req.getRemoteUser()).thenReturn(USER);
 
-        Mockito.when(lup.getLoginUri(Mockito.any(URI.class))).thenReturn(LOGIN_URI);
+        when(lup.getLoginUri(any(URI.class))).thenReturn(LOGIN_URI);
 
-        Mockito.when(cpm.getJenkinsServerConfiguration(null)).thenReturn(jsc);
-        Mockito.when(cpm.getJenkinsServerConfiguration(JN)).thenReturn(jsc);
-        Mockito.when(cpm.getJenkinsServerConfiguration(JN + "2")).thenReturn(jsc2);
-        Mockito.when(cpm.getAllJenkinsServerConfigurations()).thenReturn(ImmutableList.of(jsc));
+        when(cpm.getJenkinsServerConfiguration(null)).thenReturn(jsc);
+        when(cpm.getJenkinsServerConfiguration(JN)).thenReturn(jsc);
+        when(cpm.getJenkinsServerConfiguration(JN + "2")).thenReturn(jsc2);
+        when(cpm.getAllJenkinsServerConfigurations()).thenReturn(ImmutableList.of(jsc));
 
-        Mockito.when(jsc.getName()).thenReturn(JN);
-        Mockito.when(jsc.getUrl()).thenReturn(JURL);
-        Mockito.when(jsc.getUsername()).thenReturn(JU);
-        Mockito.when(jsc.getPassword()).thenReturn(JP);
-        Mockito.when(jsc.getStashUsername()).thenReturn(SU);
-        Mockito.when(jsc.getStashPassword()).thenReturn(SP);
-        Mockito.when(jsc.getMaxVerifyChain()).thenReturn(MVC);
-        Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
+        when(jsc.getName()).thenReturn(JN);
+        when(jsc.getUrl()).thenReturn(JURL);
+        when(jsc.getUsername()).thenReturn(JU);
+        when(jsc.getPassword()).thenReturn(JP);
+        when(jsc.getStashUsername()).thenReturn(SU);
+        when(jsc.getStashPassword()).thenReturn(SP);
+        when(jsc.getMaxVerifyChain()).thenReturn(MVC);
+        when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
 
-        Mockito.when(jsc2.getName()).thenReturn(JN + "2");
-        Mockito.when(jsc2.getUrl()).thenReturn(JURL + "2");
-        Mockito.when(jsc2.getUsername()).thenReturn(JU + "2");
-        Mockito.when(jsc2.getPassword()).thenReturn(JP + "2");
-        Mockito.when(jsc2.getStashUsername()).thenReturn(SU + "2");
-        Mockito.when(jsc2.getStashPassword()).thenReturn(SP + "2");
-        Mockito.when(jsc2.getMaxVerifyChain()).thenReturn(MVC);
-        Mockito.when(jsc2.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
+        when(jsc2.getName()).thenReturn(JN + "2");
+        when(jsc2.getUrl()).thenReturn(JURL + "2");
+        when(jsc2.getUsername()).thenReturn(JU + "2");
+        when(jsc2.getPassword()).thenReturn(JP + "2");
+        when(jsc2.getStashUsername()).thenReturn(SU + "2");
+        when(jsc2.getStashPassword()).thenReturn(SP + "2");
+        when(jsc2.getMaxVerifyChain()).thenReturn(MVC);
+        when(jsc2.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
 
-        Mockito.when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
-        Mockito.when(webResourceAssembler.resources()).thenReturn(rr);
+        when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
+        when(webResourceAssembler.resources()).thenReturn(rr);
 
         jcs = new JenkinsConfigurationServlet(soyTemplateRenderer, pageBuilderService, cpm, pum, null, lup, lf, pvs);
     }
@@ -137,28 +142,28 @@ public class JenkinsConfigurationServletTest {
     @Test
     public void getTestWhenNotLoggedIn() throws Exception {
 
-        Mockito.when(req.getRemoteUser()).thenReturn(null);
-        Mockito.doThrow(
+        when(req.getRemoteUser()).thenReturn(null);
+        doThrow(
             new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
             .when(pvs).validateAuthenticated();
 
         jcs.doGet(req, res);
 
-        Mockito.verify(res).sendRedirect(Mockito.anyString());
-        Mockito.verify(res, Mockito.never()).getWriter();
+        verify(res).sendRedirect(Mockito.anyString());
+        verify(res, Mockito.never()).getWriter();
     }
 
     @Test
     public void getTestWhenNotSysAdmin() throws Exception {
 
-        Mockito.when(req.getRemoteUser()).thenReturn("nonAdminStashUser");
-        Mockito.doThrow(
+        when(req.getRemoteUser()).thenReturn("nonAdminStashUser");
+        doThrow(
             new AuthorisationException(new KeyedMessage("testException", "testException", "testException")))
             .when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         jcs.doGet(req, res);
 
-        Mockito.verify(res).sendError(Mockito.eq(HttpServletResponse.SC_UNAUTHORIZED), Mockito.any(String.class));
+        verify(res).sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), any(String.class));
     }
 
     @Test
@@ -166,20 +171,20 @@ public class JenkinsConfigurationServletTest {
 
         jcs.doGet(req, res);
 
-        Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(rr).requireContext("plugin.page.stashbot");
+        verify(res).setContentType("text/html;charset=UTF-8");
+        verify(rr).requireContext("plugin.page.stashbot");
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 
-        Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
-            Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
-            Mockito.eq("plugin.page.stashbot.jenkinsConfigurationPanel"), mapCaptor.capture());
+        verify(soyTemplateRenderer).render(eq(writer),
+            eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
+            eq("plugin.page.stashbot.jenkinsConfigurationPanel"), mapCaptor.capture());
 
-        Mockito.verify(pum, Mockito.never()).addUserToRepoForReading(Mockito.any(String.class),
-            Mockito.any(Repository.class));
-        Mockito.verify(pum, Mockito.never()).createStashbotUser(Mockito.any(JenkinsServerConfiguration.class));
+        verify(pum, Mockito.never()).addUserToRepoForReading(any(String.class),
+            any(Repository.class));
+        verify(pum, Mockito.never()).createStashbotUser(any(JenkinsServerConfiguration.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 
@@ -192,32 +197,33 @@ public class JenkinsConfigurationServletTest {
     public void postTest() throws Exception {
 
         // test that things are actually updated
-        Mockito.when(req.getParameter("name")).thenReturn(JN + "2");
-        Mockito.when(req.getParameter("url")).thenReturn(JURL + "2");
-        Mockito.when(req.getParameter("username")).thenReturn(JU + "2");
-        Mockito.when(req.getParameter("password")).thenReturn(JP + "2");
-        Mockito.when(req.getParameter("stashUsername")).thenReturn(SU + "2");
-        Mockito.when(req.getParameter("stashPassword")).thenReturn(SP + "2");
-        Mockito.when(req.getParameter("maxVerifyChain")).thenReturn(MVC_S);
+        when(req.getParameter("name")).thenReturn(JN + "2");
+        when(req.getParameter("url")).thenReturn(JURL + "2");
+        when(req.getParameter("username")).thenReturn(JU + "2");
+        when(req.getParameter("password")).thenReturn(JP + "2");
+        when(req.getParameter("stashUsername")).thenReturn(SU + "2");
+        when(req.getParameter("stashPassword")).thenReturn(SP + "2");
+        when(req.getParameter("emailNotificationsEnabled")).thenReturn("true");
+        when(req.getParameter("maxVerifyChain")).thenReturn(MVC_S);
 
         jcs.doPost(req, res);
 
         // Verify it persists
-        Mockito.verify(cpm).setJenkinsServerConfigurationFromRequest(req);
+        verify(cpm).setJenkinsServerConfigurationFromRequest(req);
 
         // doGet() is then called, so this is the same as getTest()...
-        Mockito.verify(res).setContentType("text/html;charset=UTF-8");
-        Mockito.verify(rr).requireContext("plugin.page.stashbot");
+        verify(res).setContentType("text/html;charset=UTF-8");
+        verify(rr).requireContext("plugin.page.stashbot");
 
-        @SuppressWarnings({ "unchecked", "rawtypes" })
+        @SuppressWarnings({"unchecked", "rawtypes"})
         Class<Map<String, Object>> cls = (Class) Map.class;
         ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
 
-        Mockito.verify(soyTemplateRenderer).render(Mockito.eq(writer),
-            Mockito.eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
-            Mockito.eq("plugin.page.stashbot.jenkinsConfigurationPanel"), mapCaptor.capture());
+        verify(soyTemplateRenderer).render(eq(writer),
+            eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
+            eq("plugin.page.stashbot.jenkinsConfigurationPanel"), mapCaptor.capture());
 
-        Mockito.verify(pum, Mockito.atLeastOnce()).createStashbotUser(Mockito.any(JenkinsServerConfiguration.class));
+        verify(pum, atLeastOnce()).createStashbotUser(any(JenkinsServerConfiguration.class));
 
         Map<String, Object> map = mapCaptor.getValue();
 

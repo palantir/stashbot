@@ -113,6 +113,15 @@ public class JenkinsJobXmlFormatter {
             break;
         }
 
+        // Add email notification stuff - for now publish builds only
+        if (jobTemplate.getJobType().equals(JobType.PUBLISH)) {
+            vc.put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled());
+            vc.put("emailRecipients", rc.getEmailRecipients());
+            vc.put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild());
+            vc.put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals());
+            vc.put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail());
+        }
+
         vc.put("startedCommand",
             curlCommandBuilder(repo, jobTemplate, rc, repositoryUrl,
                 "inprogress"));
@@ -226,6 +235,7 @@ public class JenkinsJobXmlFormatter {
     private String buildCommand(String command) {
         return command + " " + BUILD_COMMAND_POSTFIX;
     }
+
     private String prebuildCommand(String command) {
         return command + " " + PREBUILD_COMMAND_POSTFIX;
     }
