@@ -13,20 +13,6 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.admin;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.slf4j.Logger;
-
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.exception.AuthorisationException;
@@ -42,11 +28,23 @@ import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
+import org.slf4j.Logger;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RepoConfigurationServlet extends HttpServlet {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -111,11 +109,12 @@ public class RepoConfigurationServlet extends HttpServlet {
                 }
                 jenkinsServersData.add(m);
             }
+
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             soyTemplateRenderer.render(res.getWriter(),
                 "com.palantir.stash.stashbot:stashbotConfigurationResources",
                 "plugin.page.stashbot.repositoryConfigurationPanel",
-                ImmutableMap.<String, Object> builder()
+                ImmutableMap.<String, Object>builder()
                     .put("repository", rep)
                     .put("ciEnabled", rc.getCiEnabled())
                     .put("publishBranchRegex", rc.getPublishBranchRegex())
@@ -133,8 +132,13 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("isJunit", rc.getJunitEnabled())
                     .put("junitPath", rc.getJunitPath())
                     .put("jenkinsServersData", jenkinsServersData)
+                    .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
+                    .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
+                    .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
+                    .put("emailRecipients", rc.getEmailRecipients())
+                    .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
                     .build()
-                );
+            );
         } catch (SoyException e) {
             Throwable cause = e.getCause();
             if (cause instanceof IOException) {
@@ -207,7 +211,6 @@ public class RepoConfigurationServlet extends HttpServlet {
         doGet(req, res);
     }
 
-    @SuppressWarnings("deprecation")
     private Repository getRepository(HttpServletRequest req) {
         String pathInfo = req.getPathInfo();
         if (pathInfo == null) {
@@ -218,7 +221,7 @@ public class RepoConfigurationServlet extends HttpServlet {
         if (pathParts.length != 3) {
             return null;
         }
-        return repositoryService.findBySlug(pathParts[1], pathParts[2]);
+        return repositoryService.getBySlug(pathParts[1], pathParts[2]);
     }
 
 }

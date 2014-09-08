@@ -18,6 +18,11 @@
  * @param junitPath
  * @param maxVerifyChain
  * @param rebuildOnUpdate
+ * @param emailRecipients
+ * @param isEmailForEveryUnstableBuild
+ * @param isEmailNotificationsEnabled
+ * @param isEmailPerModuleEmail
+ * @param isEmailSendToIndividuals
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -135,6 +140,45 @@
             {param descriptionText: stash_i18n('stash.web.stash.junitPath.description', 'Path to use for junit results') /}
           {/call}
 
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.email-enabled.button.description', 'Enable e-mail notifications') /}
+            {param fields: [[
+              'id': 'isEmailNotificationsEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isEmailNotificationsEnabled
+              ]] /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'emailRecipients' /}
+            {param labelContent: stash_i18n('stash.web.stash.emailRecipients.label', 'Recipients') /}
+            {param value: $emailRecipients /}
+            {param descriptionText: stash_i18n('stash.web.stash.emailRecipients.description', 'Email recipients') /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.emailForEveryUnstableBuild.button.description', 'Send e-mail for every unstable build') /}
+            {param fields: [[
+              'id': 'isEmailForEveryUnstableBuild',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isEmailForEveryUnstableBuild
+              ]] /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.emailSendToIndividuals.button.description', 'Send separate e-mails to individuals who broke the build') /}
+            {param fields: [[
+              'id': 'isEmailSendToIndividuals',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isEmailSendToIndividuals
+              ]] /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.emailPerModuleEmail.button.description', 'Send e-mail for each failed module') /}
+            {param fields: [[
+              'id': 'isEmailPerModuleEmail',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isEmailPerModuleEmail
+              ]] /}
+          {/call}
+
           {call aui.form.textField}
             {param id: 'maxVerifyChain' /}
             {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
@@ -151,12 +195,12 @@
           {/call}
           {call aui.form.buttons}
             {param content}
-	          {call aui.form.submit}
-	            {param id: 'submit' /}
-	            {param text: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
-	            {param type: 'submit' /}
-	          {/call}
-	        {/param}
+              {call aui.form.submit}
+                {param id: 'submit' /}
+                {param text: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
+                {param type: 'submit' /}
+              {/call}
+            {/param}
           {/call}
         {/param}
       {/call}
