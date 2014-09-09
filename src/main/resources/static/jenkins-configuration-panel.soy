@@ -100,6 +100,14 @@
               {param value: ($jenkinsConfig.maxVerifyChain == 0 ? '0' : $jenkinsConfig.maxVerifyChain) /}
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
             {/call}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
+              {param fields: [[
+                'id': 'locked',
+                'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
+                'isChecked': $jenkinsConfig.locked
+                ]] /}
+            {/call}
             {call aui.form.buttons}
               {param content}
                 {call aui.form.submit}
@@ -133,6 +141,12 @@
               {param value: 'http://jenkins.example.com:8080/' /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
             {/call}
+            {call aui.form.selectField}
+              {param id: 'authenticationMode' /}
+              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
+              {param options: $authenticationModeData['default'] /}
+              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
+            {/call}
             {call aui.form.textField}
               {param id: 'username' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
@@ -162,6 +176,13 @@
               {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
               {param value: '10' /}
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+            {/call}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
+              {param fields: [[
+                'id': 'locked',
+                'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
+                ]] /}
             {/call}
             {call aui.form.buttons}
               {param content}

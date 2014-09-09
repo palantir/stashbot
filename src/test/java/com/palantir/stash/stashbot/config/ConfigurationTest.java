@@ -27,6 +27,7 @@ import net.java.ao.test.jdbc.Jdbc;
 import net.java.ao.test.junit.ActiveObjectsJUnitRunner;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -105,7 +106,7 @@ public class ConfigurationTest {
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
         cpm.setJenkinsServerConfiguration(null, url, username, password,
-            null, stashUsername, stashPassword, maxVerifyChain);
+            null, stashUsername, stashPassword, maxVerifyChain, false);
         JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(null);
         Assert.assertEquals("default", jsc.getName());
@@ -145,9 +146,9 @@ public class ConfigurationTest {
     public void getsAllJenkinsServerConfigurationsNotEmpty() throws Exception {
 
         cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw",
-            null, "stashuser", "stashpw", 10);
+            null, "stashuser", "stashpw", 10, false);
         cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw",
-            null, "stashuser", "stashpw", 10);
+            null, "stashuser", "stashpw", 10, false);
 
         Collection<JenkinsServerConfiguration> jscs = cpm
             .getAllJenkinsServerConfigurations();
@@ -309,5 +310,10 @@ public class ConfigurationTest {
         Assert.assertTrue(entry.containsKey("text"));
         Assert.assertTrue(entry.containsKey("value"));
         Assert.assertTrue(entry.containsKey("selected"));
+    }
+
+    @Test
+    @Ignore
+    public void testJenkinsConfigurationLocked() throws Exception {
     }
 }
