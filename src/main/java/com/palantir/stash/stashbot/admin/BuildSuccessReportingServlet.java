@@ -228,6 +228,9 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             final StringBuffer sb = new StringBuffer();
             final String url = getJenkinsUrl(repo, jt, buildNumber);
 
+            String mergeHead1 = (mergeHead != null)? mergeHead.substring(0, 12) : null;
+            String buildHead1 = (buildHead != null)? buildHead.substring(0, 12) : null;
+
             /* NOTE: mergeHead and buildHead are the reverse of what you might
              * think, because we have to check out the "toRef" becasue it is
              * the ref that is guaranteed to be in the correct repo.
