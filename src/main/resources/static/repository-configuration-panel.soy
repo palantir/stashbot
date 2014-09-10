@@ -23,6 +23,8 @@
  * @param isEmailNotificationsEnabled
  * @param isEmailPerModuleEmail
  * @param isEmailSendToIndividuals
+ * @param isLocked
+ *
  **/
 {template .repositoryConfigurationPanel}
 <html>
@@ -236,6 +238,7 @@ If one is releasing using something like <a href="http://nvie.com/posts/a-succes
 Note also that the configuration should take into account capacity concerns.  If the jenkins instance has 10 executors, the typical build takes 10 minutes, and 5-10 changes are pushed per hour, one can probably safely build every commit.  If, however, one has 2 executors and each build takes an hour, it will probably result in large latencies if one tries to build all commits, should someone push a chain of 10 commits even once or twice a day.  For details, consult your site-specific documentation (your infrastructure guys have established guidelines, right? =) )
 </p>
 </div>
+<p hidden="true" id="isJenkinsServerLocked">{$isLocked}</p>
 </body>
 </html>
 {/template}
