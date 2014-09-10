@@ -103,21 +103,6 @@
       <command>$esc.xml($buildCommand)</command>
     </hudson.tasks.Shell>
   </builders>
-  <reporters>
-#if ($isEmailNotificationsEnabled)
-    <hudson.maven.reporters.MavenMailer>
-      <recipients>$emailRecipients</recipients>
-#if ( $isEmailForEveryUnstableBuild )
-#set ( $dontNotifyEveryUnstableBuild = "false" )
-#else
-#set ( $dontNotifyEveryUnstableBuild = "true" )
-#end
-      <dontNotifyEveryUnstableBuild>$dontNotifyEveryUnstableBuild</dontNotifyEveryUnstableBuild>
-      <sendToIndividuals>$isEmailSendToIndividuals</sendToIndividuals>
-      <perModuleEmail>$isEmailPerModuleEmail</perModuleEmail>
-    </hudson.maven.reporters.MavenMailer>
-#end
-  </reporters>
   <publishers>
     <hudson.plugins.postbuildtask.PostbuildTask plugin="postbuild-task@1.8">
       <tasks>
@@ -170,6 +155,19 @@
         </org.jenkinsci.plugins.xunit.threshold.SkippedThreshold>
       </thresholds>
     </xunit>
+#end
+#if ($isEmailNotificationsEnabled)
+    <hudson.tasks.Mailer plugin="mailer@1.5">
+      <recipients>$emailRecipients</recipients>
+#if ( $isEmailForEveryUnstableBuild )
+#set ( $dontNotifyEveryUnstableBuild = "false" )
+#else
+#set ( $dontNotifyEveryUnstableBuild = "true" )
+#end
+      <dontNotifyEveryUnstableBuild>$dontNotifyEveryUnstableBuild</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>$isEmailSendToIndividuals</sendToIndividuals>
+      <!-- <perModuleEmail>$isEmailPerModuleEmail</perModuleEmail> -->
+    </hudson.tasks.Mailer>
 #end
   </publishers>
   <buildWrappers/>
