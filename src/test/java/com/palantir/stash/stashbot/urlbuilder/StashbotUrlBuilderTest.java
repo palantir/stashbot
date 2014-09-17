@@ -1,5 +1,8 @@
 package com.palantir.stash.stashbot.urlbuilder;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import junit.framework.Assert;
 
 import org.junit.Before;
@@ -7,15 +10,15 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import com.atlassian.stash.nav.NavBuilder;
-import com.atlassian.stash.nav.NavBuilder.Repo;
-import com.atlassian.stash.nav.NavBuilder.RepoClone;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
+import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.util.NamedLink;
+import com.atlassian.stash.util.SimpleNamedLink;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -31,6 +34,8 @@ public class StashbotUrlBuilderTest {
 
     @Mock
     private NavBuilder nb;
+    @Mock
+    private RepositoryService rs;
 
     @Mock
     private Repository repo;
@@ -44,10 +49,13 @@ public class StashbotUrlBuilderTest {
     private PullRequestRef fromRef;
 
     private StashbotUrlBuilder sub;
+    private Set<NamedLink> links;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        links = new HashSet<NamedLink>();
+        links.add(new SimpleNamedLink(ABS_URL, "http"));
 
         Mockito.when(nb.buildAbsolute()).thenReturn(ABS_URL);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
@@ -59,8 +67,9 @@ public class StashbotUrlBuilderTest {
         Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA);
         Mockito.when(fromRef.getLatestChangeset()).thenReturn(BUILD_HEAD);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
+        Mockito.when(rs.getCloneLinks(Mockito.any(RepositoryCloneLinksRequest.class))).thenReturn(links);
 
-        sub = new StashbotUrlBuilder(nb);
+        sub = new StashbotUrlBuilder(nb, rs);
 
     }
 
@@ -87,30 +96,10 @@ public class StashbotUrlBuilderTest {
 
     @Test
     public void testCloneUrl() {
-        final Repo repoBuilder = Mockito.mock(Repo.class);
-        final RepoClone repoClone = Mockito.mock(RepoClone.class);
-        Mockito.when(nb.repo(repo)).thenAnswer(new Answer<Repo>() {
-
-            @Override
-            public Repo answer(InvocationOnMock invocation) throws Throwable {
-                return repoBuilder;
-            }
-        });
-        Mockito.when(repoBuilder.clone("git")).thenAnswer(new Answer<RepoClone>() {
-
-            @Override
-            public RepoClone answer(InvocationOnMock invocation) throws Throwable {
-                return repoClone;
-            }
-        });
-        Mockito.when(repoClone.buildAbsoluteWithoutUsername()).thenReturn(ABS_URL);
-        // String url = nb.repo(repo).clone("git").buildAbsolute();
 
         String url = sub.buildCloneUrl(repo, jsc);
 
-        Mockito.verify(nb).repo(repo);
-        Mockito.verify(repoBuilder).clone("git");
-        Mockito.verify(repoClone).buildAbsoluteWithoutUsername();
+        Mockito.verify(rs).getCloneLinks(Mockito.any(RepositoryCloneLinksRequest.class));
         Assert.assertEquals(ABS_URL_WITH_CREDS, url);
     }
 }

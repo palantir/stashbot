@@ -36,6 +36,8 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.SecurityService;
+import com.atlassian.stash.user.StashUser;
+import com.atlassian.stash.user.UserService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -71,6 +73,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final StashbotUrlBuilder ub;
     private final JobTemplateManager jtm;
     private final SecurityService ss;
+    private final UserService us;
 
     /**
      * @deprecated Use
@@ -85,7 +88,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         PullRequestService pullRequestService, StashbotUrlBuilder ub,
         JobTemplateManager jtm, PluginLoggerFactory lf) {
         this(configurationPersistenceManager, repositoryService, buildStatusService, pullRequestService, ub, jtm,
-            null, lf);
+            null, null, lf);
 
     }
 
@@ -94,7 +97,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
         PullRequestService pullRequestService, StashbotUrlBuilder ub,
-        JobTemplateManager jtm, SecurityService ss, PluginLoggerFactory lf) {
+        JobTemplateManager jtm, SecurityService ss, UserService us, PluginLoggerFactory lf) {
         this.configurationPersistanceManager = configurationPersistenceManager;
         this.repositoryService = repositoryService;
         this.buildStatusService = buildStatusService;
@@ -103,6 +106,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         this.jtm = jtm;
         this.log = lf.getLoggerForThis(this);
         this.ss = ss;
+        this.us = us;
     }
 
     @Override
@@ -132,7 +136,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 
             // This is necessary if we want unauthenticated users to be able to call this.  *sigh*
             RepoIdFetcherOperation getRepoId = new RepoIdFetcherOperation(repositoryService, repoId);
-            ss.doWithPermission("BUILD SUCCESS REPORT", Permission.REPO_READ, getRepoId);
+            ss.withPermission(Permission.REPO_READ, "BUILD SUCCESS REPORT").call(getRepoId);
             final Repository repo = getRepoId.getRepo();
 
             rc = configurationPersistanceManager
@@ -176,7 +180,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                     pullRequestId = Long.parseLong(parts[7]);
                     PullRequestFetcherOperation prfo =
                         new PullRequestFetcherOperation(pullRequestService, repoId, pullRequestId);
-                    ss.doWithPermission("BUILD SUCCESS REPORT", Permission.REPO_READ, prfo);
+                    ss.withPermission(Permission.REPO_READ, "BUILD SUCCESS REPORT").call(prfo);
                     pullRequest = prfo.getPullRequest();
 
                     if (pullRequest == null) {
@@ -207,7 +211,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                 BuildStatusAddOperation bssAdder = new BuildStatusAddOperation(buildStatusService, buildHead, bs);
                 // Yeah, I know what you are thinking... "Admin permission?  To add a build status?"
                 // I tried REPO_WRITE and REPO_ADMIN and neither was enough, but this worked!
-                ss.doWithPermission("BUILD SUCCESS REPORT", Permission.SYS_ADMIN, bssAdder);
+                ss.withPermission(Permission.SYS_ADMIN, "BUILD SUCCESS REPORT").call(bssAdder);
                 printOutput(req, res);
                 return;
             }
@@ -227,9 +231,6 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // here.
             final StringBuffer sb = new StringBuffer();
             final String url = getJenkinsUrl(repo, jt, buildNumber);
-
-            String mergeHead1 = (mergeHead != null)? mergeHead.substring(0, 12) : null;
-            String buildHead1 = (buildHead != null)? buildHead.substring(0, 12) : null;
 
             /* NOTE: mergeHead and buildHead are the reverse of what you might
              * think, because we have to check out the "toRef" becasue it is
@@ -253,7 +254,8 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // So in order to create comments, we have to do it AS some user.  ss.doAsUser rather than ss.doWithPermission is the magic sauce here.
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-            ss.doAsUser("BUILD SUCCESS REPORT", jsc.getStashUsername(), prcao);
+            StashUser user = us.findUserByNameOrEmail(jsc.getStashUsername());
+            ss.impersonating(user, "BUILD SUCCESS REPORT").call(prcao);
 
             printOutput(req, res);
         } catch (SQLException e) {

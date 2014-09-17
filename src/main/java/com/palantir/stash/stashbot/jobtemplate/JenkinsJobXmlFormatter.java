@@ -24,6 +24,8 @@ import org.apache.velocity.app.VelocityEngine;
 
 import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
+import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -47,14 +49,16 @@ public class JenkinsJobXmlFormatter {
     private final ConfigurationPersistenceManager cpm;
     private final StashbotUrlBuilder sub;
     private final NavBuilder navBuilder;
+    private final RepositoryService rs;
 
     public JenkinsJobXmlFormatter(VelocityManager velocityManager,
         ConfigurationPersistenceManager cpm, StashbotUrlBuilder sub,
-        NavBuilder navBuilder) throws IOException {
+        NavBuilder navBuilder, RepositoryService rs) throws IOException {
         this.velocityManager = velocityManager;
         this.cpm = cpm;
         this.sub = sub;
         this.navBuilder = navBuilder;
+        this.rs = rs;
     }
 
     private String curlCommandBuilder(Repository repo, JobTemplate jobTemplate,
@@ -77,8 +81,9 @@ public class JenkinsJobXmlFormatter {
         final JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
-        String repositoryUrl = navBuilder.repo(repo).clone(repo.getScmId())
-            .buildAbsoluteWithoutUsername();
+        RepositoryCloneLinksRequest rclr =
+            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+        String repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
 
         // Handle the various Authentication modes
         switch (jsc.getAuthenticationMode()) {

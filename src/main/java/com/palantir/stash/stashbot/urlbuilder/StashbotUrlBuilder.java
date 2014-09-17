@@ -5,15 +5,19 @@ import java.sql.SQLException;
 import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
+import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 
 public class StashbotUrlBuilder {
 
     private final NavBuilder nb;
+    private final RepositoryService rs;
 
-    public StashbotUrlBuilder(NavBuilder nb) {
+    public StashbotUrlBuilder(NavBuilder nb, RepositoryService rs) {
         this.nb = nb;
+        this.rs = rs;
     }
 
     public String getJenkinsTriggerUrl(Repository repo, JobType jt,
@@ -48,7 +52,10 @@ public class StashbotUrlBuilder {
     }
 
     public String buildCloneUrl(Repository repo, JenkinsServerConfiguration jsc) {
-        String url = nb.repo(repo).clone("git").buildAbsoluteWithoutUsername();
+        RepositoryCloneLinksRequest rclr =
+            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+        String url = rs.getCloneLinks(rclr).iterator().next().getHref();
+        // we build without username because we insert username AND password, and need both, in the case where we are using USERNAME_AND_PASSWORD.
         switch (jsc.getAuthenticationMode()) {
         case USERNAME_AND_PASSWORD:
             url = url.replace("://",
@@ -57,6 +64,7 @@ public class StashbotUrlBuilder {
             break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
             // do nothing
+            // XXX: do we need to get the git/ssh link instead of the http link here?  maybe that's a new mode?
             break;
         default:
             throw new IllegalStateException("Invalid value - update this code after adding an authentication mode");
