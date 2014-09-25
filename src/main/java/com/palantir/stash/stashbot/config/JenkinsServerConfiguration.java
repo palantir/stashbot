@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableMap;
 public interface JenkinsServerConfiguration extends Entity {
 
     static public enum AuthenticationMode {
-        // TODO: when you add stuff here, edit StashbotUrlBuilder as well.
+        // NOTE: when you add stuff here, edit StashbotUrlBuilder as well.
         USERNAME_AND_PASSWORD(Constants.UAP_VALUE, "Username and Password"),
         CREDENTIAL_MANUALLY_CONFIGURED(Constants.CMC_VALUE, "Manually Configured Credential UUID");
 
