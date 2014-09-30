@@ -5,10 +5,11 @@ workflow within stash (similar to gerrit + jenkins).
 
 To work with Jenkins, you MUST install the following jenkins plugins first.
 
-1. Jenkins GIT plugin
-2. Post build task
+1. [Jenkins GIT plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin)
+2. [Post build task](https://wiki.jenkins-ci.org/display/JENKINS/Post+build+task)
+3. [Mailer Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Mailer) (optional, if you want email notifications)
 
-If either of these are missing, shit won't work.
+If either of these are missing, things won't work.
 
 # USER GUIDE
 
@@ -20,38 +21,30 @@ requests are created.
 
 ## INITIAL CONFIG
 
-After installing stashbot, you will need to configure your jenkins instance.
-Stashbot can be configured to use multiple jenkins servers (perhaps your
-company has different jenkins instances for different teams or projects), and
-the jenkins server is configured on a per-repository basis.  Configure jenkins
-servers by clicking on "Stashbot Jenkins Admin" under the Administration page.
-You will need to be a stash administrator.
+After installing stashbot, you will need to do the following as a system
+administrator:
 
-Enter a descriptive jenkins server name, the URL, the username/password if
-needed (if security is not enabled, you can leave the dummy values here), and
-the username/password of the user the jenkins job should use to connect to
-stash (this can be a read-only account and will automagically be given read
-access to each project that enables stashbot).  Finally, the "maximum commits
-to verify on a single push" setting lets you determine how many commits, at
-most, to enqueue due to a single push.  If you want to build every commit, no
-matter what, set this to zero, but if you want to guard against soemone pushing
-200 commits all at once and tying up your executors for a long time, you could
-set this to a safer value like N or 2N where N is the number of executors your
-jenkins instance has.
+* Create a jenkins server configuration (one for each jenkins server you connect to) by clicking on "Stashbot Jenkins Admin" under the administration page
+* You will need to give stashbot a username/password to access jenkins which has permission to create jobs
+* There are several other options you can configure here, most are described at the bottom of the page
+
+To enable CI for a given project, follow the directions in the next section.
 
 ## REPO CONFIG
 
-For each project you wish to configure using stashbot, go to the project and
-look under "Settings" for the "Stashbot CI Admin" page.  To configure this, you
-will need to be a project administrator, but not necessarily a stash admin.
+For each project you wish to configure using stashbot, you will need to do the
+following as an admininstrator of that project:
 
-Click the checkbox to enable stashbot for this repository, and select the
-proper jenkins server from the dropdown box.  If any commands need to be run
-before the build, you can put them as the pre-build command, or just leave it
-as /bin/true.
+* Go to the "Settings" page for your repository and click "Stashbot CI Admin"
+* Check "Enabled"
+* Select the jenkins server configuration which was created above
+* Fill in the details (commands to run, branch regex to verify, etc)
+* As before, there are additional details/documentation at the bottom of this page
 
-The "Regex for branches to publish" is a regular expression that, when refs
-matching it are pushed to, will trigger a publish build.  Publish builds are
+## CONFIGURATION DETAILS
+
+Note that the regular expressions for branches are a regular expression that,
+when refs matching it are pushed to, will trigger a build.  Publish builds are
 always performed ONLY on the actual ref pushed, not each commit in the history.
 This means if you push 3 commits, A depends upon B depends upon C depends upon
 the previous ref, commit A is published.  The regex is anchored and compared to
@@ -100,7 +93,12 @@ disallowed until that build has succeeded.
 
 # DEV GUIDE
 
-## Eclipse
+## Necessary Tools
+
+1. [Atlassian Plugin SDK](https://developer.atlassian.com/display/DOCS/Set+up+the+Atlassian+Plugin+SDK+and+Build+a+Project) (or run `bin/invoke-sdk.sh` on Linux)
+2. [Eclipse](http://eclipse.org) (or the java IDE of your choice)
+
+## Eclipse Setup
 
 1. Generate project files by running `atlas-mvn eclipse:eclipse`
 2. Load the code formatter settings by going to File -> Import -> Preferences and loading the .epf file in code-style/
@@ -115,14 +113,15 @@ NOTE: Please ensure you add a LICENSE block to the top of each newly added file.
 To run jenkins for testing, simply obtain a suitable jenkins.war, then do the
 following to configure it:
 
-1. Run ```java -jar jenkins.war``` (or use the scripts in bin/)
+1. Run `java -jar jenkins.war` (or use the scripts in bin/)
 2. Navigate to http://localhost:8080 to configure
-3. Install the git plugin and post build task (required!)
+3. Install the necessary plugins listed above (required!)
 4. Ensure you navigate to a repository settings page and click "save", that is what initially creates/updates jobs in jenkins.
 
 ## Test Plan
 
 Currently there are no integration tests.  After major changes, the following tests should be performed manually:
+
 * Plugin successfully loads in stash (if fails, did you forget to add a new class to atlassian-plugin.xml?)
 * Go to stashbot settings in rep_1, enable stashbot and save, ensure jobs are updated in jenkins
 * Clone rep_1, create empty commit, push, ensure build is triggered
@@ -151,6 +150,7 @@ can do something like this to easily build your own copy and use it:
 # TODO
 
 ## KNOWN BUGS
+
 * JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
 
 ## PLANNED FEATURES
