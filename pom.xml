@@ -10,7 +10,7 @@
         <url>http://www.palantir.com/</url>
     </organization>
     <name>stashbot</name>
-    <description>Stashbot is a plugin for Atlassian Stash which makes continuous integration via jenkins easy and self-service to users.</description>
+    <description>Stashbot is a plugin for Atlassian Stash that makes continuous integration via jenkins easy and self-servicable for end-users.</description>
     <packaging>atlassian-plugin</packaging>
     <dependencyManagement>
         <dependencies>
