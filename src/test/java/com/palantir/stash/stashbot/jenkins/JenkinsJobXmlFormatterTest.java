@@ -14,6 +14,8 @@
 package com.palantir.stash.stashbot.jenkins;
 
 import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -31,9 +33,12 @@ import org.mockito.stubbing.Answer;
 import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.nav.NavBuilder.BrowseRepoResource;
 import com.atlassian.stash.nav.NavBuilder.Repo;
-import com.atlassian.stash.nav.NavBuilder.RepoClone;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
+import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
+import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.util.NamedLink;
+import com.atlassian.stash.util.SimpleNamedLink;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
@@ -69,14 +74,14 @@ public class JenkinsJobXmlFormatterTest {
     private ConfigurationPersistenceManager cpm;
     @Mock
     private StashbotUrlBuilder sub;
+    @Mock
+    private RepositoryService rs;
 
     // nav builder intermediaries - god damn this is annoying to mock
     @Mock
     private NavBuilder navBuilder;
     @Mock
     private Repo nbRepo;
-    @Mock
-    private RepoClone nbRepoClone;
     @Mock
     private BrowseRepoResource nbRepoBrowse;
 
@@ -89,9 +94,13 @@ public class JenkinsJobXmlFormatterTest {
     @Mock
     private JenkinsServerConfiguration jsc;
 
+    private Set<NamedLink> links;
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        links = new HashSet<NamedLink>();
+        links.add(new SimpleNamedLink(ABSOLUTE_PATH, "http"));
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
         Mockito.when(rc.getJenkinsServerName()).thenReturn("NAME");
@@ -99,9 +108,8 @@ public class JenkinsJobXmlFormatterTest {
 
         Mockito.when(navBuilder.repo(Mockito.any(Repository.class))).thenReturn(nbRepo);
         Mockito.when(navBuilder.buildAbsolute()).thenReturn(ABSOLUTE_PATH);
-        Mockito.when(nbRepo.clone(Mockito.anyString())).thenReturn(nbRepoClone);
+        Mockito.when(rs.getCloneLinks(Mockito.any(RepositoryCloneLinksRequest.class))).thenReturn(links);
         Mockito.when(nbRepo.browse()).thenReturn(nbRepoBrowse);
-        Mockito.when(nbRepoClone.buildAbsoluteWithoutUsername()).thenReturn(ABSOLUTE_PATH);
         Mockito.when(nbRepoBrowse.buildAbsolute()).thenReturn(ABSOLUTE_PATH2);
 
         Mockito.when(jsc.getUrl()).thenReturn(REPO_URL);
@@ -131,7 +139,7 @@ public class JenkinsJobXmlFormatterTest {
             }
         }).when(velocityTemplate).merge(Mockito.eq(velocityContext), writerCaptor.capture());
 
-        jjxf = new JenkinsJobXmlFormatter(velocityManager, cpm, sub, navBuilder);
+        jjxf = new JenkinsJobXmlFormatter(velocityManager, cpm, sub, navBuilder, rs);
     }
 
     @Test

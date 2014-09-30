@@ -98,6 +98,13 @@
             <artifactId>velocity-tools</artifactId>
             <version>2.0</version>
         </dependency>
+        <!-- used for Condition interface, needed for stash 3.3.0+ -->
+        <dependency>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-web-common</artifactId>
+            <version>${stash.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <!-- need SAL for LoginUriProvider -->
         <dependency>
             <groupId>com.atlassian.sal</groupId>
@@ -205,15 +212,15 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>3.2.2</stash.version>
-        <stash.data.version>3.2.2</stash.data.version>
+        <stash.version>3.3.0</stash.version>
+        <stash.data.version>3.3.0</stash.data.version>
         <stash.containerId>tomcat7x</stash.containerId>
         <!--
         WARNING: manually sync this with the version in stash - variable in the
         pom has the same name but isn't imported for some reason.
          -->
         <google.guava.libversion>10.0.1</google.guava.libversion>
-        <amps.version>5.0.3</amps.version>
+        <amps.version>5.0.4</amps.version>
         <plugin.testrunner.version>1.1</plugin.testrunner.version>
         <!-- TODO: I manually figured out this version - can we automatically figure it out? -->
         <ao.version>0.21.2</ao.version>

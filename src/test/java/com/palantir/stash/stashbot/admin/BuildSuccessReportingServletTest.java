@@ -41,8 +41,11 @@ import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.user.EscalatedSecurityContext;
 import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.SecurityService;
+import com.atlassian.stash.user.StashUser;
+import com.atlassian.stash.user.UserService;
 import com.atlassian.stash.util.Operation;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
@@ -79,6 +82,8 @@ public class BuildSuccessReportingServletTest {
     private JenkinsServerConfiguration jsc;
     @Mock
     private SecurityService ss;
+    @Mock
+    private UserService us;
 
     @Mock
     private HttpServletRequest req;
@@ -98,6 +103,8 @@ public class BuildSuccessReportingServletTest {
     private JobTemplateManager jtm;
     @Mock
     private PullRequestRef toRef;
+    @Mock
+    private EscalatedSecurityContext esc;
 
     private StringWriter mockWriter;
 
@@ -136,6 +143,9 @@ public class BuildSuccessReportingServletTest {
                 Mockito.any(PullRequest.class))).thenReturn(
             ABSOLUTE_URL);
 
+        Mockito.when(ss.impersonating(Mockito.any(StashUser.class), Mockito.anyString())).thenReturn(esc);
+        Mockito.when(ss.withPermission(Mockito.any(Permission.class), Mockito.anyString())).thenReturn(esc);
+
         jtf = new MockJobTemplateFactory(jtm);
         jtf.generateDefaultsForRepo(repo, rc);
 
@@ -144,22 +154,19 @@ public class BuildSuccessReportingServletTest {
 
             @Override
             public Void answer(InvocationOnMock invocation) throws Throwable {
-                Operation<Void, Exception> op = (Operation<Void, Exception>) invocation.getArguments()[2];
+                Operation<Void, Exception> op = (Operation<Void, Exception>) invocation.getArguments()[0];
 
                 op.perform();
                 return null;
             }
         };
-        Mockito.doAnswer(frobber).when(ss)
-            .doAsUser(Mockito.anyString(), Mockito.anyString(), Mockito.any(Operation.class));
-        Mockito.doAnswer(frobber).when(ss)
-            .doWithPermission(Mockito.anyString(), Mockito.any(Permission.class), Mockito.any(Operation.class));
+        Mockito.when(esc.call(Mockito.any(Operation.class))).thenAnswer(frobber);
 
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));
 
         bsrs = new BuildSuccessReportingServlet(cpm, repositoryService, bss,
-            prs, ub, jtm, ss, lf);
+            prs, ub, jtm, ss, us, lf);
     }
 
     @Test

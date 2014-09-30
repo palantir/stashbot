@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import com.atlassian.stash.scm.CommandOutputHandler;
-import com.atlassian.util.concurrent.Nullable;
 import com.atlassian.utils.process.ProcessException;
 import com.atlassian.utils.process.Watchdog;
 import com.google.common.collect.ImmutableList;
@@ -30,7 +29,6 @@ public class CommandOutputHandlerFactory {
             }
 
             @Override
-            @Nullable
             public Object getOutput() {
                 if (processed == false) {
                     throw new IllegalStateException("getOutput() called before process()");
@@ -84,7 +82,6 @@ public class CommandOutputHandlerFactory {
             }
 
             @Override
-            @Nullable
             public Object getOutput() {
                 if (processed == false) {
                     throw new IllegalStateException("getOutput() called before process()");
