@@ -133,7 +133,7 @@ public class BuildTriggerServletTest {
         bsrs.doGet(req, res);
 
         Mockito.verify(res).setStatus(200);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, verifyCommitType, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, verifyCommitType, HEAD, "");
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Build Triggered"));
@@ -160,7 +160,7 @@ public class BuildTriggerServletTest {
         bsrs.doGet(req, res);
 
         Mockito.verify(res).setStatus(200);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, publishType, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, publishType, HEAD, "");
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Build Triggered"));

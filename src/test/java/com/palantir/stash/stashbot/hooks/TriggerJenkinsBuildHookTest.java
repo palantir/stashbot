@@ -72,7 +72,7 @@ public class TriggerJenkinsBuildHookTest {
 
     private ArrayList<RefChange> changes;
 
-    private PluginLoggerFactory lf = new PluginLoggerFactory();
+    private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     @Before
     public void setUp() throws SQLException {
@@ -112,7 +112,7 @@ public class TriggerJenkinsBuildHookTest {
     public void testTriggersBuildOnPush() {
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, HEAD_BR);
     }
 
     @Test
@@ -121,7 +121,7 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
-            Mockito.eq(HEAD));
+            Mockito.eq(HEAD), Mockito.eq(HEAD_BR));
     }
 
     @Test
@@ -130,7 +130,7 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
-            Mockito.eq(HEAD));
+            Mockito.eq(HEAD), Mockito.eq(HEAD_BR));
     }
 
     @Test
@@ -139,7 +139,7 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
-            Mockito.eq(HEAD));
+            Mockito.eq(HEAD), Mockito.eq(HEAD_BR));
     }
 
     @Test
@@ -148,7 +148,7 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getPublishBranchRegex()).thenReturn("master");
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.PUBLISH, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.PUBLISH, HEAD, HEAD_BR);
     }
 
     @Test
@@ -159,8 +159,8 @@ public class TriggerJenkinsBuildHookTest {
 
         tjbh.postReceive(rhc, changes);
 
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE, HEAD_BR);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, HEAD_BR);
     }
 
     @Test
@@ -174,8 +174,8 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
-            Mockito.eq(HEAD_MINUS_ONE));
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
+            Mockito.eq(HEAD_MINUS_ONE), Mockito.eq(HEAD_BR));
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, HEAD_BR);
     }
 
     @Test
@@ -189,7 +189,7 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.postReceive(rhc, changes);
 
         // TODO: verify the git rev-list is invoked with proper args?
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE);
-        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE, HEAD_BR);
+        Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, HEAD_BR);
     }
 }

@@ -139,7 +139,8 @@ public class BuildTriggerServlet extends HttpServlet {
         if (mergeHead == null) {
             log.debug("Triggering build for buildHead " + buildHead);
             try {
-                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead);
+                // When triggered this way, we don't know the buildRef, so leave it blank
+                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead, "");
                 printOutput(req, res);
                 return;
             } catch (Exception e) {

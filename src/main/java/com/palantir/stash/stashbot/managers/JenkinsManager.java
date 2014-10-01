@@ -167,7 +167,7 @@ public class JenkinsManager {
     }
 
     public void triggerBuild(Repository repo, JobType jobType,
-        String hashToBuild) {
+        String hashToBuild, String buildRef) {
         try {
             RepositoryConfiguration rc = cpm
                 .getRepositoryConfigurationForRepository(repo);
@@ -196,6 +196,7 @@ public class JenkinsManager {
             Builder<String, String> builder = ImmutableMap.builder();
             builder.put("buildHead", hashToBuild);
             builder.put("repoId", repo.getId().toString());
+            builder.put("buildRef", buildRef);
 
             jobMap.get(key).build(builder.build());
         } catch (SQLException e) {
@@ -260,7 +261,8 @@ public class JenkinsManager {
                 builder.put("buildHead", pullRequest.getToRef()
                     .getLatestChangeset().toString());
                 // fromRef may be in a different repo
-                builder.put("mergeRef", pullRequest.getFromRef().getDisplayId());
+                builder.put("mergeRef", pullRequest.getFromRef().getId());
+                builder.put("buildRef", pullRequest.getToRef().getId());
                 builder.put("mergeRefUrl", sub.buildCloneUrl(pullRequest.getFromRef().getRepository(), jsc));
                 builder.put("mergeHead", pullRequest.getFromRef()
                     .getLatestChangeset().toString());

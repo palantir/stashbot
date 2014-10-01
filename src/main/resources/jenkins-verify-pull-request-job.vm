@@ -55,6 +55,12 @@
           <description>The actual SHA1 of the commit to fetch</description>
           <defaultValue></defaultValue>
         </hudson.model.StringParameterDefinition>
+## Let the build figure out which branch is being built
+        <hudson.model.StringParameterDefinition>
+          <name>buildRef</name>
+          <description>The name of the ref we are building against</description>
+          <defaultValue></defaultValue>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
