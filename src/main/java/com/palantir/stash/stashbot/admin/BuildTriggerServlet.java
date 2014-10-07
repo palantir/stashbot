@@ -1,4 +1,4 @@
-// Copyright 2013 Palantir Technologies
+// Copyright 2014 Palantir Technologies
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -139,7 +139,8 @@ public class BuildTriggerServlet extends HttpServlet {
         if (mergeHead == null) {
             log.debug("Triggering build for buildHead " + buildHead);
             try {
-                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead);
+                // When triggered this way, we don't know the buildRef, so leave it blank
+                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead, "");
                 printOutput(req, res);
                 return;
             } catch (Exception e) {

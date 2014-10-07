@@ -1,4 +1,4 @@
-// Copyright 2013 Palantir Technologies
+// Copyright 2014 Palantir Technologies
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -146,7 +146,7 @@ public class PullRequestListenerTest {
             Mockito.any(PullRequest.class));
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(
             Mockito.any(Repository.class), Mockito.any(JobType.class),
-            Mockito.anyString());
+            Mockito.anyString(), Mockito.anyString());
     }
 
     @Test
@@ -162,7 +162,7 @@ public class PullRequestListenerTest {
             Mockito.any(PullRequest.class));
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(
             Mockito.any(Repository.class), Mockito.any(JobType.class),
-            Mockito.anyString());
+            Mockito.anyString(), Mockito.anyString());
     }
 
     @Test
@@ -178,7 +178,7 @@ public class PullRequestListenerTest {
             Mockito.any(PullRequest.class));
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(
             Mockito.any(Repository.class), Mockito.any(JobType.class),
-            Mockito.anyString());
+            Mockito.anyString(), Mockito.anyString());
     }
 
     @Test

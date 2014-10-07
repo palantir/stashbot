@@ -1,4 +1,4 @@
-// Copyright 2013 Palantir Technologies
+// Copyright 2014 Palantir Technologies
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -165,6 +165,7 @@ public class JenkinsManagerTest {
     @Test
     public void testTriggerBuildShort() throws IOException, SQLException {
         String HASH = "38356e8abe0e96538dd1007278ecc02c3bf3d2cb";
+        String REF = "refs/heads/master";
 
         JobTemplate jt = jtm.getDefaultVerifyJob();
 
@@ -178,7 +179,7 @@ public class JenkinsManagerTest {
         Mockito.when(jtm.getJobTemplate(JobType.VERIFY_COMMIT, rc)).thenReturn(
             jt);
 
-        jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, HASH);
+        jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, HASH, REF);
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, String>> forClass = (Class) Map.class;
@@ -189,6 +190,7 @@ public class JenkinsManagerTest {
 
         Map<String, String> paramMap = paramCaptor.getValue();
         Assert.assertTrue(paramMap.containsKey("buildHead"));
+        Assert.assertTrue(paramMap.containsKey("buildRef"));
         Assert.assertTrue(paramMap.containsKey("repoId"));
         Assert.assertFalse(paramMap.containsKey("pullRequestId"));
         Assert.assertFalse(paramMap.containsKey("mergeHead"));
