@@ -13,6 +13,8 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.urlbuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 
 import com.atlassian.stash.nav.NavBuilder;
@@ -72,7 +74,7 @@ public class StashbotUrlBuilder {
         switch (jsc.getAuthenticationMode()) {
         case USERNAME_AND_PASSWORD:
             url = url.replace("://",
-                "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
+                "://" + mask(jsc.getStashUsername()) + ":" + mask(jsc.getStashPassword())
                     + "@");
             break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
@@ -83,5 +85,13 @@ public class StashbotUrlBuilder {
             throw new IllegalStateException("Invalid value - update this code after adding an authentication mode");
         }
         return url;
+    }
+
+    private String mask( String str ) {
+        try {
+            return URLEncoder.encode( str, "UTF-8" );
+        } catch( UnsupportedEncodingException e ) {
+            return str;
+        }
     }
 }
