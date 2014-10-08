@@ -118,14 +118,12 @@ public class JenkinsJobXmlFormatter {
             break;
         }
 
-        // Add email notification stuff - for now publish builds only
-        if (jobTemplate.getJobType().equals(JobType.PUBLISH)) {
-            vc.put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled());
-            vc.put("emailRecipients", rc.getEmailRecipients());
-            vc.put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild());
-            vc.put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals());
-            vc.put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail());
-        }
+        // Add email notification stuff for all build types
+        vc.put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled());
+        vc.put("emailRecipients", rc.getEmailRecipients());
+        vc.put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild());
+        vc.put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals());
+        vc.put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail());
 
         vc.put("startedCommand",
             curlCommandBuilder(repo, jobTemplate, rc, repositoryUrl,
