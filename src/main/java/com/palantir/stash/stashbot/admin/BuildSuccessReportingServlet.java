@@ -238,12 +238,26 @@ public class BuildSuccessReportingServlet extends HttpServlet {
              * Nonetheless, buildHead is the commit that is being merged "into"
              * the target branch, which is the mergeHead variable here.
              */
-            sb.append("Jenkins Build now has status ");
-            sb.append("==" + state.toString() + "==");
-            sb.append(" for hash " + mergeHead);
-            sb.append(" merged into head " + buildHead);
-            sb.append("[Link](" + url + ")");
-            sb.append(" [Retrigger](" + retUrl + ")");
+            final int hashLength = 7; // Stash won't auto-link SHAs shorter than 7 chars.
+            final String shortMergeHead = mergeHead.substring(0, hashLength);
+            final String shortBuildHead = buildHead.substring(0, hashLength);
+
+            final String consoleUrl = url + "/console";
+
+            sb.append("*[Build #" + buildNumber + "](" + url + ") ");
+            sb.append("(merging " + shortMergeHead + " into " + shortBuildHead + ") ");
+            switch (state) {
+                case INPROGRESS:
+                    sb.append("is in progress.*");
+                    break;
+                case SUCCESSFUL:
+                    sb.append("has **passed &#x2713;**.*");
+                    break;
+                case FAILED:
+                    sb.append("has* **FAILED &#x2716;**. ");
+                    sb.append("([*Retrigger this build*. &#x27f3;](" + retUrl + ") *or* [*view console output*](" + consoleUrl + ").)");
+                    break;
+            }
 
             log.debug("Registering comment on pr for buildHead " + buildHead
                 + " mergeHead " + mergeHead);

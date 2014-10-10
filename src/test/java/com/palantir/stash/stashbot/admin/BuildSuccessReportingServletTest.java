@@ -265,7 +265,7 @@ public class BuildSuccessReportingServletTest {
         Assert.assertTrue(output.contains("Status Updated"));
 
         String commentText = stringCaptor.getValue();
-        Assert.assertTrue(commentText.contains("==SUCCESSFUL=="));
+        Assert.assertTrue(commentText.contains("passed"));
     }
 
     // path info:
