@@ -157,4 +157,10 @@ public interface RepositoryConfiguration extends Entity {
 
     public void setEmailPerModuleEmail(Boolean emailPerModuleEmail);
 
+    @NotNull
+    @Default("false")
+    public Boolean getStrictVerifyMode();
+
+    public void setStrictVerifyMode(Boolean strictVerifyMode);
+
 }

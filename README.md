@@ -91,6 +91,12 @@ If a pull request is updated (including if the target branch is updated)
 another verify build is automatically triggered, and the merge is again
 disallowed until that build has succeeded.
 
+## STRICT MODE
+
+In strict mode, stashbot requires that every commit in a pull request has at least one successful build before it can be merged.  This lets you enforce a higher level of verification so that git bisects are reliable.  Another example where you might want to do this is if your build acts upon changed pieces only, and can therefore only guarantee consistency if each commit's parent has also been verified.
+
+Strict mode is disabled by default, and when enabled it cannot be overridden with the override flag due to implementation details (but users may still perform the merge locally and directly push it, if they have adequate permissions to do so).
+
 # DEV GUIDE
 
 ## Necessary Tools
