@@ -80,7 +80,7 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             return;
         }
 
-        // First, if strict mode is on, we want to fail fast if any commit in the PR is missing a successful verify build
+        // First, if strict mode is on, we want to veto for each commit in the PR that is missing a successful verify build
         if (rc.getStrictVerifyMode()) {
             ChangesetsBetweenRequest cbr = new ChangesetsBetweenRequest.Builder(pr).build();
             PageRequest pageReq = new PageRequestImpl(0, 500);
@@ -92,7 +92,6 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
                     if (bs.getSuccessfulCount() == 0) {
                         mr.veto("Commit " + c.getId() + " not verified",
                             "When in strict verification mode, each commit in the PR must have at least one successful build");
-                        return;
                     }
 
                 }
