@@ -125,7 +125,7 @@
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <!-- So, here we fetch and merge in the mergeHead.  We merge the hash directly instead of the ref name or FETCH_HEAD to avoid race conditions with the server. -->
-        <command>git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
+        <command>git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge --no-ff $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$esc.xml($prebuildCommand)</command>
