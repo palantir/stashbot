@@ -94,6 +94,7 @@
     <component-import key="activeObjects" interface="com.atlassian.activeobjects.external.ActiveObjects" />
     <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
     <component-import key="buildStatusService" interface="com.atlassian.stash.build.BuildStatusService"/>
+    <component-import key="commitService" interface="com.atlassian.stash.commit.CommitService"/>
     <component-import key="gitCommandBuilderFactory" interface="com.atlassian.stash.scm.git.GitCommandBuilderFactory"/>
     <component-import key="loginUriProvider" interface="com.atlassian.sal.api.auth.LoginUriProvider"/>
     <component-import key="navBuilder" interface="com.atlassian.stash.nav.NavBuilder" />

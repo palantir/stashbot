@@ -23,6 +23,7 @@
  * @param isEmailNotificationsEnabled
  * @param isEmailPerModuleEmail
  * @param isEmailSendToIndividuals
+ * @param isStrictVerifyMode
  * @param isLocked
  *
  **/
@@ -195,6 +196,14 @@
               'isChecked': $rebuildOnUpdate
               ]] /}
           {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.strict-verify-mode.button.description', 'Enable Strict Verify Mode') /}
+            {param fields: [[
+              'id': 'isStrictVerifyMode',
+              'labelText': stash_i18n('stash.web.stash.strict-verify-mode.button.label', 'Enabled'),
+              'isChecked': $isStrictVerifyMode
+              ]] /}
+          {/call}
           {call aui.form.buttons}
             {param content}
               {call aui.form.submit}
@@ -229,6 +238,14 @@ If your jenkins instance has applied labels to build nodes, you can have verifiy
 <h3>Max Verify Chain:</h3>
 <p>
 The max verify chain setting specifies the number of verify builds to trigger due to a single ref update, at most.  For example, if the setting is set to 5, and a reference is updated from pointing to commit A, to pointing to commit B, and commit B has commit A as it's parent's parent's parent's parent, that is a chain of five commits have been pushed each dependent on the next, then 5 verify builds will be triggered, one for each commit.  If the setting was instead set to 3, only the 3 "most recent" commits would be verified, and 2 would be left unbuilt (but verifies could be triggered manually).  If the setting was 0, an unlimited number of builds could be triggered (though still limited by the jenkins configuration setting as well, which puts a cap on it).
+</p>
+<h3>Strict Verify Mode</h3>
+<p>
+In strict mode, stashbot requires that every commit in a pull request has at least one successful build before it can be merged.  This lets you enforce a higher level of verification so that git bisects are reliable.  Another example where you might want to do this is if your build acts upon changed pieces only, and can therefore only guarantee consistency if each commit's parent has also been verified.
+
+Note that if your verify regex does not match a feature branch, but does match an integration branch, and you push to your feature branch then try to merge into your integration branch, there will be missing verify builds.  Therefore, if you want stashbot to perform these builds and operate in strict mode, you probably want your verify regex to cover all branches to which you directly push.
+
+Strict mode is disabled by default, and when enabled it cannot be overridden with the override flag due to implementation details (but users may still perform the merge locally and directly push it, if they have adequate permissions to do so).
 </p>
 <h3>Recommendations and Best Practices</h3>
 <p>

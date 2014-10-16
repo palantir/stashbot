@@ -143,6 +143,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
                     .put("emailRecipients", rc.getEmailRecipients())
                     .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
+                    .put("isStrictVerifyMode", rc.getStrictVerifyMode())
                     .put("isLocked", isLocked(theJsc))
                     .build()
                 );

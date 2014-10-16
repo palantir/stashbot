@@ -20,10 +20,18 @@ import javax.annotation.Nonnull;
 
 import org.slf4j.Logger;
 
+import com.atlassian.stash.build.BuildStats;
+import com.atlassian.stash.build.BuildStatusService;
+import com.atlassian.stash.commit.CommitService;
+import com.atlassian.stash.content.Changeset;
+import com.atlassian.stash.content.ChangesetsBetweenRequest;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.pull.MergeRequest;
 import com.atlassian.stash.scm.pull.MergeRequestCheck;
+import com.atlassian.stash.util.Page;
+import com.atlassian.stash.util.PageRequest;
+import com.atlassian.stash.util.PageRequestImpl;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -38,13 +46,17 @@ import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
  */
 public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
+    private final CommitService cs;
+    private final BuildStatusService bss;
     private final ConfigurationPersistenceManager cpm;
     private final Logger log;
 
     public PullRequestBuildSuccessMergeCheck(
-        ConfigurationPersistenceManager cpm, PluginLoggerFactory lf) {
+        CommitService cs, BuildStatusService bss, ConfigurationPersistenceManager cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
+        this.cs = cs;
+        this.bss = bss;
     }
 
     @Override
@@ -68,16 +80,39 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             return;
         }
 
+        // First, if strict mode is on, we want to veto for each commit in the PR that is missing a successful verify build
+        if (rc.getStrictVerifyMode()) {
+            ChangesetsBetweenRequest cbr = new ChangesetsBetweenRequest.Builder(pr).build();
+            PageRequest pageReq = new PageRequestImpl(0, 500);
+            Page<? extends Changeset> page = cs.getChangesetsBetween(cbr, pageReq);
+            while (true) {
+                for (Changeset c : page.getValues()) {
+                    log.trace("Processing commit " + c.getId());
+                    BuildStats bs = bss.getStats(c.getId());
+                    if (bs.getSuccessfulCount() == 0) {
+                        mr.veto("Commit " + c.getId() + " not verified",
+                            "When in strict verification mode, each commit in the PR must have at least one successful build");
+                    }
+
+                }
+                if (page.getIsLastPage()) {
+                    break;
+                }
+                pageReq = page.getNextPageRequest();
+                page = cs.getChangesetsBetween(cbr, pageReq);
+            }
+        }
+
         PullRequestMetadata prm = null;
         if (!rc.getRebuildOnTargetUpdate()) {
             // we want a PRM which simply matches the fromSha and the pull request ID.
             Collection<PullRequestMetadata> prms = cpm.getPullRequestMetadataWithoutToRef(pr);
             for (PullRequestMetadata cur : prms) {
                 if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())
-                      && (cur.getOverride() || cur.getSuccess())) {
+                    && (cur.getOverride() || cur.getSuccess())) {
                     log.debug("Found match PRM");
                     log.debug("PRM: success " + cur.getSuccess().toString() + " override "
-                          + cur.getOverride().toString());
+                        + cur.getOverride().toString());
                     return;
                 }
             }

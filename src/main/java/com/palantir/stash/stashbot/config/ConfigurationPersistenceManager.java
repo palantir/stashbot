@@ -173,7 +173,7 @@ public class ConfigurationPersistenceManager {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", null, new EmailSettings());
+            false, "N/A", null, new EmailSettings(), false);
     }
 
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
@@ -195,6 +195,7 @@ public class ConfigurationPersistenceManager {
         if (maxVerifyChainStr != null && !maxVerifyChainStr.isEmpty()) {
             maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
         }
+        Boolean strictVerifyMode = getBoolean(req, "isStrictVerifyMode");
 
         Boolean junitEnabled = getBoolean(req, "isJunit");
         String junitPath = req.getParameter("junitPath");
@@ -204,7 +205,8 @@ public class ConfigurationPersistenceManager {
 
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
             verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
-            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain, emailSettings);
+            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain, emailSettings,
+            strictVerifyMode);
     }
 
     private EmailSettings getEmailSettings(HttpServletRequest req) {
@@ -227,7 +229,7 @@ public class ConfigurationPersistenceManager {
         String verifyLabel, String publishBranchRegex,
         String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
         String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-        Integer maxVerifyChain, EmailSettings emailSettings)
+        Integer maxVerifyChain, EmailSettings emailSettings, boolean strictVerifyMode)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -242,8 +244,8 @@ public class ConfigurationPersistenceManager {
             RepositoryConfiguration rc = ao.create(
                 RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()), new DBParam(
-                "CI_ENABLED", isCiEnabled), new DBParam(
-                "VERIFY_BRANCH_REGEX", verifyBranchRegex),
+                    "CI_ENABLED", isCiEnabled), new DBParam(
+                    "VERIFY_BRANCH_REGEX", verifyBranchRegex),
                 new DBParam("VERIFY_BUILD_COMMAND", verifyBuildCommand),
                 new DBParam("VERIFY_PINNED", isVerifyPinned),
                 new DBParam("VERIFY_LABEL", verifyLabel),
@@ -260,8 +262,9 @@ public class ConfigurationPersistenceManager {
                 new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
                 new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
                 new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
-                new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals())
-            );
+                new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals()),
+                new DBParam("STRICT_VERIFY_MODE", strictVerifyMode)
+                );
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
@@ -291,6 +294,7 @@ public class ConfigurationPersistenceManager {
         foundRepo.setEmailPerModuleEmail(emailSettings.getEmailPerModuleEmail());
         foundRepo.setEmailRecipients(emailSettings.getEmailRecipients());
         foundRepo.setEmailSendToIndividuals(emailSettings.getEmailSendToIndividuals());
+        foundRepo.setStrictVerifyMode(strictVerifyMode);
         foundRepo.save();
     }
 
@@ -411,7 +415,8 @@ public class ConfigurationPersistenceManager {
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
-        PullRequestMetadata prm = getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(), fromHash, toHash);
+        PullRequestMetadata prm =
+            getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(), fromHash, toHash);
         if (buildStarted != null) {
             prm.setBuildStarted(buildStarted);
         }
