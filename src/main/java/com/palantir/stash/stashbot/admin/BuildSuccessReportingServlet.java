@@ -254,14 +254,14 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             sb.append("(merging " + mergeHeadLink + " into " + buildHeadLink + ") ");
             switch (state) {
                 case INPROGRESS:
-                    sb.append("is in progress.*");
+                    sb.append("is in progress...*");
                     break;
                 case SUCCESSFUL:
                     sb.append("has **passed &#x2713;**.*");
                     break;
                 case FAILED:
                     sb.append("has* **FAILED &#x2716;**. ");
-                    sb.append("([*Retrigger this build*. &#x27f3;](" + retUrl + ") *or* [*view console output*](" + consoleUrl + ").)");
+                    sb.append("([*Retrigger this build* &#x27f3;](" + retUrl + ") *or* [*view console output* &#x2630;](" + consoleUrl + ").)");
                     break;
             }
 
