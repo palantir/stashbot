@@ -238,14 +238,20 @@ public class BuildSuccessReportingServlet extends HttpServlet {
              * Nonetheless, buildHead is the commit that is being merged "into"
              * the target branch, which is the mergeHead variable here.
              */
-            final int hashLength = 7; // Stash won't auto-link SHAs shorter than 7 chars.
+            final int hashLength = 4;
             final String shortMergeHead = mergeHead.substring(0, hashLength);
             final String shortBuildHead = buildHead.substring(0, hashLength);
+
+            final String mergeHeadUrl = ub.buildStashCommitUrl(repo, mergeHead);
+            final String buildHeadUrl = ub.buildStashCommitUrl(repo, buildHead);
+
+            final String mergeHeadLink = "[" + shortMergeHead + "](" + mergeHeadUrl + ")";
+            final String buildHeadLink = "[" + buildMergeHead + "](" + buildHeadUrl + ")";
 
             final String consoleUrl = url + "/console";
 
             sb.append("*[Build #" + buildNumber + "](" + url + ") ");
-            sb.append("(merging " + shortMergeHead + " into " + shortBuildHead + ") ");
+            sb.append("(merging " + mergeHeadLink + " into " + buildHeadLink + ") ");
             switch (state) {
                 case INPROGRESS:
                     sb.append("is in progress.*");
