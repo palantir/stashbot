@@ -246,7 +246,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             final String buildHeadUrl = ub.buildStashCommitUrl(repo, buildHead);
 
             final String mergeHeadLink = "[" + shortMergeHead + "](" + mergeHeadUrl + ")";
-            final String buildHeadLink = "[" + buildMergeHead + "](" + buildHeadUrl + ")";
+            final String buildHeadLink = "[" + shortBuildHead + "](" + buildHeadUrl + ")";
 
             final String consoleUrl = url + "/console";
 
