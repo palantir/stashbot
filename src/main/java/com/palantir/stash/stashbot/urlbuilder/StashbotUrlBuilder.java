@@ -87,6 +87,10 @@ public class StashbotUrlBuilder {
         return url;
     }
 
+    public String buildStashCommitUrl(Repository repo, String changeset) {
+        return nb.repo(repo).changeset(changeset).buildAbsolute();
+    }
+
     private String mask( String str ) {
         try {
             return URLEncoder.encode( str, "UTF-8" );
