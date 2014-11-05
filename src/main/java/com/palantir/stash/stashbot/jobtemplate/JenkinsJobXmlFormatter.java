@@ -84,6 +84,7 @@ public class JenkinsJobXmlFormatter {
         RepositoryCloneLinksRequest rclr =
             new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
         String repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
+        String cleanRepositoryUrl = repositoryUrl;
 
         // Handle the various Authentication modes
         switch (jsc.getAuthenticationMode()) {
@@ -98,6 +99,7 @@ public class JenkinsJobXmlFormatter {
             break;
         }
         vc.put("repositoryUrl", repositoryUrl);
+        vc.put("cleanRepositoryUrl", cleanRepositoryUrl);
 
         vc.put("prebuildCommand", prebuildCommand(rc.getPrebuildCommand()));
 

@@ -3,6 +3,7 @@
   Parameters:
   parameterList: list of params
     each param has type, name, description, defaultValue
+  cleanRepositoryUrl
   repositoryUrl
   repositoryRefSpec
   startedCommand
@@ -21,7 +22,7 @@
 *#
 <project>
   <actions/>
-  <description>This is the default publish job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$esc.xml($repositoryUrl)"&gt;$esc.xml($repositoryUrl)&lt;/a&gt;</description>
+  <description>This is the default publish job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$esc.xml($cleanRepositoryUrl)"&gt;$esc.xml($cleanRepositoryUrl)&lt;/a&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
