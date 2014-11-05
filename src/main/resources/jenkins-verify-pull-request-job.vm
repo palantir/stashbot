@@ -3,6 +3,7 @@
   Parameters:
   parameterList: list of params
     each param has type, name, description, defaultValue
+  cleanRepositoryUrl
   repositoryUrl
   repositoryRefSpec
   startedCommand
@@ -27,7 +28,7 @@
 #set ($d = "$")
 <project>
   <actions/>
-  <description>This is the default verify job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$esc.xml($repositoryUrl)"&gt;$esc.xml($repositoryUrl)&lt;/a&gt;</description>
+  <description>This is the default verify job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$esc.xml($cleanRepositoryUrl)"&gt;$esc.xml($cleanRepositoryUrl)&lt;/a&gt;</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -125,7 +126,9 @@
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <!-- So, here we fetch and merge in the mergeHead.  We merge the hash directly instead of the ref name or FETCH_HEAD to avoid race conditions with the server. -->
-        <command>git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge --no-ff $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
+        <command>set +x
+git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge --no-ff $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)
+set -x</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$esc.xml($prebuildCommand)</command>
