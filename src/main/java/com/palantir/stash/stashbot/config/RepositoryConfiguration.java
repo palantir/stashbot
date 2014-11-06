@@ -163,4 +163,10 @@ public interface RepositoryConfiguration extends Entity {
 
     public void setStrictVerifyMode(Boolean strictVerifyMode);
 
+    @NotNull
+    @Default("false")
+    public Boolean getPreserveJenkinsJobConfig();
+
+    public void setPreserveJenkinsJobConfig(Boolean preserveJenkinsJobConfig);
+
 }

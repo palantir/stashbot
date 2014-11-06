@@ -25,6 +25,7 @@
  * @param isEmailSendToIndividuals
  * @param isStrictVerifyMode
  * @param isLocked
+ * @param isPreserveJenkinsJobConfig
  *
  **/
 {template .repositoryConfigurationPanel}
@@ -204,6 +205,15 @@
               'isChecked': $isStrictVerifyMode
               ]] /}
           {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.label', 'Preserve Jenkins Job Config') /}
+            {param descriptionText: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.description', 'See below for details.') /}
+            {param fields: [[
+              'id': 'isPreserveJenkinsJobConfig',
+              'labelText': stash_i18n('stash.web.stash.preserveJenkinsJobConfig.button.label', 'Enabled'),
+              'isChecked': $isPreserveJenkinsJobConfig
+            ]] /}
+          {/call}
           {call aui.form.buttons}
             {param content}
               {call aui.form.submit}
@@ -253,6 +263,10 @@ If one is releasing using something like <a href="http://nvie.com/posts/a-succes
 </p>
 <p>
 Note also that the configuration should take into account capacity concerns.  If the jenkins instance has 10 executors, the typical build takes 10 minutes, and 5-10 changes are pushed per hour, one can probably safely build every commit.  If, however, one has 2 executors and each build takes an hour, it will probably result in large latencies if one tries to build all commits, should someone push a chain of 10 commits even once or twice a day.  For details, consult your site-specific documentation (your infrastructure guys have established guidelines, right? =) )
+</p>
+<h3>Preserve Jenkins Job Config</h3>
+<p>
+When you click save, normally, the job is destroyed and recreated.  This option disables that, so editing this page still changes internal state but no longer effects a job (that already exists) at all.  Some featuers will work, some will not, but changes made directly in jenkins will no longer be destroyed.
 </p>
 </div>
 <p hidden="true" id="isJenkinsServerLocked">{$isLocked}</p>

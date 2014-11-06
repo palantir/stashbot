@@ -149,8 +149,12 @@ public class JenkinsManager {
             String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
 
             if (jobMap.containsKey(jobName)) {
-                log.trace("Sending XML to jenkins to update job: " + xml);
-                jenkinsServer.updateJob(jobName, xml);
+                if (!rc.getPreserveJenkinsJobConfig()) {
+                    log.trace("Sending XML to jenkins to update job: " + xml);
+                    jenkinsServer.updateJob(jobName, xml);
+                } else {
+                    log.trace("Skipping sending XML to jenkins. Repo Config is set to preserve jenkins job config.");
+                }
                 return;
             }
 
