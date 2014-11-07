@@ -31,6 +31,7 @@ import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.google.common.collect.Maps;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
@@ -225,4 +226,33 @@ public class JenkinsManagerTest {
             Mockito.anyString(), Mockito.anyString());
     }
 
+    @Test
+    public void testPreserveJenkinsJobConfigDisabled() throws IOException {
+
+        JobTemplate jt = jtm.getDefaultVerifyJob();
+        HashMap<String, Job> jobs = Maps.newHashMap();
+        jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic requires the job be there already
+
+        Mockito.when(rc.getPreserveJenkinsJobConfig()).thenReturn(false);
+        Mockito.when(jenkinsServer.getJobs()).thenReturn(jobs);
+
+        jenkinsManager.updateJob(repo, jt);
+
+        Mockito.verify(jenkinsServer).updateJob(Mockito.anyString(), Mockito.anyString());
+    }
+
+    @Test
+    public void testPreserveJenkinsJobConfigEnabled() throws IOException {
+
+        JobTemplate jt = jtm.getDefaultVerifyJob();
+        HashMap<String, Job> jobs = Maps.newHashMap();
+        jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic requires the job be there already
+
+        Mockito.when(rc.getPreserveJenkinsJobConfig()).thenReturn(true);
+        Mockito.when(jenkinsServer.getJobs()).thenReturn(jobs);
+
+        jenkinsManager.updateJob(repo, jt);
+
+        Mockito.verify(jenkinsServer, Mockito.never()).updateJob(Mockito.anyString(), Mockito.anyString());
+    }
 }

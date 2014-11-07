@@ -191,6 +191,7 @@ public class ConfigurationTest {
         Assert.assertEquals("default", rc.getJenkinsServerName());
         Assert.assertTrue(rc.getCiEnabled());
         Assert.assertTrue(rc.getEmailNotificationsEnabled());
+        Assert.assertFalse(rc.getPreserveJenkinsJobConfig());
 
         Assert.assertEquals(size + 1, ao.count(RepositoryConfiguration.class));
     }
@@ -225,6 +226,7 @@ public class ConfigurationTest {
         Assert.assertEquals("verifyBranchRegex", rc.getVerifyBranchRegex());
         Assert.assertEquals("verifyBuildCommand", rc.getVerifyBuildCommand());
         Assert.assertTrue(rc.getCiEnabled());
+        Assert.assertFalse(rc.getPreserveJenkinsJobConfig());
 
     }
 
