@@ -52,6 +52,8 @@
       {call aui.form.form}
         {param action: '' /}
         {param content}
+          <h3>Local Settings</h3>
+          <p>These are settings modify if the repo builds, where it builds, and when it builds.</p>
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Enables CI Builds') /}
             {param fields: [[
@@ -68,16 +70,49 @@
             {param descriptionText: stash_i18n('stash.web.stash.jenkinsServerName.description', 'Jenkins Server') /}
           {/call}
           {call aui.form.textField}
-            {param id: 'prebuildCommand' /}
-            {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before the build') /}
-            {param value: $prebuildCommand /}
-            {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before the build') /}
-          {/call}
-          {call aui.form.textField}
             {param id: 'publishBranchRegex' /}
             {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Regex for branches to publish') /}
             {param value: $publishBranchRegex /}
             {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', '(anchored regular expression) Branches matching this regular expression will have the publish build command run on them by jenkins (e.g. "refs/heads/master" or "refs/heads/.*")') /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'verifyBranchRegex' /}
+            {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex for branches to verify') /}
+            {param value: $verifyBranchRegex /}
+            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', '(anchored regular expression) Branches matching this regular expression will have the verify build command run on them by jenkins (e.g. "refs/heads/develop" or "refs/heads/.*")') /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'maxVerifyChain' /}
+            {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+            {param value: $maxVerifyChain /}
+            {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of builds to trigger from a single reference update') /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild merge verifies when target branch updates') /}
+            {param fields: [[
+              'id': 'rebuildOnUpdate',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Rebuild merge verifies when target branch updates'),
+              'isChecked': $rebuildOnUpdate
+              ]] /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.strict-verify-mode.button.description', 'Enable Strict Verify Mode') /}
+            {param fields: [[
+              'id': 'isStrictVerifyMode',
+              'labelText': stash_i18n('stash.web.stash.strict-verify-mode.button.label', 'Enabled'),
+              'isChecked': $isStrictVerifyMode
+              ]] /}
+          {/call}
+
+
+          <h3>Jenkins Settings</h3>
+          <p>Modify what commands get run for builds, if there are tests, who gets notified, etc.</p>
+
+          {call aui.form.textField}
+            {param id: 'prebuildCommand' /}
+            {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before the build') /}
+            {param value: $prebuildCommand /}
+            {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before the build') /}
           {/call}
           {call aui.form.textField}
             {param id: 'publishBuildCommand' /}
@@ -101,12 +136,6 @@
             {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Build node label to pin publish builds to') /}
           {/call}
 
-          {call aui.form.textField}
-            {param id: 'verifyBranchRegex' /}
-            {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex for branches to verify') /}
-            {param value: $verifyBranchRegex /}
-            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', '(anchored regular expression) Branches matching this regular expression will have the verify build command run on them by jenkins (e.g. "refs/heads/develop" or "refs/heads/.*")') /}
-          {/call}
           {call aui.form.textField}
             {param id: 'verifyBuildCommand' /}
             {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command to run for a verify build') /}
@@ -183,28 +212,6 @@
               ]] /}
           {/call}
 
-          {call aui.form.textField}
-            {param id: 'maxVerifyChain' /}
-            {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
-            {param value: $maxVerifyChain /}
-            {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of builds to trigger from a single reference update') /}
-          {/call}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild merge verifies when target branch updates') /}
-            {param fields: [[
-              'id': 'rebuildOnUpdate',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Rebuild merge verifies when target branch updates'),
-              'isChecked': $rebuildOnUpdate
-              ]] /}
-          {/call}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.strict-verify-mode.button.description', 'Enable Strict Verify Mode') /}
-            {param fields: [[
-              'id': 'isStrictVerifyMode',
-              'labelText': stash_i18n('stash.web.stash.strict-verify-mode.button.label', 'Enabled'),
-              'isChecked': $isStrictVerifyMode
-              ]] /}
-          {/call}
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.label', 'Preserve Jenkins Job Config') /}
             {param descriptionText: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.description', 'See below for details.') /}
@@ -214,6 +221,9 @@
               'isChecked': $isPreserveJenkinsJobConfig
             ]] /}
           {/call}
+
+          <p></p>
+
           {call aui.form.buttons}
             {param content}
               {call aui.form.submit}
@@ -223,6 +233,10 @@
               {/call}
             {/param}
           {/call}
+
+          <p></p>
+          <hr/>
+
         {/param}
       {/call}
     {/param}
