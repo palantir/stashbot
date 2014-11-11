@@ -55,7 +55,7 @@
           <h3>Local Settings</h3>
           <p>These are settings modify if the repo builds, where it builds, and when it builds.</p>
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Enables CI Builds') /}
+            {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'CI Builds') /}
             {param fields: [[
               'id': 'ciEnabled',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
@@ -67,7 +67,6 @@
             {param labelContent: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server') /}
             {param options: $jenkinsServersData /}
             {param value: $jenkinsServerName /}
-            {param descriptionText: stash_i18n('stash.web.stash.jenkinsServerName.description', 'Jenkins Server') /}
           {/call}
           {call aui.form.textField}
             {param id: 'publishBranchRegex' /}
@@ -85,13 +84,12 @@
             {param id: 'maxVerifyChain' /}
             {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
             {param value: $maxVerifyChain /}
-            {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of builds to trigger from a single reference update') /}
           {/call}
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild merge verifies when target branch updates') /}
             {param fields: [[
               'id': 'rebuildOnUpdate',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Rebuild merge verifies when target branch updates'),
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
               'isChecked': $rebuildOnUpdate
               ]] /}
           {/call}
@@ -110,17 +108,17 @@
 
           {call aui.form.textField}
             {param id: 'prebuildCommand' /}
-            {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before the build') /}
+            {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before all builds') /}
             {param value: $prebuildCommand /}
-            {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before the build') /}
           {/call}
+
+          <h4>&nbsp;</h4>
+
           {call aui.form.textField}
             {param id: 'publishBuildCommand' /}
             {param labelContent: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command to run for a publish build') /}
             {param value: $publishBuildCommand /}
-            {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'Command to run for a publish build') /}
           {/call}
-
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.publish-pinned-checkbox.button.description', 'Pin publish builds to a label') /}
             {param fields: [[
@@ -136,13 +134,13 @@
             {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Build node label to pin publish builds to') /}
           {/call}
 
+          <h4>&nbsp;</h4>
+
           {call aui.form.textField}
             {param id: 'verifyBuildCommand' /}
             {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command to run for a verify build') /}
             {param value: $verifyBuildCommand /}
-            {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'Command to run for a verify build') /}
           {/call}
-
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.verify-pinned-checkbox.button.description', 'Pin verify builds to a label') /}
             {param fields: [[
@@ -158,8 +156,10 @@
             {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Build node label to pin verify builds to') /}
           {/call}
 
+          <h4>&nbsp;</h4>
+
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.junit-enabled.button.description', 'Enable Junit Test Results') /}
+            {param legendContent: stash_i18n('stash.web.stash.junit-enabled.button.description', 'Junit Test Results') /}
             {param fields: [[
               'id': 'isJunit',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
@@ -168,13 +168,15 @@
           {/call}
           {call aui.form.textField}
             {param id: 'junitPath' /}
-            {param labelContent: stash_i18n('stash.web.stash.junitPath.label', 'e.g. build/test-results/*.xml') /}
+            {param labelContent: stash_i18n('stash.web.stash.junitPath.label', 'Result Location') /}
             {param value: $junitPath /}
-            {param descriptionText: stash_i18n('stash.web.stash.junitPath.description', 'Path to use for junit results') /}
+            {param descriptionText: stash_i18n('stash.web.stash.junitPath.description', 'Path to use for junit results (e.g. build/test-results/*.xml)') /}
           {/call}
 
+          <h4>&nbsp;</h4>
+
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.email-enabled.button.description', 'Enable e-mail notifications') /}
+            {param legendContent: stash_i18n('stash.web.stash.email-enabled.button.description', 'E-mail notifications') /}
             {param fields: [[
               'id': 'isEmailNotificationsEnabled',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
@@ -183,34 +185,35 @@
           {/call}
           {call aui.form.textField}
             {param id: 'emailRecipients' /}
-            {param labelContent: stash_i18n('stash.web.stash.emailRecipients.label', 'Recipients') /}
+            {param labelContent: stash_i18n('stash.web.stash.emailRecipients.label', 'E-mail Recipients') /}
             {param value: $emailRecipients /}
-            {param descriptionText: stash_i18n('stash.web.stash.emailRecipients.description', 'Email recipients') /}
           {/call}
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.emailForEveryUnstableBuild.button.description', 'Send e-mail for every unstable build') /}
+            {param legendContent: stash_i18n('stash.web.stash.emailForEveryUnstableBuild.button.description', 'E-mail Options') /}
             {param fields: [[
               'id': 'isEmailForEveryUnstableBuild',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send e-mail for every unstable build'),
               'isChecked': $isEmailForEveryUnstableBuild
               ]] /}
           {/call}
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.emailSendToIndividuals.button.description', 'Send separate e-mails to individuals who broke the build') /}
+            {param legendContent: stash_i18n('stash.web.stash.emailSendToIndividuals.button.description', '') /}
             {param fields: [[
               'id': 'isEmailSendToIndividuals',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send separate e-mails to individuals who broke the build'),
               'isChecked': $isEmailSendToIndividuals
               ]] /}
           {/call}
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.emailPerModuleEmail.button.description', 'Send e-mail for each failed module') /}
+            {param legendContent: stash_i18n('stash.web.stash.emailPerModuleEmail.button.description', '') /}
             {param fields: [[
               'id': 'isEmailPerModuleEmail',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send e-mail for each failed module'),
               'isChecked': $isEmailPerModuleEmail
               ]] /}
           {/call}
+
+          <h4>&nbsp;</h4>
 
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.label', 'Preserve Jenkins Job Config') /}
@@ -222,7 +225,7 @@
             ]] /}
           {/call}
 
-          <p></p>
+          <h4>&nbsp;</h4>
 
           {call aui.form.buttons}
             {param content}
