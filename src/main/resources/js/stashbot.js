@@ -11,5 +11,41 @@ require(['jquery'], function($) {
 			dd.prop('disabled', 'disabled')
 			dd.parent().append("<font color=\"red\">Cannot change Jenkin Server - LOCKED to admins only</font>")
 		}
+
+    /*
+      The map of what checkbox disables which fields/checkboxes.
+         ID_OF_CHECKBOX => [ ID_OF_FORM_ELEMENT_1, ID_OF_FORM_ELEMENT_2, ... ]
+    */
+    var disableMap = {
+      "isPublishPinned" : [ "publishLabel" ],
+      "isVerifyPinned" : [ "verifyLabel" ],
+      "isJunit" : [ "junitPath" ],
+      "isEmailNotificationsEnabled" : [ "emailRecipients", "isEmailForEveryUnstableBuild",
+                                        "isEmailSendToIndividuals", "isEmailPerModuleEmail" ]
+    };
+
+    $.each(disableMap, function ( enabler, enablees ) {
+      if ($("#" + enabler).is(":checked")) {
+        $.each ( enablees, function (i) {
+          $("#" + enablees[i]).prop("disabled", false);
+        });
+      } else {
+        $.each ( enablees, function (i) {
+          $("#" + enablees[i]).prop("disabled", true);
+        });
+      }
+
+      $("#" + enabler).change(function () {
+        $.each ( disableMap[enabler], function (i) {
+          if ( $("#" + enabler).is(":checked")) {
+            $("#" + enablees[i]).prop("disabled", false);
+          } else {
+            $("#" + enablees[i]).prop("disabled", true);
+          }
+        });
+      });
+    });
+
+
 	})
 })

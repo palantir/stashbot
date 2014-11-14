@@ -173,7 +173,7 @@ public class ConfigurationPersistenceManager {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", null, new EmailSettings(), false);
+            false, "N/A", null, new EmailSettings(), false, false);
     }
 
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
@@ -196,6 +196,7 @@ public class ConfigurationPersistenceManager {
             maxVerifyChain = Integer.parseInt(maxVerifyChainStr);
         }
         Boolean strictVerifyMode = getBoolean(req, "isStrictVerifyMode");
+        Boolean preserveJenkinsJobConfig = getBoolean(req, "isPreserveJenkinsJobConfig");
 
         Boolean junitEnabled = getBoolean(req, "isJunit");
         String junitPath = req.getParameter("junitPath");
@@ -206,7 +207,7 @@ public class ConfigurationPersistenceManager {
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
             verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
             jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain, emailSettings,
-            strictVerifyMode);
+            strictVerifyMode, preserveJenkinsJobConfig);
     }
 
     private EmailSettings getEmailSettings(HttpServletRequest req) {
@@ -229,7 +230,7 @@ public class ConfigurationPersistenceManager {
         String verifyLabel, String publishBranchRegex,
         String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
         String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-        Integer maxVerifyChain, EmailSettings emailSettings, boolean strictVerifyMode)
+        Integer maxVerifyChain, EmailSettings emailSettings, boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
         throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -263,7 +264,8 @@ public class ConfigurationPersistenceManager {
                 new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
                 new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
                 new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals()),
-                new DBParam("STRICT_VERIFY_MODE", strictVerifyMode)
+                new DBParam("STRICT_VERIFY_MODE", strictVerifyMode),
+                new DBParam("PRESERVE_JENKINS_JOB_CONFIG", preserveJenkinsJobConfig)
                 );
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
@@ -295,6 +297,7 @@ public class ConfigurationPersistenceManager {
         foundRepo.setEmailRecipients(emailSettings.getEmailRecipients());
         foundRepo.setEmailSendToIndividuals(emailSettings.getEmailSendToIndividuals());
         foundRepo.setStrictVerifyMode(strictVerifyMode);
+        foundRepo.setPreserveJenkinsJobConfig(preserveJenkinsJobConfig);
         foundRepo.save();
     }
 

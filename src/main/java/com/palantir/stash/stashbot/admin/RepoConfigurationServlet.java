@@ -144,6 +144,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("emailRecipients", rc.getEmailRecipients())
                     .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
                     .put("isStrictVerifyMode", rc.getStrictVerifyMode())
+                    .put("isPreserveJenkinsJobConfig", rc.getPreserveJenkinsJobConfig())
                     .put("isLocked", isLocked(theJsc))
                     .build()
                 );

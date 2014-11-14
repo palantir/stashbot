@@ -178,7 +178,7 @@ public class ConfigurationTest {
             "verifyBranchRegex", "verifyBuildCommand",
             false, "N/A", "publishBranchRegex",
             "publishBuildCommand", false, "N/A", "prebuildCommand", "default", true, false, "N/A", null,
-            new EmailSettings(true, "a@a.a", true, true, true), false);
+            new EmailSettings(true, "a@a.a", true, true, true), false, false);
 
         RepositoryConfiguration rc = cpm
             .getRepositoryConfigurationForRepository(repo);
@@ -191,6 +191,7 @@ public class ConfigurationTest {
         Assert.assertEquals("default", rc.getJenkinsServerName());
         Assert.assertTrue(rc.getCiEnabled());
         Assert.assertTrue(rc.getEmailNotificationsEnabled());
+        Assert.assertFalse(rc.getPreserveJenkinsJobConfig());
 
         Assert.assertEquals(size + 1, ao.count(RepositoryConfiguration.class));
     }
@@ -206,7 +207,7 @@ public class ConfigurationTest {
                 "verifyBranchRegex", "verifyBuildCommand",
                 false, "N/A",
                 "publishBranchRegex", "publishBuildCommand", false, "N/A", "prebuildCommand", "BADNAME", true, false,
-                "N/A", null, new EmailSettings(), false);
+                "N/A", null, new EmailSettings(), false, false);
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success
@@ -225,6 +226,7 @@ public class ConfigurationTest {
         Assert.assertEquals("verifyBranchRegex", rc.getVerifyBranchRegex());
         Assert.assertEquals("verifyBuildCommand", rc.getVerifyBuildCommand());
         Assert.assertTrue(rc.getCiEnabled());
+        Assert.assertFalse(rc.getPreserveJenkinsJobConfig());
 
     }
 
