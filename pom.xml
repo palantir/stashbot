@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.palantir.stash</groupId>
     <artifactId>stashbot</artifactId>
-    <version>1.3.3</version>
+    <version>1.3.4-dev</version>
     <organization>
         <name>Palantir Technologies, Inc.</name>
         <url>http://www.palantir.com/</url>
