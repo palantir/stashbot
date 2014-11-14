@@ -134,8 +134,8 @@
     <merge-check key="pullRequestBuildSuccessMergeCheck" class="com.palantir.stash.stashbot.hooks.PullRequestBuildSuccessMergeCheck" />
 
     <!-- note: the key below must be the same as the constant in JenkinsManager.java -->
-    <repository-hook key="triggerJenkinsBuildHook" name="Jenkins Build Trigger Hook" class="com.palantir.stash.stashbot.hooks.TriggerJenkinsBuildHook">
+    <post-receive-hook key="triggerJenkinsBuildHook" name="Jenkins Build Trigger Hook" class="com.palantir.stash.stashbot.hooks.TriggerJenkinsBuildHook">
         <description>Hook for triggering verification builds in jenkins when pushes occur</description>
         <icon>icons/example.png</icon>
-    </repository-hook>
+    </post-receive-hook>
 </atlassian-plugin>
