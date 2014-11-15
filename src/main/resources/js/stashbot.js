@@ -24,23 +24,48 @@ require(['jquery'], function($) {
                                         "isEmailSendToIndividuals", "isEmailPerModuleEmail" ]
     };
 
+    function enableItem ( item ) {
+      item.removeClass("palantir-stashbot-disabled");
+      if (item.prop("type") == "checkbox") {
+        item.siblings().addBack().unwrap();
+        item.unbind("change", checkboxDisabler);
+      } else {
+        item.prop("readonly", false);
+      }
+    }
+
+    function disableItem ( item ) {
+      item.addClass("palantir-stashbot-disabled");
+      if (item.prop("type") == "checkbox") {
+        item.siblings().addBack().wrapAll("<span class='palantir-stashbot-disabled'></span>");
+        item.bind("change", checkboxDisabler);
+      } else {
+        item.prop("readonly", true);
+      }
+    }
+
+    var checkboxDisabler = function () {
+      $(this).prop("checked", !$(this).prop("checked"));
+    };
+
     $.each(disableMap, function ( enabler, enablees ) {
       if ($("#" + enabler).is(":checked")) {
         $.each ( enablees, function (i) {
-          $("#" + enablees[i]).prop("disabled", false);
+          enableItem($("#" + enablees[i]));
         });
       } else {
         $.each ( enablees, function (i) {
-          $("#" + enablees[i]).prop("disabled", true);
+          disableItem($("#" + enablees[i]));
         });
       }
 
       $("#" + enabler).change(function () {
         $.each ( disableMap[enabler], function (i) {
+          var enablee = $("#" + enablees[i]);
           if ( $("#" + enabler).is(":checked")) {
-            $("#" + enablees[i]).prop("disabled", false);
+            enableItem(enablee);
           } else {
-            $("#" + enablees[i]).prop("disabled", true);
+            disableItem(enablee);
           }
         });
       });
