@@ -22,8 +22,8 @@ import javax.annotation.Nonnull;
 
 import org.slf4j.Logger;
 
-import com.atlassian.stash.hook.HookResponse;
-import com.atlassian.stash.hook.PostReceiveHook;
+import com.atlassian.stash.hook.repository.AsyncPostReceiveRepositoryHook;
+import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
@@ -40,15 +40,10 @@ import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
 
-/*
- * NOTE: this cannot be an async hook, nor a repositorypushevent listener, because frequently people will merge a pull
- * request and check the "delete this branch" checkbox, meaning the branch goes away during the merge, so anything
- * running later (or asynchronously) will see the commit as not existing in any other branches, and thus will try to
- * build it a second time.
- * If this code has perf problems, then we should turn this back into a synchronous hook and determine if something has
- * been triggered already or not via some other means (such as storing metadata about what commits we have triggered).
- */
-public class TriggerJenkinsBuildHook implements PostReceiveHook {
+// TODO: listen for push event instead of implementing hook so we don't have to activate it
+// SEE:
+// https://developer.atlassian.com/stash/docs/latest/reference/plugin-module-types/post-receive-hook-plugin-module.html
+public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
 
     private final ConfigurationPersistenceManager cpm;
     private final JenkinsManager jenkinsManager;
@@ -66,8 +61,8 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
     }
 
     @Override
-    public void onReceive(@Nonnull Repository repo, @Nonnull Collection<RefChange> changes,
-        @Nonnull HookResponse response) {
+    public void postReceive(@Nonnull RepositoryHookContext rhc, @Nonnull Collection<RefChange> changes) {
+        Repository repo = rhc.getRepository();
         RepositoryConfiguration rc;
         try {
             rc = cpm.getRepositoryConfigurationForRepository(repo);

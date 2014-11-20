@@ -22,7 +22,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.stash.hook.HookResponse;
+import com.atlassian.stash.hook.repository.RepositoryHookContext;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
@@ -61,7 +61,7 @@ public class TriggerJenkinsBuildHookTest {
     private Repository repo;
 
     @Mock
-    private HookResponse hr;
+    private RepositoryHookContext rhc;
     @Mock
     private RefChange change;
 
@@ -88,6 +88,7 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(rc.getPublishBranchRegex()).thenReturn(".*release.*");
         Mockito.when(jsc.getMaxVerifyChain()).thenReturn(MVC);
 
+        Mockito.when(rhc.getRepository()).thenReturn(repo);
         Mockito.when(change.getFromHash()).thenReturn(FROM_HEAD);
         Mockito.when(change.getToHash()).thenReturn(HEAD);
         Mockito.when(change.getRefId()).thenReturn(HEAD_BR);
@@ -109,7 +110,7 @@ public class TriggerJenkinsBuildHookTest {
 
     @Test
     public void testTriggersBuildOnPush() {
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, HEAD_BR);
     }
@@ -117,7 +118,7 @@ public class TriggerJenkinsBuildHookTest {
     @Test
     public void testNoBuildOnDisabled() {
         Mockito.when(rc.getCiEnabled()).thenReturn(false);
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
             Mockito.eq(HEAD), Mockito.eq(HEAD_BR));
@@ -126,7 +127,7 @@ public class TriggerJenkinsBuildHookTest {
     @Test
     public void testNoBuildOnDelete() {
         Mockito.when(change.getType()).thenReturn(RefChangeType.DELETE);
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
             Mockito.eq(HEAD), Mockito.eq(HEAD_BR));
@@ -135,7 +136,7 @@ public class TriggerJenkinsBuildHookTest {
     @Test
     public void testNoBuildOnRegexNotMatch() {
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn("blahblahnomatch");
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
             Mockito.eq(HEAD), Mockito.eq(HEAD_BR));
@@ -145,7 +146,7 @@ public class TriggerJenkinsBuildHookTest {
     public void testPublishingBuild() {
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn("blahblahnomatch");
         Mockito.when(rc.getPublishBranchRegex()).thenReturn("master");
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.PUBLISH, HEAD, HEAD_BR);
     }
@@ -156,7 +157,7 @@ public class TriggerJenkinsBuildHookTest {
         mgc.getChangesets().add(HEAD_MINUS_ONE);
         mgc.getChangesets().add(HEAD);
 
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE, HEAD_BR);
         Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, HEAD_BR);
@@ -170,7 +171,7 @@ public class TriggerJenkinsBuildHookTest {
         // HEAD_MINUS_ONE is already in branch master2, so don't verify it
         mgc.getBranchMap().put(HEAD_MINUS_ONE, ImmutableList.of("  master2"));
 
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(Mockito.eq(repo), Mockito.any(JobType.class),
             Mockito.eq(HEAD_MINUS_ONE), Mockito.eq(HEAD_BR));
@@ -185,7 +186,7 @@ public class TriggerJenkinsBuildHookTest {
         Mockito.when(change.getType()).thenReturn(RefChangeType.ADD);
         Mockito.when(change.getFromHash()).thenReturn("0000000000000000000000000000000000000000");
 
-        tjbh.onReceive(repo, changes, hr);
+        tjbh.postReceive(rhc, changes);
 
         // TODO: verify the git rev-list is invoked with proper args?
         Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD_MINUS_ONE, HEAD_BR);
