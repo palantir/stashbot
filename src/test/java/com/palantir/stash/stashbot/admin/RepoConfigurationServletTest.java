@@ -112,7 +112,7 @@ public class RepoConfigurationServletTest {
         Mockito.when(req.getPathInfo()).thenReturn("/projectName/repoName");
         Mockito.when(repositoryService.getBySlug("projectName", "repoName")).thenReturn(mockRepo);
         Mockito.when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc);
-        Mockito.when(cpm.getAllJenkinsServerNames()).thenReturn(ImmutableList.of("default"));
+        Mockito.when(cpm.getAllJenkinsServerNames()).thenReturn(ImmutableList.of(JSN, JSN + "2"));
 
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getPublishBranchRegex()).thenReturn(PBR);
@@ -246,5 +246,39 @@ public class RepoConfigurationServletTest {
         assertEquals(VBR + "2", map.get("verifyBranchRegex"));
         assertEquals(VBC + "2", map.get("verifyBuildCommand"));
         assertEquals(PREBC + "2", map.get("prebuildCommand"));
+    }
+
+    @Test
+    public void postTestWhenLockedSrc() throws Exception {
+
+        when(jsc.getLocked()).thenReturn(true);
+        when(jsc2.getLocked()).thenReturn(false);
+        Exception permissionException =
+            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+        Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
+
+        when(req.getParameter("jenkinsServerName")).thenReturn("default2");
+
+        when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc);
+
+        rcs.doPost(req, res);
+        verify(res).sendError(Mockito.anyInt(), Mockito.anyString());
+    }
+
+    @Test
+    public void postTestWhenLockedDst() throws Exception {
+
+        when(jsc.getLocked()).thenReturn(false);
+        when(jsc2.getLocked()).thenReturn(true);
+        Exception permissionException =
+            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+        Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
+
+        when(req.getParameter("jenkinsServerName")).thenReturn("default2");
+
+        when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc);
+
+        rcs.doPost(req, res);
+        verify(res).sendError(Mockito.anyInt(), Mockito.anyString());
     }
 }

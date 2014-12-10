@@ -183,14 +183,20 @@ public class RepoConfigurationServlet extends HttpServlet {
             // This is the new jenkins server name
             String jenkinsServerName = req.getParameter("jenkinsServerName");
 
-            // If Jenkins Server Configuration is "locked", and we are trying to change it, then enforce SYS_ADMIN instead of REPO_ADMIN
+            // If either the old or the new Jenkins Server Configuration is "locked", and we are trying to change it, then enforce SYS_ADMIN instead of REPO_ADMIN
             try {
                 RepositoryConfiguration rc =
                     configurationPersistanceManager.getRepositoryConfigurationForRepository(rep);
                 JenkinsServerConfiguration oldConfig =
                     configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+                JenkinsServerConfiguration newConfig =
+                    configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
+
                 if (!jenkinsServerName.equals(oldConfig.getName())) {
                     if (oldConfig.getLocked()) {
+                        permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
+                    }
+                    if (newConfig.getLocked()) {
                         permissionValidationService.validateForGlobal(Permission.SYS_ADMIN);
                     }
                 }
