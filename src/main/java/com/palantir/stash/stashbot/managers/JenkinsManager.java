@@ -28,7 +28,6 @@ import java.util.concurrent.Future;
 import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 
-import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
@@ -51,24 +50,19 @@ import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManager {
 
-    // NOTE: this is the key used in the atlassian-plugin.xml
-    private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY = "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
-
     private final ConfigurationPersistenceManager cpm;
     private final JobTemplateManager jtm;
     private final JenkinsJobXmlFormatter xmlFormatter;
     private final JenkinsClientManager jenkinsClientManager;
     private final RepositoryService repositoryService;
-    private final RepositoryHookService rhs;
     private final StashbotUrlBuilder sub;
     private final Logger log;
     private final PluginLoggerFactory lf;
 
-    public JenkinsManager(RepositoryService repositoryService, RepositoryHookService rhs,
+    public JenkinsManager(RepositoryService repositoryService,
         ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
         JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, PluginLoggerFactory lf) {
         this.repositoryService = repositoryService;
-        this.rhs = rhs;
         this.cpm = cpm;
         this.jtm = jtm;
         this.xmlFormatter = xmlFormatter;
@@ -80,7 +74,7 @@ public class JenkinsManager {
 
     public void updateRepo(Repository repo) {
         try {
-            Callable<Void> visit = new UpdateAllRepositoryVisitor(rhs,
+            Callable<Void> visit = new UpdateAllRepositoryVisitor(
                 jenkinsClientManager, jtm, cpm, repo, lf);
             visit.call();
         } catch (Exception e) {
@@ -302,18 +296,16 @@ public class JenkinsManager {
      */
     class CreateMissingRepositoryVisitor implements Callable<Void> {
 
-        private final RepositoryHookService rhs;
         private final JenkinsClientManager jcm;
         private final JobTemplateManager jtm;
         private final ConfigurationPersistenceManager cpm;
         private final Repository r;
         private final Logger log;
 
-        public CreateMissingRepositoryVisitor(RepositoryHookService rhs,
+        public CreateMissingRepositoryVisitor(
             JenkinsClientManager jcm, JobTemplateManager jtm,
             ConfigurationPersistenceManager cpm, Repository r,
             PluginLoggerFactory lf) {
-            this.rhs = rhs;
             this.jcm = jcm;
             this.jtm = jtm;
             this.cpm = cpm;
@@ -331,13 +323,6 @@ public class JenkinsManager {
 
             if (!rc.getCiEnabled())
                 return null;
-
-            // Ensure hook is enabled
-            try {
-                rhs.enable(r, TRIGGER_JENKINS_BUILD_HOOK_KEY);
-            } catch (Exception e) {
-                log.error("Exception thrown while trying to enable hook", e);
-            }
 
             // make sure jobs exist
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
@@ -365,7 +350,7 @@ public class JenkinsManager {
         while (true) {
             for (Repository r : p.getValues()) {
                 Future<Void> f = es.submit(new CreateMissingRepositoryVisitor(
-                    rhs, jenkinsClientManager, jtm, cpm, r, lf));
+                    jenkinsClientManager, jtm, cpm, r, lf));
                 futures.add(f);
             }
             if (p.getIsLastPage())
@@ -393,18 +378,16 @@ public class JenkinsManager {
      */
     class UpdateAllRepositoryVisitor implements Callable<Void> {
 
-        private final RepositoryHookService rhs;
         private final JenkinsClientManager jcm;
         private final JobTemplateManager jtm;
         private final ConfigurationPersistenceManager cpm;
         private final Repository r;
         private final Logger log;
 
-        public UpdateAllRepositoryVisitor(RepositoryHookService rhs,
+        public UpdateAllRepositoryVisitor(
             JenkinsClientManager jcm, JobTemplateManager jtm,
             ConfigurationPersistenceManager cpm, Repository r,
             PluginLoggerFactory lf) {
-            this.rhs = rhs;
             this.jcm = jcm;
             this.jtm = jtm;
             this.cpm = cpm;
@@ -422,13 +405,6 @@ public class JenkinsManager {
 
             if (!rc.getCiEnabled())
                 return null;
-
-            // Ensure hook is enabled
-            try {
-                rhs.enable(r, TRIGGER_JENKINS_BUILD_HOOK_KEY);
-            } catch (Exception e) {
-                log.error("Exception thrown while trying to enable hook", e);
-            }
 
             // make sure jobs are up to date
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
@@ -459,7 +435,7 @@ public class JenkinsManager {
         Page<? extends Repository> p = repositoryService.findAll(pageReq);
         while (true) {
             for (Repository r : p.getValues()) {
-                Future<Void> f = es.submit(new UpdateAllRepositoryVisitor(rhs,
+                Future<Void> f = es.submit(new UpdateAllRepositoryVisitor(
                     jenkinsClientManager, jtm, cpm, r, lf));
                 futures.add(f);
             }

@@ -27,7 +27,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.stash.hook.repository.RepositoryHookService;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
@@ -47,15 +46,10 @@ import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManagerTest {
 
-    // NOTE: this is the key used in the atlassian-plugin.xml
-    private static final String TRIGGER_JENKINS_BUILD_HOOK_KEY = "com.palantir.stash.stashbot:triggerJenkinsBuildHook";
-
     private static final String XML_STRING = "<some xml here/>";
 
     @Mock
     private RepositoryService repositoryService;
-    @Mock
-    private RepositoryHookService rhs;
     @Mock
     private ConfigurationPersistenceManager cpm;
     @Mock
@@ -116,7 +110,7 @@ public class JenkinsManagerTest {
         Mockito.when(repo.getProject()).thenReturn(proj);
         Mockito.when(proj.getKey()).thenReturn("project_key");
 
-        jenkinsManager = new JenkinsManager(repositoryService, rhs, cpm, jtm,
+        jenkinsManager = new JenkinsManager(repositoryService, cpm, jtm,
             xmlFormatter, jenkinsClientManager, sub, lf);
     }
 
@@ -204,7 +198,6 @@ public class JenkinsManagerTest {
 
         jenkinsManager.updateRepo(repo);
 
-        Mockito.verify(rhs).enable(repo, TRIGGER_JENKINS_BUILD_HOOK_KEY);
         List<JobTemplate> templates = jtf.getMockTemplates();
 
         for (JobTemplate t : templates) {
@@ -220,8 +213,6 @@ public class JenkinsManagerTest {
 
         jenkinsManager.updateRepo(repo);
 
-        Mockito.verify(rhs, Mockito.never()).enable(
-            Mockito.any(Repository.class), Mockito.anyString());
         Mockito.verify(jenkinsServer, Mockito.never()).createJob(
             Mockito.anyString(), Mockito.anyString());
     }
