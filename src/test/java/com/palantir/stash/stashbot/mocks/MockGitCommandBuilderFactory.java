@@ -17,8 +17,10 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.mockito.ArgumentCaptor;
@@ -45,6 +47,7 @@ public class MockGitCommandBuilderFactory {
     private GitCommand<Object> branchCommand;
 
     private List<String> changesets;
+    private Set<String> blacklistedChangesets;
     private Map<String, List<String>> branchMap;
 
     public MockGitCommandBuilderFactory() {
@@ -55,6 +58,7 @@ public class MockGitCommandBuilderFactory {
     private void reset() {
         // list of changesets in order
         changesets = new ArrayList<String>();
+        blacklistedChangesets = new HashSet<String>();
         // for each hash, list of branches that contain said hash
         branchMap = new HashMap<String, List<String>>();
 
@@ -72,7 +76,6 @@ public class MockGitCommandBuilderFactory {
         Mockito.when(gscb.revList()).thenReturn(grlb);
         final ArgumentCaptor<CommandOutputHandler<Object>> cohCaptor =
             (ArgumentCaptor<CommandOutputHandler<Object>>) (Object) ArgumentCaptor.forClass(CommandOutputHandler.class);
-        // Mockito.when(grlb.build(Mockito.any(CommandOutputHandler.class))).thenReturn(cmd);
         Mockito.when(grlb.build(cohCaptor.capture())).thenReturn(cmd);
 
         Mockito.doAnswer(new Answer<Void>() {
@@ -81,20 +84,23 @@ public class MockGitCommandBuilderFactory {
             public Void answer(InvocationOnMock invocation) throws Throwable {
                 CommandOutputHandler<Object> coh = cohCaptor.getValue();
 
-                String str = StringUtils.join(changesets, "\n") + "\n";
+                List<String> finalCS = new ArrayList<String>();
+                for (String cs : changesets) {
+                    if (!blacklistedChangesets.contains(cs)) {
+                        finalCS.add(cs);
+                    }
+                }
+                String str = StringUtils.join(finalCS, "\n") + "\n";
                 InputStream is = new ByteArrayInputStream(str.getBytes());
                 coh.process(is);
                 return null;
             }
         }).when(cmd).call();
 
-        // Branch cmd
+        // Branch cmd - returns list of all branches
         final ArgumentCaptor<CommandOutputHandler<Object>> branchCOHCaptor =
             (ArgumentCaptor<CommandOutputHandler<Object>>) (Object) ArgumentCaptor.forClass(CommandOutputHandler.class);
         Mockito.when(gscb.command("branch")).thenReturn(branchCommandBuilder);
-        final ArgumentCaptor<String> branchCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.when(branchCommandBuilder.argument("--contains")).thenReturn(branchCommandBuilderArg);
-        Mockito.when(branchCommandBuilderArg.argument(branchCaptor.capture())).thenReturn(branchCommandBuilder);
         Mockito.when(branchCommandBuilder.build(branchCOHCaptor.capture())).thenReturn(branchCommand);
         Mockito.doAnswer(new Answer<Void>() {
 
@@ -103,11 +109,7 @@ public class MockGitCommandBuilderFactory {
                 CommandOutputHandler<Object> coh = branchCOHCaptor.getValue();
 
                 String output = "";
-                String currentHash = branchCaptor.getValue();
-                List<String> branches = branchMap.get(currentHash);
-                if (branches == null) {
-                    branches = new ArrayList<String>();
-                }
+                List<String> branches = new ArrayList<String>(branchMap.keySet());
 
                 for (String branch : branches) {
                     output = output + "  " + branch + "\n";
@@ -117,11 +119,14 @@ public class MockGitCommandBuilderFactory {
                 return null;
             }
         }).when(branchCommand).call();
-
     }
 
     public List<String> getChangesets() {
         return changesets;
+    }
+
+    public Set<String> getBlacklistedChangesets() {
+        return blacklistedChangesets;
     }
 
     public Map<String, List<String>> getBranchMap() {

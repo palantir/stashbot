@@ -22,8 +22,8 @@ import javax.annotation.Nonnull;
 
 import org.slf4j.Logger;
 
-import com.atlassian.stash.hook.repository.AsyncPostReceiveRepositoryHook;
-import com.atlassian.stash.hook.repository.RepositoryHookContext;
+import com.atlassian.stash.hook.HookResponse;
+import com.atlassian.stash.hook.PostReceiveHook;
 import com.atlassian.stash.repository.RefChange;
 import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
@@ -31,7 +31,9 @@ import com.atlassian.stash.scm.CommandOutputHandler;
 import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
 import com.atlassian.stash.scm.git.GitScmCommandBuilder;
 import com.atlassian.stash.scm.git.revlist.GitRevListBuilder;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -40,10 +42,15 @@ import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
 
-// TODO: listen for push event instead of implementing hook so we don't have to activate it
-// SEE:
-// https://developer.atlassian.com/stash/docs/latest/reference/plugin-module-types/post-receive-hook-plugin-module.html
-public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
+/*
+ * NOTE: this cannot be an async hook, nor a repositorypushevent listener, because frequently people will merge a pull
+ * request and check the "delete this branch" checkbox, meaning the branch goes away during the merge, so anything
+ * running later (or asynchronously) will see the commit as not existing in any other branches, and thus will try to
+ * build it a second time.
+ * If this code has perf problems, then we should turn this back into a synchronous hook and determine if something has
+ * been triggered already or not via some other means (such as storing metadata about what commits we have triggered).
+ */
+public class TriggerJenkinsBuildHook implements PostReceiveHook {
 
     private final ConfigurationPersistenceManager cpm;
     private final JenkinsManager jenkinsManager;
@@ -61,9 +68,9 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
     }
 
     @Override
-    public void postReceive(@Nonnull RepositoryHookContext rhc, @Nonnull Collection<RefChange> changes) {
-        Repository repo = rhc.getRepository();
-        RepositoryConfiguration rc;
+    public void onReceive(@Nonnull Repository repo, @Nonnull Collection<RefChange> changes,
+        @Nonnull HookResponse response) {
+        final RepositoryConfiguration rc;
         try {
             rc = cpm.getRepositoryConfigurationForRepository(repo);
         } catch (SQLException e) {
@@ -102,6 +109,26 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
 
         Set<String> verifiedBuilds = new HashSet<String>();
 
+        // We will need a list of branches first
+        GitScmCommandBuilder gcb = gcbf.builder(repo).command("branch");
+        CommandOutputHandler<Object> gboh = cohf.getBranchContainsOutputHandler();
+        gcb.build(gboh).call();
+        @SuppressWarnings("unchecked")
+        ImmutableList<String> branches = (ImmutableList<String>) gboh.getOutput();
+
+        // And a list of verify-matching branches
+        ImmutableList<String> verifyBranches =
+            ImmutableList.copyOf(Iterables.filter(branches, new Predicate<String>() {
+
+                @Override
+                public boolean apply(String input) {
+                    if (input.matches(rc.getVerifyBranchRegex())) {
+                        return true;
+                    }
+                    return false;
+                }
+            }));
+
         // Now look for commits to verify
         for (RefChange refChange : changes) {
             if (!refChange.getRefId().matches(rc.getVerifyBranchRegex())) {
@@ -116,6 +143,7 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
             }
 
             // We want to trigger a build for each new commit that was pushed
+            // UNLESS the commit is already in another verification branch
             GitScmCommandBuilder gscb = gcbf.builder(repo);
             GitRevListBuilder grlb = gscb.revList();
             if (refChange.getType().equals(RefChangeType.ADD)) {
@@ -125,6 +153,14 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
             } else {
                 log.debug("Detected update, considering new commits for verification");
                 grlb.revs("^" + refChange.getFromHash(), refChange.getToHash());
+            }
+
+            // Exclude any commits already in a verify branch that is not this branch.
+            for (String branch : verifyBranches) {
+                if (!branch.equals(refChange.getRefId())) {
+                    // if it starts with refs/heads/, strip that off since it's optional and we don't want to hit the command line length limit as easily.
+                    grlb.revs("^" + branch.replaceFirst("^refs/heads/", ""));
+                }
             }
 
             Integer maxVerifyChain = getMaxVerifyChain(rc);
@@ -152,36 +188,12 @@ public class TriggerJenkinsBuildHook implements AsyncPostReceiveRepositoryHook {
                         + " because it already triggered a verify build");
                     continue;
                 }
-                if (isInAnotherVerifiedRef(repo, rc, cs, refChange.getRefId())) {
-                    log.info("NOT Triggering VERIFICATION build for commit " + cs
-                        + " because it is already contained in another branch");
-                    continue;
-                }
                 log.info("Triggering VERIFICATION build for commit " + cs);
                 // trigger a verification build (no merge)
                 jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, cs, refChange.getRefId());
                 verifiedBuilds.add(cs);
             }
         }
-    }
-
-    private boolean isInAnotherVerifiedRef(Repository repo, RepositoryConfiguration rc, String sha1, String currentRef) {
-        GitScmCommandBuilder gcb = gcbf.builder(repo).command("branch").argument("--contains").argument(sha1);
-        CommandOutputHandler<Object> gboh = cohf.getBranchContainsOutputHandler();
-        gcb.build(gboh).call();
-        @SuppressWarnings("unchecked")
-        ImmutableList<String> branches = (ImmutableList<String>) gboh.getOutput();
-        for (String branch : branches) {
-            if (!branch.equals(currentRef)) {
-                // see if branch is currently configured to verify
-                if (branch.matches(rc.getVerifyBranchRegex())) {
-                    log.info("Found commit " + sha1 + " is contained in branch " + branch
-                        + " which matches verify regex so not triggering build");
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private Integer getMaxVerifyChain(RepositoryConfiguration rc) {
