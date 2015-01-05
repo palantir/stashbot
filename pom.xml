@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.palantir.stash</groupId>
     <artifactId>stashbot</artifactId>
-    <version>1.3.5-dev</version>
+    <version>1.3.5-SNAPSHOT</version>
     <organization>
         <name>Palantir Technologies, Inc.</name>
         <url>http://www.palantir.com/</url>
@@ -207,6 +207,30 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>external.atlassian.jgitflow</groupId>
+                <artifactId>jgitflow-maven-plugin</artifactId>
+                <version>1.0-m4.3</version>
+                <configuration>
+                    <noDeploy>true</noDeploy>
+                    <offline>true</offline>
+                    <!-- Something - presumably jgit - is stupid beyond belief
+                         and ignores the .gitignore file, so I am doing this to
+                         preserve what is left of my sanity after interacting
+                         with the unholy abomination that is maven and the
+                         atrocities it has caused others to commit (namely, the
+                         jgitflow maven plugin)_-->
+                    <allowUntracked>true</allowUntracked>
+                    <flowInitContext>
+                        <masterBranchName>master</masterBranchName>
+                        <developBranchName>develop</developBranchName>
+                        <featureBranchPrefix>feature/</featureBranchPrefix>
+                        <releaseBranchPrefix>release/</releaseBranchPrefix>
+                        <hotfixBranchPrefix>hotfix/</hotfixBranchPrefix>
+                        <versionTagPrefix></versionTagPrefix>
+                    </flowInitContext>
                 </configuration>
             </plugin>
         </plugins>
