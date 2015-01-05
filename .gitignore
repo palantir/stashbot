@@ -11,3 +11,5 @@ target/*
 %PRODUCT_HOME_DIR%
 .sdk/
 .sdk.tar.gz
+bin/*
+versions/*
