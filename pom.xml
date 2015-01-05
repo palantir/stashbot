@@ -229,7 +229,7 @@
                         <featureBranchPrefix>feature/</featureBranchPrefix>
                         <releaseBranchPrefix>release/</releaseBranchPrefix>
                         <hotfixBranchPrefix>hotfix/</hotfixBranchPrefix>
-                        <versionTagPrefix></versionTagPrefix>
+                        <versionTagPrefix />
                     </flowInitContext>
                 </configuration>
             </plugin>
