@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 
 import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.DisposableBean;
 
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
@@ -48,7 +49,7 @@ import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
-public class JenkinsManager {
+public class JenkinsManager implements DisposableBean {
 
     private final ConfigurationPersistenceManager cpm;
     private final JobTemplateManager jtm;
@@ -58,6 +59,7 @@ public class JenkinsManager {
     private final StashbotUrlBuilder sub;
     private final Logger log;
     private final PluginLoggerFactory lf;
+    private final ExecutorService es;
 
     public JenkinsManager(RepositoryService repositoryService,
         ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
@@ -70,6 +72,7 @@ public class JenkinsManager {
         this.sub = sub;
         this.lf = lf;
         this.log = lf.getLoggerForThis(this);
+        this.es = Executors.newCachedThreadPool();
     }
 
     public void updateRepo(Repository repo) {
@@ -164,7 +167,31 @@ public class JenkinsManager {
         }
     }
 
-    public void triggerBuild(Repository repo, JobType jobType,
+    public void triggerBuild(final Repository repo, final JobType jobType,
+        final String hashToBuild, final String buildRef) {
+
+        es.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                synchronousTriggerBuild(repo, jobType, hashToBuild, buildRef);
+            }
+        });
+    }
+
+    public void triggerBuild(final Repository repo, final JobType jobType,
+        final PullRequest pr) {
+
+        es.execute(new Runnable() {
+
+            @Override
+            public void run() {
+                synchronousTriggerBuild(repo, jobType, pr);
+            }
+        });
+    }
+
+    public void synchronousTriggerBuild(Repository repo, JobType jobType,
         String hashToBuild, String buildRef) {
         try {
             RepositoryConfiguration rc = cpm
@@ -219,7 +246,7 @@ public class JenkinsManager {
         }
     }
 
-    public void triggerBuild(Repository repo, JobType jobType,
+    public void synchronousTriggerBuild(Repository repo, JobType jobType,
         PullRequest pullRequest) {
 
         try {
@@ -456,4 +483,15 @@ public class JenkinsManager {
             }
         }
     }
+
+    @Override
+    public void destroy() throws Exception {
+        // on a plugin upgrade or whatever, we want to make sure all tasks get executed.
+        es.shutdown();
+        // This might be stupid.  I'm aware.  But the glorious unit tests say I need it.
+        while (!es.isTerminated()) {
+            Thread.sleep(50);
+        }
+    }
+
 }

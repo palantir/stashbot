@@ -14,7 +14,6 @@
 package com.palantir.stash.stashbot.managers;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -158,7 +157,7 @@ public class JenkinsManagerTest {
     }
 
     @Test
-    public void testTriggerBuildShort() throws IOException, SQLException {
+    public void testTriggerBuildShort() throws Exception {
         String HASH = "38356e8abe0e96538dd1007278ecc02c3bf3d2cb";
         String REF = "refs/heads/master";
 
@@ -175,6 +174,7 @@ public class JenkinsManagerTest {
             jt);
 
         jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, HASH, REF);
+        jenkinsManager.destroy();
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, String>> forClass = (Class) Map.class;
