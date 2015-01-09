@@ -29,9 +29,14 @@ import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 
+import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.user.SecurityService;
+import com.atlassian.stash.user.StashUser;
+import com.atlassian.stash.user.UserService;
+import com.atlassian.stash.util.Operation;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.atlassian.stash.util.PageRequestImpl;
@@ -59,11 +64,15 @@ public class JenkinsManager implements DisposableBean {
     private final StashbotUrlBuilder sub;
     private final Logger log;
     private final PluginLoggerFactory lf;
+    private final SecurityService ss;
+    private final UserService us;
+    private final UserManager um;
     private final ExecutorService es;
 
     public JenkinsManager(RepositoryService repositoryService,
         ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
-        JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, PluginLoggerFactory lf) {
+        JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, PluginLoggerFactory lf, SecurityService ss,
+        UserService us, UserManager um) {
         this.repositoryService = repositoryService;
         this.cpm = cpm;
         this.jtm = jtm;
@@ -72,6 +81,9 @@ public class JenkinsManager implements DisposableBean {
         this.sub = sub;
         this.lf = lf;
         this.log = lf.getLoggerForThis(this);
+        this.ss = ss;
+        this.us = us;
+        this.um = um;
         this.es = Executors.newCachedThreadPool();
     }
 
@@ -170,24 +182,50 @@ public class JenkinsManager implements DisposableBean {
     public void triggerBuild(final Repository repo, final JobType jobType,
         final String hashToBuild, final String buildRef) {
 
-        es.execute(new Runnable() {
+        final String username = um.getRemoteUser().getUsername();
+        final StashUser su = us.findUserByNameOrEmail(username);
+
+        es.submit(new Callable<Void>() {
 
             @Override
-            public void run() {
-                synchronousTriggerBuild(repo, jobType, hashToBuild, buildRef);
-            }
+            public Void call() throws Exception {
+                // TODO: See if we can do something like StateTransferringExecutorService here instead
+                ss.impersonating(su, "Running as user '" + username + "' in alternate thread asynchronously")
+                    .call(new Operation<Void, Exception>() {
+
+                        @Override
+                        public Void perform() throws Exception {
+                            synchronousTriggerBuild(repo, jobType, hashToBuild, buildRef);
+                            return null;
+                        }
+                    });
+                return null;
+            };
         });
     }
 
     public void triggerBuild(final Repository repo, final JobType jobType,
         final PullRequest pr) {
 
-        es.execute(new Runnable() {
+        final String username = um.getRemoteUser().getUsername();
+        final StashUser su = us.findUserByNameOrEmail(username);
+
+        es.submit(new Callable<Void>() {
 
             @Override
-            public void run() {
-                synchronousTriggerBuild(repo, jobType, pr);
-            }
+            public Void call() throws Exception {
+                // TODO: See if we can do something like StateTransferringExecutorService here instead
+                ss.impersonating(su, "Running as user '" + username + "' in alternate thread asynchronously")
+                    .call(new Operation<Void, Exception>() {
+
+                        @Override
+                        public Void perform() throws Exception {
+                            synchronousTriggerBuild(repo, jobType, pr);
+                            return null;
+                        }
+                    });
+                return null;
+            };
         });
     }
 
