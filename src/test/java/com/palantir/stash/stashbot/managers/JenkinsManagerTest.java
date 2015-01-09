@@ -14,7 +14,6 @@
 package com.palantir.stash.stashbot.managers;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,9 +26,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.atlassian.sal.api.user.UserManager;
+import com.atlassian.sal.api.user.UserProfile;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.user.SecurityService;
+import com.atlassian.stash.user.StashUser;
+import com.atlassian.stash.user.UserService;
 import com.google.common.collect.Maps;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
@@ -42,6 +46,7 @@ import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
+import com.palantir.stash.stashbot.mocks.MockSecurityServiceBuilder;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManagerTest {
@@ -60,6 +65,10 @@ public class JenkinsManagerTest {
     private JobTemplateManager jtm;
     @Mock
     private StashbotUrlBuilder sub;
+    @Mock
+    private UserService us;
+    @Mock
+    private UserManager um;
 
     private JenkinsManager jenkinsManager;
 
@@ -74,10 +83,17 @@ public class JenkinsManagerTest {
     private RepositoryConfiguration rc;
     @Mock
     private JenkinsServerConfiguration jsc;
+    @Mock
+    private UserProfile up;
+    @Mock
+    private StashUser su;
+
+    private SecurityService ss;
 
     private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     private MockJobTemplateFactory jtf;
+    private MockSecurityServiceBuilder mssb;
 
     @Before
     public void setUp() throws Exception {
@@ -110,8 +126,16 @@ public class JenkinsManagerTest {
         Mockito.when(repo.getProject()).thenReturn(proj);
         Mockito.when(proj.getKey()).thenReturn("project_key");
 
+        Mockito.when(um.getRemoteUser()).thenReturn(up);
+        Mockito.when(up.getUsername()).thenReturn("someuser");
+        Mockito.when(us.getUserByName(Mockito.anyString())).thenReturn(su);
+
+        mssb = new MockSecurityServiceBuilder();
+
+        ss = mssb.getSecurityService();
+
         jenkinsManager = new JenkinsManager(repositoryService, cpm, jtm,
-            xmlFormatter, jenkinsClientManager, sub, lf);
+            xmlFormatter, jenkinsClientManager, sub, lf, ss, us, um);
     }
 
     @Test
@@ -158,7 +182,7 @@ public class JenkinsManagerTest {
     }
 
     @Test
-    public void testTriggerBuildShort() throws IOException, SQLException {
+    public void testTriggerBuildShort() throws Exception {
         String HASH = "38356e8abe0e96538dd1007278ecc02c3bf3d2cb";
         String REF = "refs/heads/master";
 
@@ -175,6 +199,7 @@ public class JenkinsManagerTest {
             jt);
 
         jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, HASH, REF);
+        jenkinsManager.destroy();
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Class<Map<String, String>> forClass = (Class) Map.class;
