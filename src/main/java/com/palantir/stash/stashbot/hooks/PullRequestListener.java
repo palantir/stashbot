@@ -22,6 +22,7 @@ import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.event.pull.PullRequestCommentEvent;
 import com.atlassian.stash.event.pull.PullRequestEvent;
+import com.atlassian.stash.event.pull.PullRequestMergedEvent;
 import com.atlassian.stash.event.pull.PullRequestOpenRequestedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
@@ -60,9 +61,6 @@ public class PullRequestListener {
     public void listen(PullRequestEvent event) {
         try {
 
-            // First, update pull request metadata
-            final PullRequest pr = event.getPullRequest();
-
             if (event instanceof PullRequestOpenRequestedEvent) {
                 // This listener will be retriggered later by PullRequestOpenedEvent
                 // SEE: https://developer.atlassian.com/static/javadoc/stash/2.12.1/api/reference/com/atlassian/stash/event/pull/PullRequestOpenRequestedEvent.html
@@ -70,8 +68,10 @@ public class PullRequestListener {
                 return;
             }
 
+            // First, update pull request metadata
             // More correct to use the "to ref" to find the repo - this is the
             // destination repo.
+            final PullRequest pr = event.getPullRequest();
             final Repository repo = pr.getToRef().getRepository();
             final RepositoryConfiguration rc = cpm
                 .getRepositoryConfigurationForRepository(repo);
@@ -80,6 +80,26 @@ public class PullRequestListener {
                 log.debug("Pull Request " + pr.toString()
                     + " ignored, CI not enabled for target repo "
                     + repo.toString());
+                return;
+            }
+
+            // If this event signifies that the PR has already been merged, we don't need to worry about VERIFY_PR anymore, only VERIFY_COMMIT or PUBLISH.
+            if (event instanceof PullRequestMergedEvent) {
+                // just trigger a build of the new commit since the other hook doesn't catch merged PRs.
+                PullRequestMergedEvent prme = (PullRequestMergedEvent) event;
+                String mergeSha1 = prme.getChangeset().getId();
+                String targetBranch = pr.getToRef().getId();
+                if (targetBranch.matches(rc.getPublishBranchRegex())) {
+                    log.info("Stashbot Trigger: Triggering PUBLISH build for commit "
+                        + mergeSha1 + " after merge of branch " + targetBranch);
+                    jenkinsManager.triggerBuild(repo, JobType.PUBLISH, mergeSha1, targetBranch);
+                } else if (targetBranch.matches(rc.getVerifyBranchRegex())) {
+                    // TODO: Build any commits which are new, for now just build latest commit
+                    // Do this by doing a revwalk just like in TriggerJenkinsBuildHook, excluding the build we just published.
+                    log.info("Stashbot Trigger: Triggering VERIFICATION build for commit "
+                        + mergeSha1 + " after merge of branch " + targetBranch);
+                    jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, mergeSha1, targetBranch);
+                }
                 return;
             }
 
@@ -129,7 +149,7 @@ public class PullRequestListener {
 
             // At this point, we know a build hasn't been triggered yet, so
             // trigger it
-            log.debug("Triggering verification build for PR " + pr.toString()
+            log.info("Stashbot Trigger: Triggering VERIFY_PR build for PR " + pr.toString()
                 + ", fromSha " + prm.getFromSha() + " toSha "
                 + prm.getToSha());
 

@@ -153,6 +153,20 @@ can do something like this to easily build your own copy and use it:
     # make modifications, build jar using maven
     atlas-mvn install:install-file -Dfile=$REPO_PATH/target/jenkins-client-0.1.5-SNAPSHOT.jar -DgroupId=com.offbytwo.jenkins -DartifactId=jenkins-client -Dversion=0.1.5-SNAPSHOT -Dpackaging=jar -DpomFile=$REPO_PATH/pom.xml
 
+## Dev/Release Workflow
+
+This project uses gitflow (maven gives you no other option besides editing pom.xml files with your face).  As such, feature development will generally be done on a feature branch (feature/*) or directly on develop.  Both develop and master will generally have a version of the form 1.2.3-SNAPSHOT.
+
+To perform a release (using the jgitflow-maven-plugin), make develop point to the commit you wish to release, and run the following:
+
+    atlas-mvn jgitflow:release-start jgitflow:release-finish
+
+This interactively asks you the version to release (which it infers from the current snapshot version but you can change) and the next version to dev on (which is generally the current version with the rightmost digit increased by one).  After that, it builds and tests the project, and if it succeeds, creates a tag on that commit.
+
+Other valid targets include "hotfix-start" (and finish), and "feature-start" (and finish) for creating hotfixes based upon a release tag, or features based upon some other commit as the case may be.
+
+Not every released version will necessarily be put on the Atlassian Marketplace, but every released version should be stable (i.e. pass all unit tests, and be reasonably functional).
+
 # TODO
 
 ## KNOWN BUGS
@@ -161,7 +175,6 @@ can do something like this to easily build your own copy and use it:
 
 ## PLANNED FEATURES
 
-* Implement git-flow (https://bitbucket.org/atlassian/maven-jgitflow-plugin is a candidate, but doesn't work with the atlassian plugin SDK at this time, see https://bitbucket.org/atlassian/maven-jgitflow-plugin/issue/56/requires-maven-221-doesnt-work-with)
 * Better Test coverage - especially integration tests
 * Error checking - validate hashes sent to build status, etc.
 

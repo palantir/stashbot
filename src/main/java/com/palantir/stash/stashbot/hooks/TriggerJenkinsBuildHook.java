@@ -47,8 +47,8 @@ import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
  * request and check the "delete this branch" checkbox, meaning the branch goes away during the merge, so anything
  * running later (or asynchronously) will see the commit as not existing in any other branches, and thus will try to
  * build it a second time.
- * If this code has perf problems, then we should turn this back into a synchronous hook and determine if something has
- * been triggered already or not via some other means (such as storing metadata about what commits we have triggered).
+ * Note that PostReceiveHook does NOT get run when a PR is merged, because stupid APIs are stupid.
+ * That case is handled separately in the PullRequestListener class
  */
 public class TriggerJenkinsBuildHook implements PostReceiveHook {
 
@@ -101,13 +101,15 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
             // Only perform publish builds of the "to ref", not commits between
             // I.E. if you have A-B-C and you push -D-E-F, a verify build of D and E might be triggered, but F would be
             // published and not verified, if the ref matches both build and verify.
-            log.info("Triggering PUBLISH build for " + repo.toString() + " hash " + refChange.getToHash());
+            log.info("Stashbot Trigger: Triggering PUBLISH build for commit " + refChange.getToHash());
             // trigger a publication build
             jenkinsManager.triggerBuild(repo, JobType.PUBLISH, refChange.getToHash(), refChange.getRefId());
             publishBuilds.add(refChange.getToHash());
         }
 
-        Set<String> verifiedBuilds = new HashSet<String>();
+        // Calculate the sum of all new commits introduced by this change
+        // This would be:
+        // (existing refs matching regex, deleted refs, changed refs old values)..(added refs, changed refs new values)
 
         // We will need a list of branches first
         GitScmCommandBuilder gcb = gcbf.builder(repo).command("branch");
@@ -116,83 +118,80 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
         @SuppressWarnings("unchecked")
         ImmutableList<String> branches = (ImmutableList<String>) gboh.getOutput();
 
-        // And a list of verify-matching branches
-        ImmutableList<String> verifyBranches =
-            ImmutableList.copyOf(Iterables.filter(branches, new Predicate<String>() {
+        HashSet<String> plusBranches = new HashSet<String>();
+        HashSet<String> minusBranches = new HashSet<String>();
 
-                @Override
-                public boolean apply(String input) {
-                    if (input.matches(rc.getVerifyBranchRegex())) {
-                        return true;
-                    }
-                    return false;
+        // add verify-matching branches to the minusBranches set
+        minusBranches.addAll(ImmutableList.copyOf(Iterables.filter(branches, new Predicate<String>() {
+
+            @Override
+            public boolean apply(String input) {
+                if (input.matches(rc.getVerifyBranchRegex())) {
+                    return true;
                 }
-            }));
+                return false;
+            }
+        })));
 
-        // Now look for commits to verify
+        // now calculate the changed/added/deleted refs
         for (RefChange refChange : changes) {
             if (!refChange.getRefId().matches(rc.getVerifyBranchRegex())) {
                 continue;
             }
 
-            // deletes have a tohash of "0000000000000000000000000000000000000000"
-            // but it seems more reliable to use RefChangeType
-            if (refChange.getType().equals(RefChangeType.DELETE)) {
-                log.debug("Detected delete, not triggering a build for this change");
+            // Since we are a verify branch that changed, we need to not be in minusBranches anymore
+            minusBranches.remove(refChange.getRefId());
+
+            switch (refChange.getType()) {
+            case DELETE:
+                minusBranches.add(refChange.getFromHash());
+                break;
+            case ADD:
+                plusBranches.add(refChange.getToHash());
+                break;
+            case UPDATE:
+                minusBranches.add(refChange.getFromHash());
+                plusBranches.add(refChange.getToHash());
+                break;
+            default:
+                throw new IllegalStateException("Unknown change type " + refChange.getType().toString());
+            }
+        }
+
+        // we can now calculate all the new commits introduced by this change in one revwalk.
+        GitScmCommandBuilder gscb = gcbf.builder(repo);
+        GitRevListBuilder grlb = gscb.revList();
+        for (String mb : minusBranches) {
+            grlb.revs("^" + mb);
+        }
+        for (String pb : plusBranches) {
+            grlb.revs(pb);
+        }
+
+        Integer maxVerifyChain = getMaxVerifyChain(rc);
+        if (maxVerifyChain != 0) {
+            log.debug("Limiting to " + maxVerifyChain.toString() + " commits for verification");
+            grlb.limit(maxVerifyChain);
+        }
+
+        CommandOutputHandler<Object> rloh = cohf.getRevlistOutputHandler();
+        grlb.build(rloh).call();
+
+        // returns in old-to-new order, already limited by max-verify-build limiter
+        @SuppressWarnings("unchecked")
+        ImmutableList<String> changesets = (ImmutableList<String>) rloh.getOutput();
+
+        // For each new commit
+        for (String cs : changesets) {
+
+            if (publishBuilds.contains(cs)) {
+                log.info("Stashbot Trigger: NOT triggering VERIFICATION build for commit " + cs
+                    + " because it already triggered a PUBLISH build");
                 continue;
             }
-
-            // We want to trigger a build for each new commit that was pushed
-            // UNLESS the commit is already in another verification branch
-            GitScmCommandBuilder gscb = gcbf.builder(repo);
-            GitRevListBuilder grlb = gscb.revList();
-            if (refChange.getType().equals(RefChangeType.ADD)) {
-                // then we want to build all refs in the history that aren't already in another branch, up to the limit.
-                log.debug("Detected add, considering entire history for verification");
-                grlb.revs(refChange.getToHash());
-            } else {
-                log.debug("Detected update, considering new commits for verification");
-                grlb.revs("^" + refChange.getFromHash(), refChange.getToHash());
-            }
-
-            // Exclude any commits already in a verify branch that is not this branch.
-            for (String branch : verifyBranches) {
-                if (!branch.equals(refChange.getRefId())) {
-                    // if it starts with refs/heads/, strip that off since it's optional and we don't want to hit the command line length limit as easily.
-                    grlb.revs("^" + branch.replaceFirst("^refs/heads/", ""));
-                }
-            }
-
-            Integer maxVerifyChain = getMaxVerifyChain(rc);
-            if (maxVerifyChain != 0) {
-                log.debug("Limiting to " + maxVerifyChain.toString() + " commits for verification");
-                grlb.limit(maxVerifyChain);
-            }
-            CommandOutputHandler<Object> rloh = cohf.getRevlistOutputHandler();
-            grlb.build(rloh).call();
-
-            // returns in old-to-new order, already limited by max-verify-build limiter
-            @SuppressWarnings("unchecked")
-            ImmutableList<String> changesets = (ImmutableList<String>) rloh.getOutput();
-
-            // For each hash
-            for (String cs : changesets) {
-
-                if (publishBuilds.contains(cs)) {
-                    log.info("NOT Triggering VERIFICATION build for commit " + cs
-                        + " because it already triggered a publish build");
-                    continue;
-                }
-                if (verifiedBuilds.contains(cs)) {
-                    log.info("NOT Triggering VERIFICATION build for commit " + cs
-                        + " because it already triggered a verify build");
-                    continue;
-                }
-                log.info("Triggering VERIFICATION build for commit " + cs);
-                // trigger a verification build (no merge)
-                jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, cs, refChange.getRefId());
-                verifiedBuilds.add(cs);
-            }
+            log.info("Stashbot Trigger: Triggering VERIFICATION build for commit " + cs);
+            // trigger a verification build (no merge)
+            jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, cs, "");
         }
     }
 
