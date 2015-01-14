@@ -108,7 +108,7 @@
 
           {call aui.form.textField}
             {param id: 'prebuildCommand' /}
-            {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before all builds') /}
+            {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before all builds (and for PR verifies, before the merge)') /}
             {param value: $prebuildCommand /}
           {/call}
 
