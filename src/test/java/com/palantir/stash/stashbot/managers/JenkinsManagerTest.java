@@ -96,7 +96,7 @@ public class JenkinsManagerTest {
     private MockSecurityServiceBuilder mssb;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws Throwable {
 
         MockitoAnnotations.initMocks(this);
 

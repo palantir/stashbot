@@ -160,7 +160,7 @@ public class BuildSuccessReportingServletTest {
                 return null;
             }
         };
-        Mockito.when(esc.call(Mockito.any(Operation.class))).thenAnswer(frobber);
+        Mockito.when(esc.call(Mockito.<Operation<Void, Exception>> any())).thenAnswer(frobber);
 
         mockWriter = new StringWriter();
         Mockito.when(res.getWriter()).thenReturn(new PrintWriter(mockWriter));

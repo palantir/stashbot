@@ -14,7 +14,7 @@ public class MockSecurityServiceBuilder {
     private final SecurityService ss;
     private final EscalatedSecurityContext esc;
 
-    public MockSecurityServiceBuilder() throws Exception {
+    public MockSecurityServiceBuilder() throws Throwable {
         ss = Mockito.mock(SecurityService.class);
         esc = Mockito.mock(EscalatedSecurityContext.class);
 
@@ -29,7 +29,7 @@ public class MockSecurityServiceBuilder {
                 return null;
             }
         };
-        Mockito.when(esc.call(Mockito.<Operation<Void, Exception>> any())).thenAnswer(justDoIt);
+        Mockito.when(esc.call(Mockito.<Operation<Void, Throwable>> any())).thenAnswer(justDoIt);
 
         Mockito.when(ss.impersonating(Mockito.any(StashUser.class), Mockito.anyString())).thenReturn(esc);
         Mockito.when(ss.anonymously(Mockito.anyString())).thenReturn(esc);
