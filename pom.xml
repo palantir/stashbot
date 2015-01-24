@@ -205,8 +205,8 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -236,8 +236,8 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>3.3.0</stash.version>
-        <stash.data.version>3.3.0</stash.data.version>
+        <stash.version>3.6.0</stash.version>
+        <stash.data.version>3.6.0</stash.data.version>
         <stash.containerId>tomcat7x</stash.containerId>
         <!--
         WARNING: manually sync this with the version in stash - variable in the

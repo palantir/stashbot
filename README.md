@@ -103,6 +103,7 @@ Strict mode is disabled by default, and when enabled it cannot be overridden wit
 
 1. [Atlassian Plugin SDK](https://developer.atlassian.com/display/DOCS/Set+up+the+Atlassian+Plugin+SDK+and+Build+a+Project) (or run `bin/invoke-sdk.sh` on Linux)
 2. [Eclipse](http://eclipse.org) (or the java IDE of your choice)
+3. [JDK8](http://java.com) Stash has dropped support for JDK7 as of version 3.5 and later, so we should be building with JDK8.
 
 ## Eclipse Setup
 
