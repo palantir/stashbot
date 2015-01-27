@@ -104,6 +104,7 @@ Strict mode is disabled by default, and when enabled it cannot be overridden wit
 1. [Atlassian Plugin SDK](https://developer.atlassian.com/display/DOCS/Set+up+the+Atlassian+Plugin+SDK+and+Build+a+Project) (or run `bin/invoke-sdk.sh` on Linux)
 2. [Eclipse](http://eclipse.org) (or the java IDE of your choice)
 3. [JDK8](http://java.com) Stash has dropped support for JDK7 as of version 3.5 and later, so we should be building with JDK8.
+4. git cli should be on your path.
 
 ## Eclipse Setup
 
@@ -156,15 +157,11 @@ can do something like this to easily build your own copy and use it:
 
 ## Dev/Release Workflow
 
-This project uses gitflow (maven gives you no other option besides editing pom.xml files with your face).  As such, feature development will generally be done on a feature branch (feature/*) or directly on develop.  Both develop and master will generally have a version of the form 1.2.3-SNAPSHOT.
+This project uses versions determined by `git describe --dirty='-dirty' --abbrev=12`, and thus versions are of the form 1.2.3-N-gX where N is the number of commits since that tag and X is the exact 12-character prefix of the sha1 the version was built from.
 
-To perform a release (using the jgitflow-maven-plugin), make develop point to the commit you wish to release, and run the following:
+If you build using `./build/invoke-sdk.sh`, the version will be set automatically.  Alternatively, you can set the DOMAIN_VERSION environemnt variable when invoking maven directly to override the version.
 
-    atlas-mvn jgitflow:release-start jgitflow:release-finish
-
-This interactively asks you the version to release (which it infers from the current snapshot version but you can change) and the next version to dev on (which is generally the current version with the rightmost digit increased by one).  After that, it builds and tests the project, and if it succeeds, creates a tag on that commit.
-
-Other valid targets include "hotfix-start" (and finish), and "feature-start" (and finish) for creating hotfixes based upon a release tag, or features based upon some other commit as the case may be.
+This is important because Atlassian plugins use OSGi and their version strings *must* be of the form "^\d+\.\d+\.\d+.*", so in order for jars that actually work to be produced, the tag must be a number such as "1.0.0".  For that reason, feature branches will start "features/", and be merged into "master", which will occasionally be tagged for releases.
 
 Not every released version will necessarily be put on the Atlassian Marketplace, but every released version should be stable (i.e. pass all unit tests, and be reasonably functional).
 
