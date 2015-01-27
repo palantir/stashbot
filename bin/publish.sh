@@ -23,7 +23,7 @@ if [ "$version" == "" ]; then
   exit 3
 fi
 
-deploy_path=com.palantir.stash/stashbot/$version
+deploy_path=$deploy_prefix/$version
 
 if [ ! -f "$creds" ]; then
   echo "Error: missing credentials file: $creds"
