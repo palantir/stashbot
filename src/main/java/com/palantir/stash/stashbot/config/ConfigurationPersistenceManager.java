@@ -25,6 +25,7 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.activeobjects.tx.Transactional;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
@@ -48,6 +49,7 @@ public class ConfigurationPersistenceManager {
         this.publisher = publisher;
     }
 
+    @Transactional
     public void deleteJenkinsServerConfiguration(String name) {
         JenkinsServerConfiguration[] configs = ao.find(
             JenkinsServerConfiguration.class,
@@ -60,6 +62,7 @@ public class ConfigurationPersistenceManager {
         }
     }
 
+    @Transactional
     public JenkinsServerConfiguration getJenkinsServerConfiguration(String name)
         throws SQLException {
         if (name == null) {
@@ -83,6 +86,7 @@ public class ConfigurationPersistenceManager {
         return configs[0];
     }
 
+    @Transactional
     public void setJenkinsServerConfigurationFromRequest(HttpServletRequest req) throws SQLException,
         NumberFormatException {
 
@@ -114,6 +118,7 @@ public class ConfigurationPersistenceManager {
             stashUsername, stashPassword, maxVerifyChain, false);
     }
 
+    @Transactional
     public void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
         String stashPassword, Integer maxVerifyChain, Boolean isLocked)
@@ -149,6 +154,7 @@ public class ConfigurationPersistenceManager {
         configs[0].save();
     }
 
+    @Transactional
     public RepositoryConfiguration getRepositoryConfigurationForRepository(
         Repository repo) throws SQLException {
         RepositoryConfiguration[] repos = ao.find(
@@ -165,6 +171,7 @@ public class ConfigurationPersistenceManager {
         return repos[0];
     }
 
+    @Transactional
     public void setRepositoryConfigurationForRepository(Repository repo,
         boolean isCiEnabled, String verifyBranchRegex,
         String verifyBuildCommand, String publishBranchRegex,
@@ -176,6 +183,7 @@ public class ConfigurationPersistenceManager {
             false, "N/A", null, new EmailSettings(), false, false);
     }
 
+    @Transactional
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
         throws SQLException, NumberFormatException {
 
@@ -224,14 +232,17 @@ public class ConfigurationPersistenceManager {
         return (req.getParameter(parameter) == null) ? false : true;
     }
 
-    public void setRepositoryConfigurationForRepository(Repository repo,
-        boolean isCiEnabled, String verifyBranchRegex,
-        String verifyBuildCommand, boolean isVerifyPinned,
-        String verifyLabel, String publishBranchRegex,
-        String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
-        String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-        Integer maxVerifyChain, EmailSettings emailSettings, boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
-        throws SQLException, IllegalArgumentException {
+    @Transactional
+    public void
+        setRepositoryConfigurationForRepository(Repository repo,
+            boolean isCiEnabled, String verifyBranchRegex,
+            String verifyBuildCommand, boolean isVerifyPinned,
+            String verifyLabel, String publishBranchRegex,
+            String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
+            String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
+            Integer maxVerifyChain, EmailSettings emailSettings, boolean strictVerifyMode,
+            Boolean preserveJenkinsJobConfig)
+            throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
@@ -301,6 +312,7 @@ public class ConfigurationPersistenceManager {
         foundRepo.save();
     }
 
+    @Transactional
     public ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
         throws SQLException {
         JenkinsServerConfiguration[] allConfigs = ao
@@ -311,6 +323,7 @@ public class ConfigurationPersistenceManager {
         return ImmutableList.copyOf(allConfigs);
     }
 
+    @Transactional
     public ImmutableCollection<String> getAllJenkinsServerNames()
         throws SQLException {
         List<String> names = new ArrayList<String>();
@@ -355,12 +368,14 @@ public class ConfigurationPersistenceManager {
             + pr.getToRef().getLatestChangeset() + "]";
     }
 
+    @Transactional
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
             pr.getFromRef().getLatestChangeset().toString(),
             pr.getToRef().getLatestChangeset().toString());
     }
 
+    @Transactional
     public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
         // We have to check repoId being equal to -1 so that this works with old data.
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
@@ -384,6 +399,7 @@ public class ConfigurationPersistenceManager {
         return prms[0];
     }
 
+    @Transactional
     public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
         Long id = pr.getId();
         String fromSha = pr.getFromRef().getLatestChangeset().toString();
@@ -409,6 +425,7 @@ public class ConfigurationPersistenceManager {
     }
 
     // Automatically sets the fromHash and toHash from the PullRequest object
+    @Transactional
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
         Boolean success, Boolean override) {
         setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
@@ -416,6 +433,7 @@ public class ConfigurationPersistenceManager {
     }
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
+    @Transactional
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
         PullRequestMetadata prm =
