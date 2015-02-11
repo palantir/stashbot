@@ -16,6 +16,8 @@
  * @param jenkinsServersData
  * @param isJunit
  * @param junitPath
+ * @param artifactsEnabled
+ * @param artifactsPath
  * @param maxVerifyChain
  * @param rebuildOnUpdate
  * @param emailRecipients
@@ -172,6 +174,22 @@
             {param value: $junitPath /}
             {param descriptionText: stash_i18n('stash.web.stash.junitPath.description', 'Path to use for junit results (e.g. build/test-results/*.xml)') /}
           {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.artifacts-enabled.button.description', 'Artifact Archival') /}
+            {param fields: [[
+              'id': 'artifactsEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $artifactsEnabled
+              ]] /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'artifactsPath' /}
+            {param labelContent: stash_i18n('stash.web.stash.artifactsPath.label', 'Artifact Location') /}
+            {param value: $artifactsPath /}
+            {param descriptionText: stash_i18n('stash.web.stash.artifactsPath.description', 'Path to use for artifacts (e.g. **/*.log)') /}
+          {/call}
+
 
           <h4>&nbsp;</h4>
 

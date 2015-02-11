@@ -137,6 +137,8 @@ public class RepoConfigurationServlet extends HttpServlet {
                     .put("publishLabel", rc.getPublishLabel())
                     .put("isJunit", rc.getJunitEnabled())
                     .put("junitPath", rc.getJunitPath())
+                    .put("artifactsEnabled", rc.getArtifactsEnabled())
+                    .put("artifactsPath", rc.getArtifactsPath())
                     .put("jenkinsServersData", jenkinsServersData)
                     .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
                     .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
