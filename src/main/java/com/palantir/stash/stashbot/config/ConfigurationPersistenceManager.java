@@ -180,7 +180,7 @@ public class ConfigurationPersistenceManager {
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", null, new EmailSettings(), false, false);
+            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false);
     }
 
     @Transactional
@@ -208,14 +208,18 @@ public class ConfigurationPersistenceManager {
 
         Boolean junitEnabled = getBoolean(req, "isJunit");
         String junitPath = req.getParameter("junitPath");
+
+        Boolean artifactsEnabled = getBoolean(req, "artifactsEnabled");
+        String artifactsPath = req.getParameter("artifactsPath");
+
         Boolean rebuildOnUpdate = getBoolean(req, "rebuildOnUpdate");
 
         EmailSettings emailSettings = getEmailSettings(req);
 
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
             verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
-            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, maxVerifyChain, emailSettings,
-            strictVerifyMode, preserveJenkinsJobConfig);
+            jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, artifactsEnabled, artifactsPath,
+            maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig);
     }
 
     private EmailSettings getEmailSettings(HttpServletRequest req) {
@@ -240,8 +244,8 @@ public class ConfigurationPersistenceManager {
             String verifyLabel, String publishBranchRegex,
             String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
             String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-            Integer maxVerifyChain, EmailSettings emailSettings, boolean strictVerifyMode,
-            Boolean preserveJenkinsJobConfig)
+            boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
+            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
             throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -269,6 +273,8 @@ public class ConfigurationPersistenceManager {
                 new DBParam("JENKINS_SERVER_NAME", jenkinsServerName),
                 new DBParam("JUNIT_ENABLED", isJunitEnabled),
                 new DBParam("JUNIT_PATH", junitPath),
+                new DBParam("ARTIFACTS_ENABLED", artifactsEnabled),
+                new DBParam("ARTIFACTS_PATH", artifactsPath),
                 new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
                 new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings.getEmailNotificationsEnabled()),
                 new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
@@ -298,6 +304,8 @@ public class ConfigurationPersistenceManager {
         foundRepo.setJenkinsServerName(jenkinsServerName);
         foundRepo.setJunitEnabled(isJunitEnabled);
         foundRepo.setJunitPath(junitPath);
+        foundRepo.setArtifactsEnabled(artifactsEnabled);
+        foundRepo.setArtifactsPath(artifactsPath);
         foundRepo.setRebuildOnTargetUpdate(rebuildOnUpdate);
         if (maxVerifyChain != null) {
             foundRepo.setMaxVerifyChain(maxVerifyChain);

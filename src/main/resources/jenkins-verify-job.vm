@@ -14,6 +14,8 @@
   isJunit
   junitPath
   credentialUUID
+  artifactsEnabled
+  artifactsPath
 
   esc - escape tool - required
   @author cmyers
@@ -173,6 +175,13 @@
       <sendToIndividuals>$isEmailSendToIndividuals</sendToIndividuals>
       <!-- <perModuleEmail>$isEmailPerModuleEmail</perModuleEmail> -->
     </hudson.tasks.Mailer>
+#end
+#if ( $artifactsEnabled )
+    <hudson.tasks.ArtifactArchiver>
+      <artifacts>$artifactsPath</artifacts>
+      <latestOnly>false</latestOnly>
+      <allowEmptyArchive>true</allowEmptyArchive>
+    </hudson.tasks.ArtifactArchiver>
 #end
   </publishers>
   <buildWrappers/>

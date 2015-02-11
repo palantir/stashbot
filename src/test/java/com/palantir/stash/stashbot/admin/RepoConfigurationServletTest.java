@@ -128,6 +128,8 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc.getPublishLabel()).thenReturn("N/A");
         Mockito.when(rc.getJunitEnabled()).thenReturn(false);
         Mockito.when(rc.getJunitPath()).thenReturn("N/A");
+        Mockito.when(rc.getArtifactsEnabled()).thenReturn(false);
+        Mockito.when(rc.getArtifactsPath()).thenReturn("N/A");
         Mockito.when(rc.getEmailNotificationsEnabled()).thenReturn(false);
         Mockito.when(rc.getEmailRecipients()).thenReturn("a@example.com");
         Mockito.when(rc.getEmailForEveryUnstableBuild()).thenReturn(false);
@@ -147,6 +149,8 @@ public class RepoConfigurationServletTest {
         Mockito.when(rc2.getPublishLabel()).thenReturn("N/A");
         Mockito.when(rc2.getJunitEnabled()).thenReturn(false);
         Mockito.when(rc2.getJunitPath()).thenReturn("N/A");
+        Mockito.when(rc2.getArtifactsEnabled()).thenReturn(false);
+        Mockito.when(rc2.getArtifactsPath()).thenReturn("N/A");
         Mockito.when(rc2.getEmailNotificationsEnabled()).thenReturn(true);
         Mockito.when(rc2.getEmailRecipients()).thenReturn("a@example.com");
         Mockito.when(rc2.getEmailForEveryUnstableBuild()).thenReturn(true);

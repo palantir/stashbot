@@ -194,6 +194,10 @@ public class JenkinsJobXmlFormatter {
         vc.put("isJunit", rc.getJunitEnabled());
         vc.put("junitPath", rc.getJunitPath());
 
+        // Artifact settings
+        vc.put("artifactsEnabled", rc.getArtifactsEnabled());
+        vc.put("artifactsPath", rc.getArtifactsPath());
+
         // insert pinned data
         switch (jobTemplate.getJobType()) {
         case VERIFY_COMMIT:
