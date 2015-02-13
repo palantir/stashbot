@@ -71,8 +71,11 @@ public class RetriggerLinkWebPanel implements WebPanel {
             Changeset changeset = (Changeset) context.get("changeset");
             String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT,
                 changeset.getId(), null);
-
-            writer.append("<a href=\"" + url + "\">Re-verify</a>");
+            String pubUrl = ub.getJenkinsTriggerUrl(repo, JobType.PUBLISH,
+                changeset.getId(), null);
+            // TODO: add ?reason=<buildRef> somehow to end of URLs?
+            writer.append("Trigger: ( <a href=\"" + url + "\">Verify</a> | ");
+            writer.append("<a href=\"" + pubUrl + "\">Publish</a> )");
         } catch (SQLException e) {
             throw new IOException(e);
         }
