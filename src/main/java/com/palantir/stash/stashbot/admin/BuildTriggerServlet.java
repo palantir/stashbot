@@ -76,6 +76,7 @@ public class BuildTriggerServlet extends HttpServlet {
         throws ServletException, IOException {
 
         final String pathInfo = req.getPathInfo();
+        final String reason = req.getParameter("reason");
         final String[] parts = pathInfo.split("/");
 
         if (parts.length != 4 && parts.length != 6) {
@@ -140,7 +141,7 @@ public class BuildTriggerServlet extends HttpServlet {
             log.debug("Triggering build for buildHead " + buildHead);
             try {
                 // When triggered this way, we don't know the buildRef, so leave it blank
-                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead, "");
+                jenkinsManager.triggerBuild(repo, jt.getJobType(), buildHead, reason);
                 printOutput(req, res);
                 return;
             } catch (Exception e) {
