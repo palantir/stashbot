@@ -43,7 +43,6 @@ public class MockGitCommandBuilderFactory {
     private GitCommand<Object> cmd;
 
     private GitScmCommandBuilder branchCommandBuilder;
-    private GitScmCommandBuilder branchCommandBuilderArg;
     private GitCommand<Object> branchCommand;
 
     private List<String> changesets;
@@ -66,7 +65,6 @@ public class MockGitCommandBuilderFactory {
         grlb = Mockito.mock(GitRevListBuilder.class);
         gscb = Mockito.mock(GitScmCommandBuilder.class);
         branchCommandBuilder = Mockito.mock(GitScmCommandBuilder.class);
-        branchCommandBuilderArg = Mockito.mock(GitScmCommandBuilder.class);
         cmd = Mockito.mock(GitCommand.class);
         branchCommand = Mockito.mock(GitCommand.class);
 
