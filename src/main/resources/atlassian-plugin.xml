@@ -44,6 +44,10 @@
         <url-pattern>/stashbot/build-reporting/*</url-pattern>
     </servlet>
 
+    <servlet key="buildStatusReporting" name="Build Status Reporting Servlet" class="com.palantir.stash.stashbot.admin.BuildStatusReportingServlet">
+        <url-pattern>/stashbot/build-status/*</url-pattern>
+    </servlet>
+
     <servlet key="buildTriggerServlet" name="Build Trigger Servlet" class="com.palantir.stash.stashbot.admin.BuildTriggerServlet">
         <url-pattern>/stashbot/build-trigger/*</url-pattern>
     </servlet>
