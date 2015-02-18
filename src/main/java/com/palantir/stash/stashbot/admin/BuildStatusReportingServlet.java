@@ -15,36 +15,37 @@ package com.palantir.stash.stashbot.admin;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.sql.SQLException;
+import java.util.Arrays;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
+import com.atlassian.stash.nav.NavBuilder;
+import com.atlassian.stash.project.Project;
+import com.atlassian.stash.project.ProjectService;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestMergeVeto;
 import com.atlassian.stash.pull.PullRequestMergeability;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.Permission;
-import com.atlassian.stash.user.SecurityService;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
-import com.palantir.stash.stashbot.util.PullRequestFetcherOperation;
-import com.palantir.stash.stashbot.util.RepoIdFetcherOperation;
 
 public class BuildStatusReportingServlet extends HttpServlet {
 
     /**
      * Surface information about build success / failure for a given pull request
      * 
-     * URL is of the form BASE_URL/REPO_ID/PULLREQUEST_ID] <br/>
+     * URL is of the form BASE_URL/REPO_ID_OR_SLUG/PULLREQUEST_ID] <br/>
+     * 
      * <br/>
      * REPO_ID is the stash internal ID of the repository<br/>
      * PULLREQUEST_ID is the pull request ID<br/>
@@ -54,15 +55,17 @@ public class BuildStatusReportingServlet extends HttpServlet {
     private final Logger log;
 
     private final RepositoryService rs;
+    private final ProjectService ps;
     private final PullRequestService prs;
-    private final SecurityService ss;
+    private final NavBuilder nb;
 
-    public BuildStatusReportingServlet(RepositoryService rs, PullRequestService prs, SecurityService ss,
-        PluginLoggerFactory lf) {
+    public BuildStatusReportingServlet(RepositoryService rs, ProjectService ps, PullRequestService prs,
+        NavBuilder nb, PluginLoggerFactory lf) {
         this.rs = rs;
+        this.ps = ps;
         this.prs = prs;
+        this.nb = nb;
         this.log = lf.getLoggerForThis(this);
-        this.ss = ss;
     }
 
     @Override
@@ -72,60 +75,72 @@ public class BuildStatusReportingServlet extends HttpServlet {
             // Look at JenkinsManager class if you change this:
             // final two arguments could be empty...
             final String URL_FORMAT =
-                "BASE_URL/REPO_ID/PULLREQUEST_ID]";
+                "BASE_URL/REPO_ID_OR_SLUG/PULLREQUEST_ID]";
             final String pathInfo = req.getPathInfo();
-
             final String[] parts = pathInfo.split("/");
 
-            //printOutput("parts(" + parts.length + "): '" + parts[0] + "', '" + parts[1] + "', '" + parts[2] + "'", req, res);
-            if (parts.length != 3) {
+            // need at *least* 3 parts to be correct
+            if (parts.length < 3) {
                 throw new IllegalArgumentException("The format of the URL is "
                     + URL_FORMAT);
             }
 
-            final int repoId;
+            // Last part is always the PR
+            String pullRequestPart = parts[parts.length - 1];
+
+            // First part is always empty because string starts with '/', last is pr, the rest is the slug
+            String slugOrId = StringUtils.join(Arrays.copyOfRange(parts, 1, parts.length - 1), "/");
+
+            Repository repo;
             try {
-                repoId = Integer.valueOf(parts[1]);
+                int repoId = Integer.valueOf(slugOrId);
+                repo = rs.getById(repoId);
+                if (repo == null) {
+                    throw new IllegalArgumentException("Unable to find repository for repo id " + repoId);
+                }
             } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("The format of the URL is "
-                    + URL_FORMAT, e);
-            }
+                // we have a slug, try to get a repo ID from that
+                // slug should look like this: projects/PROJECT_KEY/repos/REPO_SLUG/pull-requests
+                String[] newParts = slugOrId.split("/");
 
-            // This is necessary if we want unauthenticated users to be able to call this.  *sigh*
-            RepoIdFetcherOperation getRepoId = new RepoIdFetcherOperation(rs, repoId);
-            ss.withPermission(Permission.REPO_READ, "BUILD SUCCESS REPORT").call(getRepoId);
-            final Repository repo = getRepoId.getRepo();
-
-            if (repo == null) {
-                throw new IllegalArgumentException(
-                    "Unable to get a repository for id " + repoId);
+                if (newParts.length != 5) {
+                    throw new IllegalArgumentException(
+                        "The format of the REPO_ID_OR_SLUG is an ID, or projects/PROJECT_KEY/repos/REPO_SLUG/pull-requests");
+                }
+                Project p = ps.getByKey(newParts[1]);
+                if (p == null) {
+                    throw new IllegalArgumentException("Unable to find project for project key" + newParts[1]);
+                }
+                repo = rs.getBySlug(p.getKey(), newParts[3]);
+                if (repo == null) {
+                    throw new IllegalArgumentException("Unable to find repository for project key" + newParts[1]
+                        + " and repo slug " + newParts[3]);
+                }
             }
 
             final long pullRequestId;
             final PullRequest pullRequest;
 
             try {
-                pullRequestId = Long.parseLong(parts[2]);
+                pullRequestId = Long.parseLong(pullRequestPart);
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(
                     "Unable to parse pull request id " + parts[7], e);
             }
-            PullRequestFetcherOperation prfo =
-                new PullRequestFetcherOperation(prs, repoId, pullRequestId);
-            ss.withPermission(Permission.REPO_READ, "BUILD SUCCESS REPORT").call(prfo);
-            pullRequest = prfo.getPullRequest();
+            pullRequest = prs.getById(repo.getId(), pullRequestId);
             if (pullRequest == null) {
                 throw new IllegalArgumentException(
                     "Unable to find pull request for repo id "
                         + repo.getId().toString() + " pr id "
-                        + Long.toString(pullRequestId));
+                        + pullRequestId);
             }
 
-            PullRequestMergeability canMerge = prs.canMerge(repoId, pullRequestId);
+            PullRequestMergeability canMerge = prs.canMerge(repo.getId(), pullRequestId);
 
             JSONObject output = new JSONObject();
-            output.put("repoId", repoId);
+            output.put("repoId", repo.getId());
             output.put("prId", pullRequestId);
+            output.put("url", nb.repo(repo).pullRequest(pullRequest.getId()).buildAbsolute());
             output.put("canMerge", canMerge.canMerge());
             if (!canMerge.canMerge()) {
                 JSONArray vetoes = new JSONArray();
@@ -140,8 +155,6 @@ public class BuildStatusReportingServlet extends HttpServlet {
 
             log.debug("Serving build status: " + output.toString());
             printOutput(output, req, res);
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to get configuration", e);
         } catch (Exception e) {
             res.reset();
             res.setStatus(500);

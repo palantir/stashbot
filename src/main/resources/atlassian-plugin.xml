@@ -104,14 +104,15 @@
     <component-import key="navBuilder" interface="com.atlassian.stash.nav.NavBuilder" />
     <component-import key="pageBuilderService" interface="com.atlassian.webresource.api.assembler.PageBuilderService"/>
     <component-import key="permissionAdminService" interface="com.atlassian.stash.user.PermissionAdminService"/>
+    <component-import key="projectService" interface="com.atlassian.stash.project.ProjectService"/>
     <component-import key="pullRequestService" interface="com.atlassian.stash.pull.PullRequestService"/>
     <component-import key="repositoryHookService" interface="com.atlassian.stash.hook.repository.RepositoryHookService"/>
     <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
     <component-import key="securityService" interface="com.atlassian.stash.user.SecurityService"/>
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
     <component-import key="userAdminService" interface="com.atlassian.stash.user.UserAdminService"/>
-    <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>
     <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager"/>
+    <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>
 
     <!--
     com.atlassian.stash.web.conditions.HasGlobalPermissionCondition
