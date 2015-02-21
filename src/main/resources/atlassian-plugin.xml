@@ -94,6 +94,14 @@
         <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
     </web-panel>
 
+    <!-- tried to write this as a client-web-panel, but that was annoying as crap, so this janky solution was easier.  Forgive me. -->
+    <web-resource key="pullRequestTriggerResources" name="Pull Request Trigger Link Resources">
+        <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>stash.web.resources:jquery</dependency>
+        <resource type="download" name="pr-trigger.js" location="js/pr-trigger.js"/>
+        <context>stash.page.pullRequest.view</context>
+    </web-resource>
+
     <!-- import from the product container -->
     <component-import key="activeObjects" interface="com.atlassian.activeobjects.external.ActiveObjects" />
     <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
