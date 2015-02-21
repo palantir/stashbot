@@ -57,6 +57,12 @@ public interface PullRequestMetadata extends Entity {
 
     @NotNull
     @Default("false")
+    public Boolean getFailed();
+
+    public void setFailed(Boolean success);
+
+    @NotNull
+    @Default("false")
     public Boolean getOverride();
 
     public void setOverride(Boolean override);
