@@ -5,6 +5,11 @@ set -e
 
 name=$(basename $0)
 
+if [[ "x$STASH_HOST" == "x" ]]; then
+    echo "You must set STASH_HOST, e.g. 'stash.yourcompany.com'"
+    exit 3
+fi
+
 if [ "$#" -ne 1 -o "$1" == "-h" -o "$1" == "--help" ]
 then
     echo "Usage: $name comment (e.g. $name \"This is a test comment\")"
@@ -18,7 +23,7 @@ then
 fi
 
 GIT_URL=$(sed -n 's/.*url *= *\(.*\)/\1/p' < .git/config | head -n 1)
-if [[ $GIT_URL =~ https://([^:]+):([^@]+)@stash.yojoe.local/scm/([^/]+)/(.*)\.git ]]
+if [[ $GIT_URL =~ https://([^:]+):([^@]+)@$STASH_HOST/scm/([^/]+)/(.*)\.git ]]
 then
     username=${BASH_REMATCH[1]}
     password=${BASH_REMATCH[2]}
@@ -27,7 +32,7 @@ then
 
     # Escape double quotes and newlines
     text=$(echo "$1" | sed 's/"/\\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g') # From http://unix.stackexchange.com/a/114948
-    url="https://stash.yojoe.local/rest/api/1.0/projects/$projectKey/repos/$repoSlug/pull-requests/$pullRequestId/comments"
+    url="https://$STASH_HOST/rest/api/1.0/projects/$projectKey/repos/$repoSlug/pull-requests/$pullRequestId/comments"
 
     echo "$name: Creating comment \"$1\" using URL $url"
     curl -s -i --fail "$url" --basic --user "$username:$password" -H "Content-Type: application/json" --data-binary "{\"text\":\"$text\"}"

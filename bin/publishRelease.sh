@@ -4,8 +4,6 @@
 
 # type is typically "installers", "patches", "jars", etc.
 
-# for details, see: https://wiki.yojoe.local/display/ITOOLS/How+to+Release+a+Product
-
 set -e
 
 creds=$HOME/.gradle/gradle.properties
@@ -18,7 +16,6 @@ filename=$1
 pub_path=$2
 
 pub_url=`grep "^releasePublish.url=" "$creds" | sed 's/^releasePublish.url=//'`
-#pub_url=https://releases.yojoe.local/artifactory
 user=`grep "^releasePublish.username=" "$creds" | sed 's/^releasePublish.username=//'`
 pass=`grep "^releasePublish.password=" "$creds" | sed 's/^releasePublish.password=//'`
 
