@@ -219,12 +219,16 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // Update the metadata.  We do this before adding the comment so that any listeners consuming
             // comment events will have the updated state.
 
+            // arg order for bools is started, success, override, failed
             if (state.equals(State.SUCCESSFUL)) {
                 configurationPersistanceManager.setPullRequestMetadata(
-                    pullRequest, mergeHead, buildHead, null, true, null);
-            } else {
+                    pullRequest, mergeHead, buildHead, null, true, null, false);
+            } else if (state.equals(State.INPROGRESS)) {
                 configurationPersistanceManager.setPullRequestMetadata(
-                    pullRequest, mergeHead, buildHead, null, false, null);
+                    pullRequest, mergeHead, buildHead, true, false, null, null);
+            } else if (state.equals(State.FAILED)) {
+                configurationPersistanceManager.setPullRequestMetadata(
+                    pullRequest, mergeHead, buildHead, null, false, null, true);
             }
 
             // mergeHead is not null *and* pullRequest is not null if we reach
@@ -253,16 +257,17 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             sb.append("*[Build #" + buildNumber + "](" + url + ") ");
             sb.append("(merging " + mergeHeadLink + " into " + buildHeadLink + ") ");
             switch (state) {
-                case INPROGRESS:
-                    sb.append("is in progress...*");
-                    break;
-                case SUCCESSFUL:
-                    sb.append("has **passed &#x2713;**.*");
-                    break;
-                case FAILED:
-                    sb.append("has* **FAILED &#x2716;**. ");
-                    sb.append("([*Retrigger this build* &#x27f3;](" + retUrl + ") *or* [*view console output* &#x2630;](" + consoleUrl + ").)");
-                    break;
+            case INPROGRESS:
+                sb.append("is in progress...*");
+                break;
+            case SUCCESSFUL:
+                sb.append("has **passed &#x2713;**.*");
+                break;
+            case FAILED:
+                sb.append("has* **FAILED &#x2716;**. ");
+                sb.append("([*Retrigger this build* &#x27f3;](" + retUrl + ") *or* [*view console output* &#x2630;]("
+                    + consoleUrl + ").)");
+                break;
             }
 
             log.debug("Registering comment on pr for buildHead " + buildHead

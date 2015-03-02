@@ -444,6 +444,13 @@ public class ConfigurationPersistenceManager {
     @Transactional
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
+        setPullRequestMetadata(pr, fromHash, toHash, buildStarted, success, override, null);
+    }
+
+    // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
+    @Transactional
+    public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
+        Boolean success, Boolean override, Boolean failed) {
         PullRequestMetadata prm =
             getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(), fromHash, toHash);
         if (buildStarted != null) {
@@ -455,6 +462,10 @@ public class ConfigurationPersistenceManager {
         if (override != null) {
             prm.setOverride(override);
         }
+        if (failed != null) {
+            prm.setFailed(failed);
+        }
+
         prm.save();
         publisher.publish(new StashbotMetadataUpdatedEvent(this, pr));
     }
