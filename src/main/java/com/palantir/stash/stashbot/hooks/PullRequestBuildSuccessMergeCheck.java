@@ -46,6 +46,32 @@ import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
  */
 public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
+    public static enum MergeCheckStatus {
+        NO_BUILD(
+            "Cannot merge without successful Stashbot build",
+            "Either retrigger the build so it succeeds, or add a comment with the string '==OVERRIDE==' to override the requirement"),
+        BUILD_IN_PROGRESS("Cannot merge until the Stashbot build currently in progress succeeds",
+            "The build is still in progress, either wait for it to complete or ensure it isn't hung"),
+        BUILD_FAILED("Cannot merge because the Stashbot build failed",
+            "Either retrigger the build (if you suspect the failure was transient) or correct the PR to build successfully");
+
+        private final String summary;
+        private final String description;
+
+        MergeCheckStatus(String summary, String description) {
+            this.summary = summary;
+            this.description = description;
+        }
+
+        public String getSummary() {
+            return summary;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+    }
+
     private final CommitService cs;
     private final BuildStatusService bss;
     private final ConfigurationPersistenceManager cpm;
@@ -122,11 +148,26 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             prm = cpm.getPullRequestMetadata(pr);
         }
 
+        // Possible states (true/false/dontcare): (buildStarted, success, override, failed)
+        // Override (DC, DC, true, DC)
+        // Success (DC, true, false, DC)
+        // Failed (DC, false, false, true)
+        // In progress but not success or fail (true, false, false, false)
+
+        // Override || Success
         if (prm.getOverride() || prm.getSuccess()) {
             return;
         }
-        mr.veto(
-            "Green build required to merge",
-            "Either retrigger the build so it succeeds, or add a comment with the string '==OVERRIDE==' to override the requirement");
+
+        // in all other cases, we want to veto for some reason - but figure out the most accurate reason here.
+        MergeCheckStatus status;
+        if (prm.getFailed()) {
+            status = MergeCheckStatus.BUILD_FAILED;
+        } else if (prm.getBuildStarted()) {
+            status = MergeCheckStatus.BUILD_IN_PROGRESS;
+        } else {
+            status = MergeCheckStatus.NO_BUILD;
+        }
+        mr.veto(status.getSummary(), status.getDescription());
     }
 }
