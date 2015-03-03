@@ -150,6 +150,13 @@ public class BuildStatusReportingServlet extends HttpServlet {
                     prmvjs.put("details", prmv.getDetailedMessage());
                     vetoes.put(prmvjs);
                 }
+                // You might expect a conflict would be included in the list of merge blockers.  You'd be mistaken.
+                if (canMerge.isConflicted()) {
+                    JSONObject prmvjs = new JSONObject();
+                    prmvjs.put("summary", "This pull request is unmergeable due to conflicts.");
+                    prmvjs.put("details", "You will need to resolve conflicts to be able to merge.");
+                    vetoes.put(prmvjs);
+                }
                 output.put("vetoes", vetoes);
             }
 
