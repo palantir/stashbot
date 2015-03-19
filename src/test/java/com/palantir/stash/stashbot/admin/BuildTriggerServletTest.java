@@ -34,7 +34,7 @@ import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
@@ -60,7 +60,7 @@ public class BuildTriggerServletTest {
     @Mock
     private JenkinsServerConfiguration jsc;
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceService cpm;
     @Mock
     private JobTemplateManager jtm;
 

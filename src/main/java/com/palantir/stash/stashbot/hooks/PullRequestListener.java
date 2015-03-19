@@ -21,12 +21,12 @@ import org.slf4j.Logger;
 import com.atlassian.event.api.EventListener;
 import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.event.pull.PullRequestCommentEvent;
-import com.atlassian.stash.event.pull.PullRequestEvent;
 import com.atlassian.stash.event.pull.PullRequestMergedEvent;
-import com.atlassian.stash.event.pull.PullRequestOpenRequestedEvent;
+import com.atlassian.stash.event.pull.PullRequestOpenedEvent;
+import com.atlassian.stash.event.pull.PullRequestRescopedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -46,11 +46,11 @@ public class PullRequestListener {
 
     private static final String OVERRIDE_STRING = "==OVERRIDE==";
 
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final JenkinsManager jenkinsManager;
     private final Logger log;
 
-    public PullRequestListener(ConfigurationPersistenceManager cpm,
+    public PullRequestListener(ConfigurationPersistenceService cpm,
         JenkinsManager jenkinsManager, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.jenkinsManager = jenkinsManager;
@@ -58,19 +58,13 @@ public class PullRequestListener {
     }
 
     @EventListener
-    public void listen(PullRequestEvent event) {
+    public void listenForPRCreates(PullRequestOpenedEvent event) {
+        updatePr(event.getPullRequest());
+    }
+
+    @EventListener
+    public void listenForComments(PullRequestCommentEvent event) {
         try {
-
-            if (event instanceof PullRequestOpenRequestedEvent) {
-                // This listener will be retriggered later by PullRequestOpenedEvent
-                // SEE: https://developer.atlassian.com/static/javadoc/stash/2.12.1/api/reference/com/atlassian/stash/event/pull/PullRequestOpenRequestedEvent.html
-                log.debug("Ignoring OpenRequestedEvent because there is no PR ID to use yet");
-                return;
-            }
-
-            // First, update pull request metadata
-            // More correct to use the "to ref" to find the repo - this is the
-            // destination repo.
             final PullRequest pr = event.getPullRequest();
             final Repository repo = pr.getToRef().getRepository();
             final RepositoryConfiguration rc = cpm
@@ -83,34 +77,68 @@ public class PullRequestListener {
                 return;
             }
 
-            // If this event signifies that the PR has already been merged, we don't need to worry about VERIFY_PR anymore, only VERIFY_COMMIT or PUBLISH.
-            if (event instanceof PullRequestMergedEvent) {
-                // just trigger a build of the new commit since the other hook doesn't catch merged PRs.
-                PullRequestMergedEvent prme = (PullRequestMergedEvent) event;
-                String mergeSha1 = prme.getChangeset().getId();
-                String targetBranch = pr.getToRef().getId();
-                if (targetBranch.matches(rc.getPublishBranchRegex())) {
-                    log.info("Stashbot Trigger: Triggering PUBLISH build for commit "
-                        + mergeSha1 + " after merge of branch " + targetBranch);
-                    jenkinsManager.triggerBuild(repo, JobType.PUBLISH, mergeSha1, targetBranch);
-                } else if (targetBranch.matches(rc.getVerifyBranchRegex())) {
-                    // TODO: Build any commits which are new, for now just build latest commit
-                    // Do this by doing a revwalk just like in TriggerJenkinsBuildHook, excluding the build we just published.
-                    log.info("Stashbot Trigger: Triggering VERIFICATION build for commit "
-                        + mergeSha1 + " after merge of branch " + targetBranch);
-                    jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, mergeSha1, targetBranch);
-                }
+            Comment c = event.getComment();
+            if (c.getText().contains(OVERRIDE_STRING)) {
+                log.debug("Pull Request override set to true for PR "
+                    + pr.toString());
+                cpm.setPullRequestMetadata(pr, null, null, true);
+            }
+        } catch (SQLException e) {
+            log.error("Error getting repository configuration", e);
+        }
+    }
+
+    // This event signifies that the PR has already been merged, we don't need to worry about VERIFY_PR anymore, only VERIFY_COMMIT or PUBLISH.
+    @EventListener
+    public void listenForMerged(PullRequestMergedEvent event) {
+        try {
+            final PullRequest pr = event.getPullRequest();
+            final Repository repo = pr.getToRef().getRepository();
+            final RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(repo);
+
+            if (!rc.getCiEnabled()) {
+                log.debug("Pull Request " + pr.toString()
+                    + " ignored, CI not enabled for target repo "
+                    + repo.toString());
                 return;
             }
+            // just trigger a build of the new commit since the other hook doesn't catch merged PRs.
+            String mergeSha1 = event.getChangeset().getId();
+            String targetBranch = pr.getToRef().getId();
+            if (targetBranch.matches(rc.getPublishBranchRegex())) {
+                log.info("Stashbot Trigger: Triggering PUBLISH build for commit "
+                    + mergeSha1 + " after merge of branch " + targetBranch);
+                jenkinsManager.triggerBuild(repo, JobType.PUBLISH, mergeSha1, targetBranch);
+            } else if (targetBranch.matches(rc.getVerifyBranchRegex())) {
+                // TODO: Build any commits which are new, for now just build latest commit
+                // Do this by doing a revwalk just like in TriggerJenkinsBuildHook, excluding the build we just published.
+                log.info("Stashbot Trigger: Triggering VERIFICATION build for commit "
+                    + mergeSha1 + " after merge of branch " + targetBranch);
+                jenkinsManager.triggerBuild(repo, JobType.VERIFY_COMMIT, mergeSha1, targetBranch);
+            }
+            return;
+        } catch (SQLException e) {
+            log.error("Error getting repository configuration", e);
+        }
+    }
 
-            // Update override metadata if applicable
-            if (event instanceof PullRequestCommentEvent) {
-                Comment c = ((PullRequestCommentEvent) event).getComment();
-                if (c.getText().contains(OVERRIDE_STRING)) {
-                    log.debug("Pull Request override set to true for PR "
-                        + pr.toString());
-                    cpm.setPullRequestMetadata(pr, null, null, true);
-                }
+    @EventListener
+    public void listenForRescope(PullRequestRescopedEvent event) {
+        updatePr(event.getPullRequest());
+    }
+
+    public void updatePr(PullRequest pr) {
+        try {
+            final Repository repo = pr.getToRef().getRepository();
+            final RepositoryConfiguration rc = cpm
+                .getRepositoryConfigurationForRepository(repo);
+
+            if (!rc.getCiEnabled()) {
+                log.debug("Pull Request " + pr.toString()
+                    + " ignored, CI not enabled for target repo "
+                    + repo.toString());
+                return;
             }
 
             // Ensure target branch is a verified branch
@@ -162,7 +190,6 @@ public class PullRequestListener {
             // "retry" a build simply by causing a PR
             // event like by adding a comment.
             cpm.setPullRequestMetadata(pr, true, null, null);
-
         } catch (SQLException e) {
             log.error("Error getting repository configuration", e);
         }

@@ -34,7 +34,7 @@ import com.atlassian.stash.scm.pull.MergeRequest;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -52,7 +52,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
     private static final String SHA_B = "4602ac23d61910110a66fd3456f2a74d62b2d9b2";
 
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceService cpm;
     @Mock
     private BuildStatusService bss;
     @Mock

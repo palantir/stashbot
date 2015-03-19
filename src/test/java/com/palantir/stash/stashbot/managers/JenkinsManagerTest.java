@@ -37,7 +37,7 @@ import com.atlassian.stash.user.UserService;
 import com.google.common.collect.Maps;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
@@ -56,7 +56,7 @@ public class JenkinsManagerTest {
     @Mock
     private RepositoryService repositoryService;
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceService cpm;
     @Mock
     private JenkinsJobXmlFormatter xmlFormatter;
     @Mock

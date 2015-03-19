@@ -34,7 +34,8 @@ import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.project.Project;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobTest.DataStuff;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -50,7 +51,7 @@ public class JenkinsJobTest {
     private final PluginLoggerFactory lf = new PluginLoggerFactory();
 
     private JobTemplateManager jtm;
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceService cpm;
 
     private RepositoryConfiguration rc;
     @Mock
@@ -89,7 +90,7 @@ public class JenkinsJobTest {
         ao = new TestActiveObjects(entityManager);
 
         jtm = new JobTemplateManager(ao, lf);
-        cpm = new ConfigurationPersistenceManager(ao, lf, publisher);
+        cpm = new ConfigurationPersistenceImpl(ao, lf, publisher);
 
         verifyCommitJT = jtm.getDefaultVerifyJob();
         verifyPRJT = jtm.getDefaultVerifyPullRequestJob();

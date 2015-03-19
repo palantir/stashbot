@@ -134,7 +134,7 @@
     <component-import key="eventPublisher" interface="com.atlassian.event.api.EventPublisher"/>
 
     <component key="commandOutputHandlerFactory" class="com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory" />
-    <component key="configurationPersistenceManager" class="com.palantir.stash.stashbot.config.ConfigurationPersistenceManager" />
+    <component key="configurationPersistenceService" class="com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl" interface="com.palantir.stash.stashbot.config.ConfigurationPersistenceService" />
     <component key="jenkinsClientManager" class="com.palantir.stash.stashbot.managers.JenkinsClientManager" />
     <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter" />
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />

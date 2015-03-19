@@ -38,7 +38,8 @@ import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.SecurityService;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserService;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
@@ -66,7 +67,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private final Logger log;
 
-    private final ConfigurationPersistenceManager configurationPersistanceManager;
+    private final ConfigurationPersistenceService configurationPersistanceManager;
     private final RepositoryService repositoryService;
     private final BuildStatusService buildStatusService;
     private final PullRequestService pullRequestService;
@@ -77,12 +78,12 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 
     /**
      * @deprecated Use
-     *             {@link #BuildSuccessReportingServlet(ConfigurationPersistenceManager,RepositoryService,BuildStatusService,PullRequestService,StashbotUrlBuilder,JobTemplateManager,SecurityService,PluginLoggerFactory)}
+     *             {@link #BuildSuccessReportingServlet(ConfigurationPersistenceImpl,RepositoryService,BuildStatusService,PullRequestService,StashbotUrlBuilder,JobTemplateManager,SecurityService,PluginLoggerFactory)}
      *             instead
      */
     @Deprecated
     public BuildSuccessReportingServlet(
-        ConfigurationPersistenceManager configurationPersistenceManager,
+        ConfigurationPersistenceService configurationPersistenceManager,
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
         PullRequestService pullRequestService, StashbotUrlBuilder ub,
@@ -93,7 +94,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     }
 
     public BuildSuccessReportingServlet(
-        ConfigurationPersistenceManager configurationPersistenceManager,
+        ConfigurationPersistenceService configurationPersistenceManager,
         RepositoryService repositoryService,
         BuildStatusService buildStatusService,
         PullRequestService pullRequestService, StashbotUrlBuilder ub,

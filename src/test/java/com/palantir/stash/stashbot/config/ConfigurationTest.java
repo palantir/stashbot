@@ -59,7 +59,7 @@ public class ConfigurationTest {
 
     private EntityManager entityManager;
     private ActiveObjects ao;
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceService cpm;
 
     @Mock
     private PullRequestRef fromRef;
@@ -91,7 +91,7 @@ public class ConfigurationTest {
 
         ao = new TestActiveObjects(entityManager);
 
-        cpm = new ConfigurationPersistenceManager(ao, lf, publisher);
+        cpm = new ConfigurationPersistenceImpl(ao, lf, publisher);
     }
 
     @Test

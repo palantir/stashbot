@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
@@ -56,7 +56,7 @@ import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManager implements DisposableBean {
 
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final JobTemplateManager jtm;
     private final JenkinsJobXmlFormatter xmlFormatter;
     private final JenkinsClientManager jenkinsClientManager;
@@ -70,7 +70,7 @@ public class JenkinsManager implements DisposableBean {
     private final ExecutorService es;
 
     public JenkinsManager(RepositoryService repositoryService,
-        ConfigurationPersistenceManager cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
+        ConfigurationPersistenceService cpm, JobTemplateManager jtm, JenkinsJobXmlFormatter xmlFormatter,
         JenkinsClientManager jenkisnClientManager, StashbotUrlBuilder sub, PluginLoggerFactory lf, SecurityService ss,
         UserService us, UserManager um) {
         this.repositoryService = repositoryService;
@@ -366,13 +366,13 @@ public class JenkinsManager implements DisposableBean {
 
         private final JenkinsClientManager jcm;
         private final JobTemplateManager jtm;
-        private final ConfigurationPersistenceManager cpm;
+        private final ConfigurationPersistenceService cpm;
         private final Repository r;
         private final Logger log;
 
         public CreateMissingRepositoryVisitor(
             JenkinsClientManager jcm, JobTemplateManager jtm,
-            ConfigurationPersistenceManager cpm, Repository r,
+            ConfigurationPersistenceService cpm, Repository r,
             PluginLoggerFactory lf) {
             this.jcm = jcm;
             this.jtm = jtm;
@@ -448,13 +448,13 @@ public class JenkinsManager implements DisposableBean {
 
         private final JenkinsClientManager jcm;
         private final JobTemplateManager jtm;
-        private final ConfigurationPersistenceManager cpm;
+        private final ConfigurationPersistenceService cpm;
         private final Repository r;
         private final Logger log;
 
         public UpdateAllRepositoryVisitor(
             JenkinsClientManager jcm, JobTemplateManager jtm,
-            ConfigurationPersistenceManager cpm, Repository r,
+            ConfigurationPersistenceService cpm, Repository r,
             PluginLoggerFactory lf) {
             this.jcm = jcm;
             this.jtm = jtm;

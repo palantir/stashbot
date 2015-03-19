@@ -35,16 +35,21 @@ import org.mockito.MockitoAnnotations;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.exception.AuthorisationException;
 import com.atlassian.stash.i18n.KeyedMessage;
+import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestSearchRequest;
+import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionValidationService;
+import com.atlassian.stash.util.Page;
+import com.atlassian.stash.util.PageRequest;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.atlassian.webresource.api.assembler.WebResourceAssembler;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -54,9 +59,11 @@ import com.palantir.stash.stashbot.managers.PluginUserManager;
 public class RepoConfigurationServletTest {
 
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceImpl cpm;
     @Mock
     private RepositoryService repositoryService;
+    @Mock
+    private PullRequestService prs;
     @Mock
     private PageBuilderService pageBuilderService;
     @Mock
@@ -88,6 +95,9 @@ public class RepoConfigurationServletTest {
     private JenkinsServerConfiguration jsc;
     @Mock
     private JenkinsServerConfiguration jsc2;
+
+    @Mock
+    private Page<PullRequest> page;
 
     private ImmutableCollection<JenkinsServerConfiguration> allServers;
 
@@ -170,9 +180,15 @@ public class RepoConfigurationServletTest {
         when(pageBuilderService.assembler()).thenReturn(webResourceAssembler);
         when(webResourceAssembler.resources()).thenReturn(rr);
 
+        Mockito.when(prs.search(Mockito.any(PullRequestSearchRequest.class), Mockito.any(PageRequest.class)))
+            .thenReturn(page);
+        // empty list, no PRs, nothign to do.  not testing this bit.
+        Mockito.when(page.getValues()).thenReturn(ImmutableList.of());
+        Mockito.when(page.getIsLastPage()).thenReturn(true);
+
         rcs =
-            new RepoConfigurationServlet(repositoryService, soyTemplateRenderer, pageBuilderService, cpm,
-                jenkinsManager, pum, pvs, lf);
+            new RepoConfigurationServlet(repositoryService, prs, soyTemplateRenderer, pageBuilderService,
+                cpm, jenkinsManager, pum, pvs, lf);
     }
 
     @Test
@@ -215,11 +231,49 @@ public class RepoConfigurationServletTest {
     }
 
     @Test
-    public void postTest() throws Exception {
+    public void postTestDisabled() throws Exception {
 
         when(req.getParameter("jenkinsServerName")).thenReturn("default");
-
         when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
+        when(rc2.getCiEnabled()).thenReturn(false);
+
+        rcs.doPost(req, res);
+
+        // Verify it persists
+        verify(cpm).setRepositoryConfigurationForRepositoryFromRequest(mockRepo, req);
+
+        // doGet() is then called, so this is the same as getTest()...
+        verify(res).setContentType("text/html;charset=UTF-8");
+        verify(rr).requireContext("plugin.page.stashbot");
+
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        Class<Map<String, Object>> cls = (Class) Map.class;
+        ArgumentCaptor<Map<String, Object>> mapCaptor = ArgumentCaptor.forClass(cls);
+
+        verify(soyTemplateRenderer).render(eq(writer),
+            eq("com.palantir.stash.stashbot:stashbotConfigurationResources"),
+            eq("plugin.page.stashbot.repositoryConfigurationPanel"), mapCaptor.capture());
+
+        verify(pum, Mockito.never()).addUserToRepoForReading(Mockito.anyString(),
+            Mockito.any(Repository.class));
+
+        Map<String, Object> map = mapCaptor.getValue();
+
+        // Except the details are now changed
+        assertEquals(false, map.get("ciEnabled"));
+        assertEquals(PBR + "2", map.get("publishBranchRegex"));
+        assertEquals(PBC + "2", map.get("publishBuildCommand"));
+        assertEquals(VBR + "2", map.get("verifyBranchRegex"));
+        assertEquals(VBC + "2", map.get("verifyBuildCommand"));
+        assertEquals(PREBC + "2", map.get("prebuildCommand"));
+    }
+
+    @Test
+    public void postTestEnabled() throws Exception {
+
+        when(req.getParameter("jenkinsServerName")).thenReturn("default");
+        when(cpm.getRepositoryConfigurationForRepository(mockRepo)).thenReturn(rc2);
+        when(rc2.getCiEnabled()).thenReturn(true);
 
         rcs.doPost(req, res);
 
@@ -244,7 +298,7 @@ public class RepoConfigurationServletTest {
         Map<String, Object> map = mapCaptor.getValue();
 
         // Except the details are now changed
-        assertEquals(false, map.get("ciEnabled"));
+        assertEquals(true, map.get("ciEnabled"));
         assertEquals(PBR + "2", map.get("publishBranchRegex"));
         assertEquals(PBC + "2", map.get("publishBuildCommand"));
         assertEquals(VBR + "2", map.get("verifyBranchRegex"));

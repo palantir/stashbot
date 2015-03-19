@@ -24,7 +24,7 @@ import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.atlassian.webresource.api.assembler.WebResourceAssembler;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
 public class JenkinsConfigurationServletTest {
 
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceImpl cpm;
     @Mock
     private PageBuilderService pageBuilderService;
     @Mock

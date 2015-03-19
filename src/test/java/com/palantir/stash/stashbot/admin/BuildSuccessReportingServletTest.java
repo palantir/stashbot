@@ -47,7 +47,7 @@ import com.atlassian.stash.user.SecurityService;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserService;
 import com.atlassian.stash.util.Operation;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -69,7 +69,7 @@ public class BuildSuccessReportingServletTest {
     private static final long PULL_REQUEST_ID = 1234L;
 
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceImpl cpm;
     @Mock
     private RepositoryService repositoryService;
     @Mock

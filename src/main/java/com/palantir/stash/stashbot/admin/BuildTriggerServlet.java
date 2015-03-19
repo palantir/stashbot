@@ -28,7 +28,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
@@ -55,13 +55,13 @@ public class BuildTriggerServlet extends HttpServlet {
     private final RepositoryService repositoryService;
     private final PullRequestService pullRequestService;
     private final JobTemplateManager jtm;
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final JenkinsManager jenkinsManager;
     private final Logger log;
 
     public BuildTriggerServlet(RepositoryService repositoryService,
         PullRequestService pullRequestService, JobTemplateManager jtm,
-        ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
+        ConfigurationPersistenceService cpm, JenkinsManager jenkinsManager,
         PluginLoggerFactory lf) {
         this.repositoryService = repositoryService;
         this.pullRequestService = pullRequestService;
