@@ -21,16 +21,16 @@ import org.slf4j.Logger;
 import com.atlassian.plugin.PluginParseException;
 import com.atlassian.plugin.web.Condition;
 import com.atlassian.stash.repository.Repository;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 public class IsCiEnabledForRepoCondition implements Condition {
 
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final Logger log;
 
-    public IsCiEnabledForRepoCondition(ConfigurationPersistenceManager cpm, PluginLoggerFactory lf) {
+    public IsCiEnabledForRepoCondition(ConfigurationPersistenceService cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
     }

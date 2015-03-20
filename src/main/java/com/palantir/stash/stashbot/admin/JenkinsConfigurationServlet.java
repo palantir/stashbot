@@ -34,7 +34,7 @@ import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -51,7 +51,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
     private final SoyTemplateRenderer soyTemplateRenderer;
     private final PageBuilderService pageBuilderService;
-    private final ConfigurationPersistenceManager configurationPersistanceManager;
+    private final ConfigurationPersistenceService configurationPersistanceManager;
     private final PluginUserManager pluginUserManager;
     private final JenkinsManager jenkinsManager;
     private final LoginUriProvider lup;
@@ -60,7 +60,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
     public JenkinsConfigurationServlet(SoyTemplateRenderer soyTemplateRenderer,
         PageBuilderService pageBuilderService,
-        ConfigurationPersistenceManager configurationPersistenceManager, PluginUserManager pluginUserManager,
+        ConfigurationPersistenceService configurationPersistenceManager, PluginUserManager pluginUserManager,
         JenkinsManager jenkinsManager, LoginUriProvider lup, PluginLoggerFactory lf,
         PermissionValidationService permissionValidationService) {
         this.soyTemplateRenderer = soyTemplateRenderer;

@@ -1,4 +1,4 @@
-// Copyright 2014 Palantir Technologies
+// Copyright 2015 Palantir Technologies
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
-import com.atlassian.activeobjects.tx.Transactional;
 import com.atlassian.event.api.EventPublisher;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
@@ -35,7 +34,7 @@ import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.Authenticat
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
-public class ConfigurationPersistenceManager {
+public class ConfigurationPersistenceImpl implements ConfigurationPersistenceService {
 
     private final ActiveObjects ao;
     private final Logger log;
@@ -43,13 +42,16 @@ public class ConfigurationPersistenceManager {
 
     private static final String DEFAULT_JENKINS_SERVER_CONFIG_KEY = "default";
 
-    public ConfigurationPersistenceManager(ActiveObjects ao, PluginLoggerFactory lf, EventPublisher publisher) {
+    public ConfigurationPersistenceImpl(ActiveObjects ao, PluginLoggerFactory lf, EventPublisher publisher) {
         this.ao = ao;
         this.log = lf.getLoggerForThis(this);
         this.publisher = publisher;
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#deleteJenkinsServerConfiguration(java.lang.String)
+     */
+    @Override
     public void deleteJenkinsServerConfiguration(String name) {
         JenkinsServerConfiguration[] configs = ao.find(
             JenkinsServerConfiguration.class,
@@ -62,7 +64,10 @@ public class ConfigurationPersistenceManager {
         }
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getJenkinsServerConfiguration(java.lang.String)
+     */
+    @Override
     public JenkinsServerConfiguration getJenkinsServerConfiguration(String name)
         throws SQLException {
         if (name == null) {
@@ -86,7 +91,10 @@ public class ConfigurationPersistenceManager {
         return configs[0];
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setJenkinsServerConfigurationFromRequest(javax.servlet.http.HttpServletRequest)
+     */
+    @Override
     public void setJenkinsServerConfigurationFromRequest(HttpServletRequest req) throws SQLException,
         NumberFormatException {
 
@@ -105,11 +113,10 @@ public class ConfigurationPersistenceManager {
             isLocked);
     }
 
-    /**
-     * @deprecated Use
-     *             {@link ConfigurationPersistenceManager#setJenkinsServerConfiguration(String, String, String, String, AuthenticationMode, String, String, Integer)}
-     *             instead
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setJenkinsServerConfiguration(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Integer)
      */
+    @Override
     @Deprecated
     public void setJenkinsServerConfiguration(String name, String url,
         String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
@@ -118,7 +125,10 @@ public class ConfigurationPersistenceManager {
             stashUsername, stashPassword, maxVerifyChain, false);
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setJenkinsServerConfiguration(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode, java.lang.String, java.lang.String, java.lang.Integer, java.lang.Boolean)
+     */
+    @Override
     public void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
         String stashPassword, Integer maxVerifyChain, Boolean isLocked)
@@ -154,7 +164,10 @@ public class ConfigurationPersistenceManager {
         configs[0].save();
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository)
+     */
+    @Override
     public RepositoryConfiguration getRepositoryConfigurationForRepository(
         Repository repo) throws SQLException {
         RepositoryConfiguration[] repos = ao.find(
@@ -171,7 +184,10 @@ public class ConfigurationPersistenceManager {
         return repos[0];
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean)
+     */
+    @Override
     public void setRepositoryConfigurationForRepository(Repository repo,
         boolean isCiEnabled, String verifyBranchRegex,
         String verifyBuildCommand, String publishBranchRegex,
@@ -183,7 +199,10 @@ public class ConfigurationPersistenceManager {
             false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false);
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepositoryFromRequest(com.atlassian.stash.repository.Repository, javax.servlet.http.HttpServletRequest)
+     */
+    @Override
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
         throws SQLException, NumberFormatException {
 
@@ -236,7 +255,10 @@ public class ConfigurationPersistenceManager {
         return (req.getParameter(parameter) == null) ? false : true;
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, java.lang.String, boolean, java.lang.String, java.lang.Integer, com.palantir.stash.stashbot.config.EmailSettings, boolean, java.lang.Boolean)
+     */
+    @Override
     public void
         setRepositoryConfigurationForRepository(Repository repo,
             boolean isCiEnabled, String verifyBranchRegex,
@@ -320,7 +342,10 @@ public class ConfigurationPersistenceManager {
         foundRepo.save();
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getAllJenkinsServerConfigurations()
+     */
+    @Override
     public ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
         throws SQLException {
         JenkinsServerConfiguration[] allConfigs = ao
@@ -331,7 +356,10 @@ public class ConfigurationPersistenceManager {
         return ImmutableList.copyOf(allConfigs);
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getAllJenkinsServerNames()
+     */
+    @Override
     public ImmutableCollection<String> getAllJenkinsServerNames()
         throws SQLException {
         List<String> names = new ArrayList<String>();
@@ -349,12 +377,20 @@ public class ConfigurationPersistenceManager {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#validateName(java.lang.String)
+     */
+    @Override
     public void validateName(String name) throws IllegalArgumentException {
         if (!name.matches("[a-zA-Z0-9]+")) {
             throw new IllegalArgumentException("Name must match [a-zA-Z0-9]+");
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#validateNameExists(java.lang.String)
+     */
+    @Override
     public void validateNameExists(String name) throws IllegalArgumentException {
         if (name.equals(DEFAULT_JENKINS_SERVER_CONFIG_KEY)) {
             return;
@@ -376,14 +412,20 @@ public class ConfigurationPersistenceManager {
             + pr.getToRef().getLatestChangeset() + "]";
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(com.atlassian.stash.pull.PullRequest)
+     */
+    @Override
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
             pr.getFromRef().getLatestChangeset().toString(),
             pr.getToRef().getLatestChangeset().toString());
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(int, java.lang.Long, java.lang.String, java.lang.String)
+     */
+    @Override
     public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
         // We have to check repoId being equal to -1 so that this works with old data.
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
@@ -407,7 +449,10 @@ public class ConfigurationPersistenceManager {
         return prms[0];
     }
 
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadataWithoutToRef(com.atlassian.stash.pull.PullRequest)
+     */
+    @Override
     public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
         Long id = pr.getId();
         String fromSha = pr.getFromRef().getLatestChangeset().toString();
@@ -433,7 +478,10 @@ public class ConfigurationPersistenceManager {
     }
 
     // Automatically sets the fromHash and toHash from the PullRequest object
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     */
+    @Override
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
         Boolean success, Boolean override) {
         setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
@@ -441,14 +489,20 @@ public class ConfigurationPersistenceManager {
     }
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     */
+    @Override
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override) {
         setPullRequestMetadata(pr, fromHash, toHash, buildStarted, success, override, null);
     }
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
-    @Transactional
+    /* (non-Javadoc)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     */
+    @Override
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override, Boolean failed) {
         PullRequestMetadata prm =

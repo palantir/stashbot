@@ -30,13 +30,19 @@ import org.slf4j.Logger;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
 import com.atlassian.stash.exception.AuthorisationException;
+import com.atlassian.stash.pull.PullRequest;
+import com.atlassian.stash.pull.PullRequestSearchRequest;
+import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.user.Permission;
 import com.atlassian.stash.user.PermissionValidationService;
+import com.atlassian.stash.util.Page;
+import com.atlassian.stash.util.PageRequest;
+import com.atlassian.stash.util.PageRequestImpl;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -51,19 +57,22 @@ public class RepoConfigurationServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
     private final RepositoryService repositoryService;
+    private final PullRequestService prs;
     private final SoyTemplateRenderer soyTemplateRenderer;
     private final PageBuilderService pageBuilderService;
-    private final ConfigurationPersistenceManager configurationPersistanceManager;
+    private final ConfigurationPersistenceService configurationPersistanceManager;
     private final JenkinsManager jenkinsManager;
     private final PluginUserManager pluginUserManager;
     private final PermissionValidationService permissionValidationService;
     private final Logger log;
 
-    public RepoConfigurationServlet(RepositoryService repositoryService, SoyTemplateRenderer soyTemplateRenderer,
-        PageBuilderService pageBuilderService, ConfigurationPersistenceManager configurationPersistenceManager,
-        JenkinsManager jenkinsManager, PluginUserManager pluginUserManager,
-        PermissionValidationService permissionValidationService, PluginLoggerFactory lf) {
+    public RepoConfigurationServlet(RepositoryService repositoryService, PullRequestService prs,
+        SoyTemplateRenderer soyTemplateRenderer, PageBuilderService pageBuilderService,
+        ConfigurationPersistenceService configurationPersistenceManager, JenkinsManager jenkinsManager,
+        PluginUserManager pluginUserManager, PermissionValidationService permissionValidationService,
+        PluginLoggerFactory lf) {
         this.repositoryService = repositoryService;
+        this.prs = prs;
         this.soyTemplateRenderer = soyTemplateRenderer;
         this.pageBuilderService = pageBuilderService;
         this.configurationPersistanceManager = configurationPersistenceManager;
@@ -214,16 +223,34 @@ public class RepoConfigurationServlet extends HttpServlet {
 
             configurationPersistanceManager.setRepositoryConfigurationForRepositoryFromRequest(rep, req);
 
-            // add permission to the requisite user
-            JenkinsServerConfiguration jsc =
-                configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
-            pluginUserManager.addUserToRepoForReading(jsc.getStashUsername(), rep);
+            RepositoryConfiguration rc = configurationPersistanceManager.getRepositoryConfigurationForRepository(rep);
+            if (rc.getCiEnabled()) {
+                // ensure all pull request metadata exists
+                PullRequestSearchRequest prsr =
+                    new PullRequestSearchRequest.Builder().toRepositoryId(rep.getId()).build();
+                PageRequest pageReq = new PageRequestImpl(0, 500);
+                Page<PullRequest> page = prs.search(prsr, pageReq);
+                while (true) {
+                    for (PullRequest pr : page.getValues()) {
+                        // this auto-vivifies if it doesn't already exist
+                        configurationPersistanceManager.getPullRequestMetadata(pr);
+                    }
+                    if (page.getIsLastPage()) {
+                        break;
+                    }
+                    pageReq = page.getNextPageRequest();
+                    page = prs.search(prsr, pageReq);
+                }
+                // add permission to the requisite user
+                JenkinsServerConfiguration jsc =
+                    configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
+                pluginUserManager.addUserToRepoForReading(jsc.getStashUsername(), rep);
 
-            // ensure hook is enabled, jobs exist
-            jenkinsManager.updateRepo(rep);
-
+                // ensure hook is enabled, jobs exist
+                jenkinsManager.updateRepo(rep);
+            }
         } catch (SQLException e) {
-            res.sendError(500, e.getMessage());
+            log.error("Unable to get repository confguration", e);
         }
         doGet(req, res);
     }

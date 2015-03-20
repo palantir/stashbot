@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import com.atlassian.plugin.web.model.WebPanel;
 import com.atlassian.stash.content.Changeset;
 import com.atlassian.stash.repository.Repository;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -32,11 +32,11 @@ import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class RetriggerLinkWebPanel implements WebPanel {
 
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final StashbotUrlBuilder ub;
     private final Logger log;
 
-    public RetriggerLinkWebPanel(ConfigurationPersistenceManager cpm,
+    public RetriggerLinkWebPanel(ConfigurationPersistenceService cpm,
         StashbotUrlBuilder ub, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.ub = ub;

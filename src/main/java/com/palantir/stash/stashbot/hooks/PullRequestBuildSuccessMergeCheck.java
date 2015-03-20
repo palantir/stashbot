@@ -32,7 +32,7 @@ import com.atlassian.stash.scm.pull.MergeRequestCheck;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.atlassian.stash.util.PageRequestImpl;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -74,11 +74,11 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
     private final CommitService cs;
     private final BuildStatusService bss;
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final Logger log;
 
     public PullRequestBuildSuccessMergeCheck(
-        CommitService cs, BuildStatusService bss, ConfigurationPersistenceManager cpm, PluginLoggerFactory lf) {
+        CommitService cs, BuildStatusService bss, ConfigurationPersistenceService cpm, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.log = lf.getLoggerForThis(this);
         this.cs = cs;

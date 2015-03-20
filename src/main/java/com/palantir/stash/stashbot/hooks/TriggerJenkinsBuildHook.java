@@ -34,7 +34,7 @@ import com.atlassian.stash.scm.git.revlist.GitRevListBuilder;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -52,13 +52,13 @@ import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
  */
 public class TriggerJenkinsBuildHook implements PostReceiveHook {
 
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final JenkinsManager jenkinsManager;
     private final GitCommandBuilderFactory gcbf;
     private final CommandOutputHandlerFactory cohf;
     private final Logger log;
 
-    public TriggerJenkinsBuildHook(ConfigurationPersistenceManager cpm, JenkinsManager jenkinsManager,
+    public TriggerJenkinsBuildHook(ConfigurationPersistenceService cpm, JenkinsManager jenkinsManager,
         GitCommandBuilderFactory gcbf, CommandOutputHandlerFactory cohf, PluginLoggerFactory lf) {
         this.cpm = cpm;
         this.jenkinsManager = jenkinsManager;

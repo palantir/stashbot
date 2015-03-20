@@ -28,7 +28,7 @@ import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
 import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.VelocityManager;
@@ -46,13 +46,13 @@ public class JenkinsJobXmlFormatter {
         "|| (echo \"PREBUILD FAILURE1 with status $?\" ; /bin/false) && echo \"PREBUILD SUCCESS\"";
 
     private final VelocityManager velocityManager;
-    private final ConfigurationPersistenceManager cpm;
+    private final ConfigurationPersistenceService cpm;
     private final StashbotUrlBuilder sub;
     private final NavBuilder navBuilder;
     private final RepositoryService rs;
 
     public JenkinsJobXmlFormatter(VelocityManager velocityManager,
-        ConfigurationPersistenceManager cpm, StashbotUrlBuilder sub,
+        ConfigurationPersistenceService cpm, StashbotUrlBuilder sub,
         NavBuilder navBuilder, RepositoryService rs) throws IOException {
         this.velocityManager = velocityManager;
         this.cpm = cpm;

@@ -39,7 +39,7 @@ import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
 import com.atlassian.stash.repository.RepositoryService;
 import com.atlassian.stash.util.NamedLink;
 import com.atlassian.stash.util.SimpleNamedLink;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
@@ -71,7 +71,7 @@ public class JenkinsJobXmlFormatterTest {
     @Mock
     private JobTemplate jobTemplate;
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceService cpm;
     @Mock
     private StashbotUrlBuilder sub;
     @Mock

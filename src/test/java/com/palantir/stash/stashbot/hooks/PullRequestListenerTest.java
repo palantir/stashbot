@@ -24,12 +24,12 @@ import org.mockito.MockitoAnnotations;
 import com.atlassian.stash.comment.Comment;
 import com.atlassian.stash.event.pull.PullRequestCommentEvent;
 import com.atlassian.stash.event.pull.PullRequestOpenedEvent;
-import com.atlassian.stash.event.pull.PullRequestUpdatedEvent;
+import com.atlassian.stash.event.pull.PullRequestRescopedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.config.PullRequestMetadata;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
@@ -47,7 +47,7 @@ public class PullRequestListenerTest {
     private static final long PULL_REQUEST_ID = 1234L;
 
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceImpl cpm;
     @Mock
     private JenkinsManager jenkinsManager;
     @Mock
@@ -58,7 +58,7 @@ public class PullRequestListenerTest {
     @Mock
     private PullRequestOpenedEvent proEvent;
     @Mock
-    private PullRequestUpdatedEvent prUpdatedEvent;
+    private PullRequestRescopedEvent prRescopedEvent;
     @Mock
     private PullRequestCommentEvent prCommentEvent;
     @Mock
@@ -116,7 +116,7 @@ public class PullRequestListenerTest {
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
         Mockito.when(proEvent.getPullRequest()).thenReturn(pr);
-        Mockito.when(prUpdatedEvent.getPullRequest()).thenReturn(pr);
+        Mockito.when(prRescopedEvent.getPullRequest()).thenReturn(pr);
         Mockito.when(prCommentEvent.getPullRequest()).thenReturn(pr);
         Mockito.when(prCommentEvent.getComment()).thenReturn(comment);
 
@@ -132,7 +132,7 @@ public class PullRequestListenerTest {
 
     @Test
     public void testTriggersBuildOnPullRequest() {
-        prl.listen(proEvent);
+        prl.listenForPRCreates(proEvent);
         Mockito.verify(jenkinsManager)
             .triggerBuild(repo, JobType.VERIFY_PR, pr);
     }
@@ -140,7 +140,7 @@ public class PullRequestListenerTest {
     @Test
     public void testCIDisabled() {
         Mockito.when(rc.getCiEnabled()).thenReturn(false);
-        prl.listen(proEvent);
+        prl.listenForPRCreates(proEvent);
         Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(
             Mockito.any(Repository.class), Mockito.any(JobType.class),
             Mockito.any(PullRequest.class));
@@ -153,7 +153,7 @@ public class PullRequestListenerTest {
     public void testNormalComment() {
         Mockito.when(comment.getText()).thenReturn(COMMENT_TEXT);
         Mockito.when(prm.getBuildStarted()).thenReturn(true);
-        prl.listen(prCommentEvent);
+        prl.listenForComments(prCommentEvent);
         Mockito.verify(cpm, Mockito.never()).setPullRequestMetadata(
             Mockito.any(PullRequest.class), (Boolean) Mockito.notNull(),
             Mockito.anyBoolean(), Mockito.anyBoolean());
@@ -169,7 +169,7 @@ public class PullRequestListenerTest {
     public void testOverrideComment() {
         Mockito.when(comment.getText()).thenReturn(OVERRIDE_COMMENT_TEXT);
         Mockito.when(prm.getBuildStarted()).thenReturn(true);
-        prl.listen(prCommentEvent);
+        prl.listenForComments(prCommentEvent);
         Mockito.verify(cpm).setPullRequestMetadata(Mockito.eq(pr),
             Mockito.eq((Boolean) null), Mockito.eq((Boolean) null),
             Mockito.eq(true));
@@ -186,7 +186,7 @@ public class PullRequestListenerTest {
         Mockito.when(prm.getBuildStarted()).thenReturn(true);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
-        prl.listen(prUpdatedEvent);
+        prl.listenForRescope(prRescopedEvent);
         // Ensure metadata is not changed
         Mockito.verify(cpm, Mockito.never()).setPullRequestMetadata(
             Mockito.any(PullRequest.class), Mockito.anyBoolean(),
@@ -197,7 +197,7 @@ public class PullRequestListenerTest {
         Mockito.when(prm.getBuildStarted()).thenReturn(false);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
 
-        prl.listen(prUpdatedEvent);
+        prl.listenForRescope(prRescopedEvent);
         // Ensure metadata IS changed because from sha is different now
         // should set override and success to false
         // Also, should trigger a build
@@ -217,7 +217,7 @@ public class PullRequestListenerTest {
         Mockito.when(cpm.getPullRequestMetadataWithoutToRef(pr)).thenReturn(ImmutableList.of(prm, prm2));
         Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(false);
 
-        prl.listen(prUpdatedEvent);
+        prl.listenForRescope(prRescopedEvent);
         // ensure build is NOT triggered
         Mockito.verify(jenkinsManager, Mockito.never())
             .triggerBuild(repo, JobType.VERIFY_PR, pr);

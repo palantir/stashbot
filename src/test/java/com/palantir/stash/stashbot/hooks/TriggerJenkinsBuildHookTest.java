@@ -29,7 +29,7 @@ import com.atlassian.stash.repository.RefChangeType;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceManager;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -48,7 +48,7 @@ public class TriggerJenkinsBuildHookTest {
     private static final Integer MVC = 10;
 
     @Mock
-    private ConfigurationPersistenceManager cpm;
+    private ConfigurationPersistenceService cpm;
     @Mock
     private JenkinsManager jenkinsManager;
     @Mock
