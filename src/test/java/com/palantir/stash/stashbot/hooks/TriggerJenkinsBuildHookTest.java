@@ -30,13 +30,13 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.mocks.MockGitCommandBuilderFactory;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class TriggerJenkinsBuildHookTest {
 

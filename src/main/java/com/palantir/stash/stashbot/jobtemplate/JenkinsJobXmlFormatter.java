@@ -29,9 +29,10 @@ import com.atlassian.stash.repository.RepositoryService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.managers.VelocityManager;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsJobXmlFormatter {

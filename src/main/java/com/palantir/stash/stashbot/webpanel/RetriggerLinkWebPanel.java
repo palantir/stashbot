@@ -25,9 +25,9 @@ import com.atlassian.plugin.web.model.WebPanel;
 import com.atlassian.stash.content.Changeset;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class RetriggerLinkWebPanel implements WebPanel {

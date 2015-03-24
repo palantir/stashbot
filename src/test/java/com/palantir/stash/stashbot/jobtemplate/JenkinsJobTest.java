@@ -36,9 +36,11 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobTest.DataStuff;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.JobMapping;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
 @Jdbc(DynamicJdbcConfiguration.class)

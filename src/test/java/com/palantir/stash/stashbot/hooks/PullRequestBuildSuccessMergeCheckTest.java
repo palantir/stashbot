@@ -35,9 +35,9 @@ import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.PullRequestMetadata;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class PullRequestBuildSuccessMergeCheckTest {
 

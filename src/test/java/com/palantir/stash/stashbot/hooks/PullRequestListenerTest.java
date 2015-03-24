@@ -30,12 +30,12 @@ import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
-import com.palantir.stash.stashbot.config.PullRequestMetadata;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class PullRequestListenerTest {
 

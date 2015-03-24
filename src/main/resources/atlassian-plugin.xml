@@ -24,31 +24,31 @@
     <!-- AO resources to persiste configuration data -->
     <ao key="ao-module">
         <description>The AO module for this plugin.</description>
-        <entity>com.palantir.stash.stashbot.config.JenkinsServerConfiguration</entity>
-        <entity>com.palantir.stash.stashbot.config.PullRequestMetadata</entity>
-        <entity>com.palantir.stash.stashbot.config.RepositoryConfiguration</entity>
-        <entity>com.palantir.stash.stashbot.jobtemplate.JobTemplate</entity>
-        <entity>com.palantir.stash.stashbot.jobtemplate.JobMapping</entity>
+        <entity>com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration</entity>
+        <entity>com.palantir.stash.stashbot.persistence.PullRequestMetadata</entity>
+        <entity>com.palantir.stash.stashbot.persistence.RepositoryConfiguration</entity>
+        <entity>com.palantir.stash.stashbot.persistence.JobTemplate</entity>
+        <entity>com.palantir.stash.stashbot.persistence.JobMapping</entity>
         <upgradeTask>com.palantir.stash.stashbot.upgrade.ConfigurationV1UpgradeTask</upgradeTask>
     </ao>
 
-    <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.stashbot.admin.RepoConfigurationServlet">
+    <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.stashbot.servlet.RepoConfigurationServlet">
         <url-pattern>/stashbot/repo-admin/*</url-pattern>
     </servlet>
 
-    <servlet key="jenkinsConfigurationAdmin" name="Jenkins Administration Servlet" class="com.palantir.stash.stashbot.admin.JenkinsConfigurationServlet">
+    <servlet key="jenkinsConfigurationAdmin" name="Jenkins Administration Servlet" class="com.palantir.stash.stashbot.servlet.JenkinsConfigurationServlet">
         <url-pattern>/stashbot/jenkins-admin*</url-pattern>
     </servlet>
 
-    <servlet key="buildSuccessReporting" name="Build Success Reporting Servlet" class="com.palantir.stash.stashbot.admin.BuildSuccessReportingServlet">
+    <servlet key="buildSuccessReporting" name="Build Success Reporting Servlet" class="com.palantir.stash.stashbot.servlet.BuildSuccessReportingServlet">
         <url-pattern>/stashbot/build-reporting/*</url-pattern>
     </servlet>
 
-    <servlet key="buildStatusReporting" name="Build Status Reporting Servlet" class="com.palantir.stash.stashbot.admin.BuildStatusReportingServlet">
+    <servlet key="buildStatusReporting" name="Build Status Reporting Servlet" class="com.palantir.stash.stashbot.servlet.BuildStatusReportingServlet">
         <url-pattern>/stashbot/build-status/*</url-pattern>
     </servlet>
 
-    <servlet key="buildTriggerServlet" name="Build Trigger Servlet" class="com.palantir.stash.stashbot.admin.BuildTriggerServlet">
+    <servlet key="buildTriggerServlet" name="Build Trigger Servlet" class="com.palantir.stash.stashbot.servlet.BuildTriggerServlet">
         <url-pattern>/stashbot/build-trigger/*</url-pattern>
     </servlet>
 

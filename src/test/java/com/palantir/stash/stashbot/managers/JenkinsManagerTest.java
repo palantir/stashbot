@@ -38,15 +38,15 @@ import com.google.common.collect.Maps;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
-import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 import com.palantir.stash.stashbot.mocks.MockSecurityServiceBuilder;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsManagerTest {

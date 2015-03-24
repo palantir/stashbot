@@ -28,7 +28,7 @@ import com.atlassian.stash.user.PermissionAdminService;
 import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserAdminService;
 import com.atlassian.stash.user.UserService;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 
 public class PluginUserManagerTest {
 

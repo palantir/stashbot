@@ -27,11 +27,11 @@ import com.atlassian.stash.event.pull.PullRequestRescopedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.PullRequestMetadata;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 /**
  * This class listens for new pull requests or pull request updates and triggers

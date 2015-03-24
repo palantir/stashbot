@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.palantir.stash.stashbot.jobtemplate;
+package com.palantir.stash.stashbot.persistence;
 
 import net.java.ao.Entity;
 import net.java.ao.Implementation;
@@ -22,6 +22,8 @@ import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
 import com.atlassian.stash.repository.Repository;
+import com.palantir.stash.stashbot.jobtemplate.JobTemplateImpl;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 
 @Table("JobTemplate001")
 @Preload

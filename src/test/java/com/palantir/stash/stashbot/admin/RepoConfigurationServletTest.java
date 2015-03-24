@@ -50,11 +50,12 @@ import com.atlassian.webresource.api.assembler.WebResourceAssembler;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
+import com.palantir.stash.stashbot.servlet.RepoConfigurationServlet;
 
 public class RepoConfigurationServletTest {
 

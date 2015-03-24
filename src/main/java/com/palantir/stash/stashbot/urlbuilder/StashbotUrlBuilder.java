@@ -22,8 +22,8 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
 import com.atlassian.stash.repository.RepositoryService;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 
 public class StashbotUrlBuilder {
 

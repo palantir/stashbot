@@ -24,8 +24,10 @@ import org.slf4j.Logger;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.JobMapping;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class JobTemplateManager {
 

@@ -35,12 +35,12 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 /*
  * NOTE: this cannot be an async hook, nor a repositorypushevent listener, because frequently people will merge a pull

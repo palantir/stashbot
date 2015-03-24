@@ -25,10 +25,12 @@ import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.atlassian.webresource.api.assembler.WebResourceAssembler;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.servlet.JenkinsConfigurationServlet;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +41,7 @@ import org.mockito.MockitoAnnotations;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.List;

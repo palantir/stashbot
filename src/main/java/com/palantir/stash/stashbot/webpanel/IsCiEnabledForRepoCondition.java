@@ -22,8 +22,8 @@ import com.atlassian.plugin.PluginParseException;
 import com.atlassian.plugin.web.Condition;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class IsCiEnabledForRepoCondition implements Condition {
 

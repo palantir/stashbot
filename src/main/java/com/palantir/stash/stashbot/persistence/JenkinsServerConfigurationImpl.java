@@ -11,9 +11,9 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.palantir.stash.stashbot.config;
+package com.palantir.stash.stashbot.persistence;
 
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 
 public class JenkinsServerConfigurationImpl {
 

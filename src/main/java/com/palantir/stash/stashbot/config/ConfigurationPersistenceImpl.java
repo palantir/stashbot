@@ -30,9 +30,12 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class ConfigurationPersistenceImpl implements ConfigurationPersistenceService {
 

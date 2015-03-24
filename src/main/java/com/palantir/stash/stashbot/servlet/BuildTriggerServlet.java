@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.palantir.stash.stashbot.admin;
+package com.palantir.stash.stashbot.servlet;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -29,11 +29,11 @@ import com.atlassian.stash.pull.PullRequestService;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class BuildTriggerServlet extends HttpServlet {
 
