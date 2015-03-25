@@ -22,6 +22,7 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
@@ -103,6 +104,10 @@ public interface ConfigurationPersistenceService {
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     public abstract void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override, Boolean failed);
+
+    public abstract Boolean getJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt);
+
+    public abstract void setJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt, Boolean isEnabled);
 
     public static class EmailSettings {
 

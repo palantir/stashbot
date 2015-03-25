@@ -35,6 +35,7 @@ import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
@@ -97,6 +98,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)).thenReturn(true);
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(VERIFY_REGEX);
         Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(true);
@@ -168,6 +170,17 @@ public class PullRequestBuildSuccessMergeCheckTest {
         prmc.check(mr);
 
         Mockito.verify(mr).veto(Mockito.anyString(), Mockito.anyString());
+    }
+
+    @Test
+    public void testSkipsMergeCheckWhenPRVerifyDisabledTest() {
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)).thenReturn(false);
+        Mockito.when(prm.getSuccess()).thenReturn(false);
+        Mockito.when(prm.getOverride()).thenReturn(false);
+
+        prmc.check(mr);
+
+        Mockito.verify(mr, Mockito.never()).veto(Mockito.anyString(), Mockito.anyString());
     }
 
     @Test

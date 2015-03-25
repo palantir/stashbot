@@ -33,6 +33,7 @@ import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.atlassian.stash.util.PageRequestImpl;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
@@ -98,6 +99,10 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
                 e);
         }
         if (!rc.getCiEnabled()) {
+            return;
+        }
+        if (!cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)) {
+            // speculative merge builds are disabled
             return;
         }
         if (!pr.getToRef().getId().matches(rc.getVerifyBranchRegex())) {

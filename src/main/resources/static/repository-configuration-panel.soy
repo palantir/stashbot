@@ -28,6 +28,9 @@
  * @param isStrictVerifyMode
  * @param isLocked
  * @param isPreserveJenkinsJobConfig
+ * @param verificationEnabled
+ * @param verifyPREnabled
+ * @param publishEnabled
  *
  **/
 {template .repositoryConfigurationPanel}
@@ -57,13 +60,39 @@
           <h3>Local Settings</h3>
           <p>These are settings modify if the repo builds, where it builds, and when it builds.</p>
           {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'CI Builds') /}
+            {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Stashbot Repository Enable <br/>(to enable stashbot for this repository, check this and at least one build type below)') /}
             {param fields: [[
               'id': 'ciEnabled',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
               'isChecked': $ciEnabled
               ]] /}
           {/call}
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.enable-verification.button.description', 'Commit Verifies') /}
+            {param fields: [[
+              'id': 'verificationEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-verification.button.label', 'Enabled'),
+              'isChecked': $verificationEnabled
+              ]] /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.enable-verify-pr.button.description', 'Pull Request Verifies') /}
+            {param fields: [[
+              'id': 'verifyPREnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-verify-pr.button.label', 'Enabled'),
+              'isChecked': $verifyPREnabled
+              ]] /}
+          {/call}
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.enable-publish.button.description', 'Publishes') /}
+            {param fields: [[
+              'id': 'publishEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-verification.button.label', 'Enabled'),
+              'isChecked': $publishEnabled
+              ]] /}
+          {/call}
+
           {call aui.form.selectField}
             {param id: 'jenkinsServerName' /}
             {param labelContent: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server') /}

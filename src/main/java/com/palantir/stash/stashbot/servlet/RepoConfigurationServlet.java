@@ -43,6 +43,7 @@ import com.atlassian.stash.util.PageRequestImpl;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
@@ -126,38 +127,47 @@ public class RepoConfigurationServlet extends HttpServlet {
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             pageBuilderService.assembler().resources()
                 .requireWebResource("com.palantir.stash.stashbot:stashbot-resources");
-            soyTemplateRenderer.render(res.getWriter(),
-                "com.palantir.stash.stashbot:stashbotConfigurationResources",
-                "plugin.page.stashbot.repositoryConfigurationPanel",
-                ImmutableMap.<String, Object> builder()
-                    .put("repository", rep)
-                    .put("ciEnabled", rc.getCiEnabled())
-                    .put("publishBranchRegex", rc.getPublishBranchRegex())
-                    .put("publishBuildCommand", rc.getPublishBuildCommand())
-                    .put("verifyBranchRegex", rc.getVerifyBranchRegex())
-                    .put("verifyBuildCommand", rc.getVerifyBuildCommand())
-                    .put("prebuildCommand", rc.getPrebuildCommand())
-                    .put("jenkinsServerName", rc.getJenkinsServerName())
-                    .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
-                    .put("rebuildOnUpdate", rc.getRebuildOnTargetUpdate())
-                    .put("isVerifyPinned", rc.getVerifyPinned())
-                    .put("verifyLabel", rc.getVerifyLabel())
-                    .put("isPublishPinned", rc.getPublishPinned())
-                    .put("publishLabel", rc.getPublishLabel())
-                    .put("isJunit", rc.getJunitEnabled())
-                    .put("junitPath", rc.getJunitPath())
-                    .put("artifactsEnabled", rc.getArtifactsEnabled())
-                    .put("artifactsPath", rc.getArtifactsPath())
-                    .put("jenkinsServersData", jenkinsServersData)
-                    .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
-                    .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
-                    .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
-                    .put("emailRecipients", rc.getEmailRecipients())
-                    .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
-                    .put("isStrictVerifyMode", rc.getStrictVerifyMode())
-                    .put("isPreserveJenkinsJobConfig", rc.getPreserveJenkinsJobConfig())
-                    .put("isLocked", isLocked(theJsc))
-                    .build()
+            soyTemplateRenderer
+                .render(
+                    res.getWriter(),
+                    "com.palantir.stash.stashbot:stashbotConfigurationResources",
+                    "plugin.page.stashbot.repositoryConfigurationPanel",
+                    ImmutableMap
+                        .<String, Object> builder()
+                        .put("repository", rep)
+                        .put("ciEnabled", rc.getCiEnabled())
+                        .put("publishBranchRegex", rc.getPublishBranchRegex())
+                        .put("publishBuildCommand", rc.getPublishBuildCommand())
+                        .put("verifyBranchRegex", rc.getVerifyBranchRegex())
+                        .put("verifyBuildCommand", rc.getVerifyBuildCommand())
+                        .put("prebuildCommand", rc.getPrebuildCommand())
+                        .put("jenkinsServerName", rc.getJenkinsServerName())
+                        .put("maxVerifyChain", rc.getMaxVerifyChain().toString())
+                        .put("rebuildOnUpdate", rc.getRebuildOnTargetUpdate())
+                        .put("isVerifyPinned", rc.getVerifyPinned())
+                        .put("verifyLabel", rc.getVerifyLabel())
+                        .put("isPublishPinned", rc.getPublishPinned())
+                        .put("publishLabel", rc.getPublishLabel())
+                        .put("isJunit", rc.getJunitEnabled())
+                        .put("junitPath", rc.getJunitPath())
+                        .put("artifactsEnabled", rc.getArtifactsEnabled())
+                        .put("artifactsPath", rc.getArtifactsPath())
+                        .put("jenkinsServersData", jenkinsServersData)
+                        .put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled())
+                        .put("isEmailForEveryUnstableBuild", rc.getEmailForEveryUnstableBuild())
+                        .put("isEmailPerModuleEmail", rc.getEmailPerModuleEmail())
+                        .put("emailRecipients", rc.getEmailRecipients())
+                        .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
+                        .put("isStrictVerifyMode", rc.getStrictVerifyMode())
+                        .put("isPreserveJenkinsJobConfig", rc.getPreserveJenkinsJobConfig())
+                        .put("isLocked", isLocked(theJsc))
+                        .put("verificationEnabled",
+                            configurationPersistanceManager.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT))
+                        .put("verifyPREnabled",
+                            configurationPersistanceManager.getJobTypeStatusMapping(rc, JobType.VERIFY_PR))
+                        .put("publishEnabled",
+                            configurationPersistanceManager.getJobTypeStatusMapping(rc, JobType.PUBLISH))
+                        .build()
                 );
         } catch (SoyException e) {
             Throwable cause = e.getCause();

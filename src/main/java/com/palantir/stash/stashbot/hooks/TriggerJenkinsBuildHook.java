@@ -84,29 +84,35 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
 
         Set<String> publishBuilds = new HashSet<String>();
 
-        // First trigger all publish builds
-        for (RefChange refChange : changes) {
-            if (!refChange.getRefId().matches(rc.getPublishBranchRegex())) {
-                continue;
-            }
+        // First trigger all publish builds (if they are enabled)
+        if (cpm.getJobTypeStatusMapping(rc, JobType.PUBLISH)) {
+            for (RefChange refChange : changes) {
+                if (!refChange.getRefId().matches(rc.getPublishBranchRegex())) {
+                    continue;
+                }
 
-            // deletes have a tohash of "0000000000000000000000000000000000000000"
-            // but it seems more reliable to use RefChangeType
-            if (refChange.getType().equals(RefChangeType.DELETE)) {
-                log.debug("Detected delete, not triggering a build for this change");
-                continue;
-            }
+                // deletes have a tohash of "0000000000000000000000000000000000000000"
+                // but it seems more reliable to use RefChangeType
+                if (refChange.getType().equals(RefChangeType.DELETE)) {
+                    log.debug("Detected delete, not triggering a build for this change");
+                    continue;
+                }
 
-            // if matches publication regex, no verify build needed for that hash
-            // Only perform publish builds of the "to ref", not commits between
-            // I.E. if you have A-B-C and you push -D-E-F, a verify build of D and E might be triggered, but F would be
-            // published and not verified, if the ref matches both build and verify.
-            log.info("Stashbot Trigger: Triggering PUBLISH build for commit " + refChange.getToHash());
-            // trigger a publication build
-            jenkinsManager.triggerBuild(repo, JobType.PUBLISH, refChange.getToHash(), refChange.getRefId());
-            publishBuilds.add(refChange.getToHash());
+                // if matches publication regex, no verify build needed for that hash
+                // Only perform publish builds of the "to ref", not commits between
+                // I.E. if you have A-B-C and you push -D-E-F, a verify build of D and E might be triggered, but F would be
+                // published and not verified, if the ref matches both build and verify.
+                log.info("Stashbot Trigger: Triggering PUBLISH build for commit " + refChange.getToHash());
+                // trigger a publication build
+                jenkinsManager.triggerBuild(repo, JobType.PUBLISH, refChange.getToHash(), refChange.getRefId());
+                publishBuilds.add(refChange.getToHash());
+            }
         }
 
+        // Nothing to do if VERIFY_COMMIT not enabled
+        if (!cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT)) {
+            return;
+        }
         // Calculate the sum of all new commits introduced by this change
         // This would be:
         // (existing refs matching regex, deleted refs, changed refs old values)..(added refs, changed refs new values)

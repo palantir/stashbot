@@ -114,6 +114,7 @@ public class PullRequestListenerTest {
         Mockito.when(prm2.getOverride()).thenReturn(false);
         Mockito.when(prm2.getBuildStarted()).thenReturn(false);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)).thenReturn(true);
 
         Mockito.when(proEvent.getPullRequest()).thenReturn(pr);
         Mockito.when(prRescopedEvent.getPullRequest()).thenReturn(pr);
@@ -135,6 +136,13 @@ public class PullRequestListenerTest {
         prl.listenForPRCreates(proEvent);
         Mockito.verify(jenkinsManager)
             .triggerBuild(repo, JobType.VERIFY_PR, pr);
+    }
+
+    @Test
+    public void testNoTriggersBuildOnPullRequestWithPRVerifyDisabled() {
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)).thenReturn(false);
+        prl.listenForPRCreates(proEvent);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JobType.VERIFY_PR, pr);
     }
 
     @Test
