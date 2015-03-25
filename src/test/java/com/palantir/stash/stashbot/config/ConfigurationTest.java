@@ -48,6 +48,7 @@ import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
@@ -240,7 +241,7 @@ public class ConfigurationTest {
         @Override
         public void update(EntityManager entityManager) throws Exception {
             entityManager.migrate(JenkinsServerConfiguration.class,
-                RepositoryConfiguration.class, PullRequestMetadata.class);
+                RepositoryConfiguration.class, PullRequestMetadata.class, JobTypeStatusMapping.class);
 
             RepositoryConfiguration rc = entityManager.create(
                 RepositoryConfiguration.class, new DBParam("REPO_ID",

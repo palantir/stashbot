@@ -184,6 +184,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()));
             rc.save();
+            // default the 3 base job types to enabled
+            setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, true);
+            setJobTypeStatusMapping(rc, JobType.VERIFY_PR, true);
+            setJobTypeStatusMapping(rc, JobType.PUBLISH, true);
             return rc;
         }
         return repos[0];
@@ -344,6 +348,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
             rc.save();
+            // default the 3 base job types to enabled
+            setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, true);
+            setJobTypeStatusMapping(rc, JobType.VERIFY_PR, true);
+            setJobTypeStatusMapping(rc, JobType.PUBLISH, true);
             return;
         }
         RepositoryConfiguration foundRepo = repos[0];

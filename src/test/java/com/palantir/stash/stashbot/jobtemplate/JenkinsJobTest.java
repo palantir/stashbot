@@ -40,6 +40,7 @@ import com.palantir.stash.stashbot.jobtemplate.JenkinsJobTest.DataStuff;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.JobMapping;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
@@ -161,7 +162,7 @@ public class JenkinsJobTest {
         @Override
         public void update(EntityManager entityManager) throws Exception {
             entityManager.migrate(JobTemplate.class, JobMapping.class,
-                RepositoryConfiguration.class);
+                RepositoryConfiguration.class, JobTypeStatusMapping.class);
         }
 
     }
