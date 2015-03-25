@@ -181,8 +181,6 @@ public class PullRequestListener {
                 + ", fromSha " + prm.getFromSha() + " toSha "
                 + prm.getToSha());
 
-            // jenkinsManager.triggerBuild(repo, JobType.VERIFY_PR, fromSha,
-            // toSha, pr.getId().toString());
             jenkinsManager.triggerBuild(repo, JobType.VERIFY_PR, pr);
 
             // note that we have successfully started the build
