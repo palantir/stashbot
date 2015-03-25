@@ -30,13 +30,13 @@ import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.mocks.MockGitCommandBuilderFactory;
 import com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class TriggerJenkinsBuildHookTest {
 
@@ -84,6 +84,8 @@ public class TriggerJenkinsBuildHookTest {
 
         Mockito.when(cpm.getRepositoryConfigurationForRepository(repo)).thenReturn(rc);
         Mockito.when(cpm.getJenkinsServerConfiguration(Mockito.anyString())).thenReturn(jsc);
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT)).thenReturn(true);
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.PUBLISH)).thenReturn(true);
         Mockito.when(rc.getCiEnabled()).thenReturn(true);
         Mockito.when(rc.getVerifyBranchRegex()).thenReturn(".*master.*");
         Mockito.when(rc.getPublishBranchRegex()).thenReturn(".*release.*");
@@ -113,6 +115,14 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.onReceive(repo, changes, hr);
 
         Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, "");
+    }
+
+    @Test
+    public void testDoesntTriggerBuildOnPushWhenDisabled() {
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT)).thenReturn(false);
+        tjbh.onReceive(repo, changes, hr);
+
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JobType.VERIFY_COMMIT, HEAD, "");
     }
 
     @Test
@@ -151,6 +161,16 @@ public class TriggerJenkinsBuildHookTest {
         tjbh.onReceive(repo, changes, hr);
 
         Mockito.verify(jenkinsManager).triggerBuild(repo, JobType.PUBLISH, HEAD, HEAD_BR);
+    }
+
+    @Test
+    public void testPublishingBuildWhenDisabled() {
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.PUBLISH)).thenReturn(false);
+        Mockito.when(rc.getVerifyBranchRegex()).thenReturn("blahblahnomatch");
+        Mockito.when(rc.getPublishBranchRegex()).thenReturn("master");
+        tjbh.onReceive(repo, changes, hr);
+
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JobType.PUBLISH, HEAD, HEAD_BR);
     }
 
     @Test

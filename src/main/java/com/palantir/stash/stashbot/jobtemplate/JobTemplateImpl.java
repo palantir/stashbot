@@ -14,6 +14,7 @@
 package com.palantir.stash.stashbot.jobtemplate;
 
 import com.atlassian.stash.repository.Repository;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
 
 // Custom AO implementation
 // For details, see: http://www.javalobby.org/articles/activeobjects/

@@ -30,9 +30,14 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class ConfigurationPersistenceImpl implements ConfigurationPersistenceService {
 
@@ -179,6 +184,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()));
             rc.save();
+            // default the 3 base job types to enabled
+            setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, true);
+            setJobTypeStatusMapping(rc, JobType.VERIFY_PR, true);
+            setJobTypeStatusMapping(rc, JobType.PUBLISH, true);
             return rc;
         }
         return repos[0];
@@ -239,6 +248,35 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
             jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, artifactsEnabled, artifactsPath,
             maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig);
+        RepositoryConfiguration rc = getRepositoryConfigurationForRepository(repo);
+        setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, getBoolean(req, "verificationEnabled"));
+        setJobTypeStatusMapping(rc, JobType.VERIFY_PR, getBoolean(req, "verifyPREnabled"));
+        setJobTypeStatusMapping(rc, JobType.PUBLISH, getBoolean(req, "publishEnabled"));
+    }
+
+    @Override
+    public void setJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt, Boolean isEnabled) {
+        JobTypeStatusMapping[] mappings =
+            ao.find(JobTypeStatusMapping.class, "REPO_CONFIG_ID = ? and JOB_TYPE_RAW = ?", rc.getID(), jt.name());
+        if (mappings.length == 0) {
+            ao.create(JobTypeStatusMapping.class,
+                new DBParam("REPO_CONFIG_ID", rc.getID()),
+                new DBParam("JOB_TYPE_RAW", jt.name()),
+                new DBParam("IS_ENABLED", isEnabled)).save();
+            return;
+        }
+        mappings[0].setIsEnabled(isEnabled);
+        mappings[0].save();
+    }
+
+    @Override
+    public Boolean getJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt) {
+        JobTypeStatusMapping[] mappings =
+            ao.find(JobTypeStatusMapping.class, "REPO_CONFIG_ID = ? and JOB_TYPE_RAW = ?", rc.getID(), jt.name());
+        if (mappings.length == 0) {
+            return false;
+        }
+        return mappings[0].getIsEnabled();
     }
 
     private EmailSettings getEmailSettings(HttpServletRequest req) {
@@ -310,6 +348,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 rc.setMaxVerifyChain(maxVerifyChain);
             }
             rc.save();
+            // default the 3 base job types to enabled
+            setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, true);
+            setJobTypeStatusMapping(rc, JobType.VERIFY_PR, true);
+            setJobTypeStatusMapping(rc, JobType.PUBLISH, true);
             return;
         }
         RepositoryConfiguration foundRepo = repos[0];

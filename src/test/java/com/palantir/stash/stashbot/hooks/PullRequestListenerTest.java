@@ -30,12 +30,12 @@ import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
-import com.palantir.stash.stashbot.config.PullRequestMetadata;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class PullRequestListenerTest {
 
@@ -114,6 +114,7 @@ public class PullRequestListenerTest {
         Mockito.when(prm2.getOverride()).thenReturn(false);
         Mockito.when(prm2.getBuildStarted()).thenReturn(false);
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)).thenReturn(true);
 
         Mockito.when(proEvent.getPullRequest()).thenReturn(pr);
         Mockito.when(prRescopedEvent.getPullRequest()).thenReturn(pr);
@@ -135,6 +136,13 @@ public class PullRequestListenerTest {
         prl.listenForPRCreates(proEvent);
         Mockito.verify(jenkinsManager)
             .triggerBuild(repo, JobType.VERIFY_PR, pr);
+    }
+
+    @Test
+    public void testNoTriggersBuildOnPullRequestWithPRVerifyDisabled() {
+        Mockito.when(cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)).thenReturn(false);
+        prl.listenForPRCreates(proEvent);
+        Mockito.verify(jenkinsManager, Mockito.never()).triggerBuild(repo, JobType.VERIFY_PR, pr);
     }
 
     @Test

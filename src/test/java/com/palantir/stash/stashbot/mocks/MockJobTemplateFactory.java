@@ -20,11 +20,11 @@ import org.mockito.Mockito;
 
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
-import com.palantir.stash.stashbot.jobtemplate.JobMapping;
-import com.palantir.stash.stashbot.jobtemplate.JobTemplate;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
+import com.palantir.stash.stashbot.persistence.JobMapping;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 public class MockJobTemplateFactory {
 

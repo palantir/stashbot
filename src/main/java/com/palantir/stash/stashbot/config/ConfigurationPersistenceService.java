@@ -22,7 +22,11 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.jobtemplate.JobType;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 @Transactional
 public interface ConfigurationPersistenceService {
@@ -100,5 +104,51 @@ public interface ConfigurationPersistenceService {
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     public abstract void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
         Boolean success, Boolean override, Boolean failed);
+
+    public abstract Boolean getJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt);
+
+    public abstract void setJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt, Boolean isEnabled);
+
+    public static class EmailSettings {
+
+        private final Boolean emailNotificationsEnabled;
+        private final String emailRecipients;
+        private final Boolean emailForEveryUnstableBuild;
+        private final Boolean emailSendToIndividuals;
+        private final Boolean emailPerModuleEmail;
+
+        public EmailSettings() {
+            this(false, "", false, false, false);
+        }
+
+        public EmailSettings(Boolean emailNotificationsEnabled, String emailRecipients,
+            Boolean emailForEveryUnstableBuild, Boolean emailSendToIndividuals, Boolean emailPerModuleEmail) {
+            this.emailNotificationsEnabled = emailNotificationsEnabled;
+            this.emailRecipients = emailRecipients;
+            this.emailForEveryUnstableBuild = emailForEveryUnstableBuild;
+            this.emailSendToIndividuals = emailSendToIndividuals;
+            this.emailPerModuleEmail = emailPerModuleEmail;
+        }
+
+        public Boolean getEmailNotificationsEnabled() {
+            return emailNotificationsEnabled;
+        }
+
+        public String getEmailRecipients() {
+            return emailRecipients;
+        }
+
+        public Boolean getEmailForEveryUnstableBuild() {
+            return emailForEveryUnstableBuild;
+        }
+
+        public Boolean getEmailSendToIndividuals() {
+            return emailSendToIndividuals;
+        }
+
+        public Boolean getEmailPerModuleEmail() {
+            return emailPerModuleEmail;
+        }
+    }
 
 }

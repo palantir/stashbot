@@ -42,10 +42,15 @@ import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
+import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 @RunWith(ActiveObjectsJUnitRunner.class)
 @Jdbc(DynamicJdbcConfiguration.class)
@@ -236,7 +241,7 @@ public class ConfigurationTest {
         @Override
         public void update(EntityManager entityManager) throws Exception {
             entityManager.migrate(JenkinsServerConfiguration.class,
-                RepositoryConfiguration.class, PullRequestMetadata.class);
+                RepositoryConfiguration.class, PullRequestMetadata.class, JobTypeStatusMapping.class);
 
             RepositoryConfiguration rc = entityManager.create(
                 RepositoryConfiguration.class, new DBParam("REPO_ID",

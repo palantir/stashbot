@@ -27,11 +27,11 @@ import com.atlassian.stash.event.pull.PullRequestRescopedEvent;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
-import com.palantir.stash.stashbot.config.PullRequestMetadata;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 /**
  * This class listens for new pull requests or pull request updates and triggers
@@ -106,11 +106,13 @@ public class PullRequestListener {
             // just trigger a build of the new commit since the other hook doesn't catch merged PRs.
             String mergeSha1 = event.getChangeset().getId();
             String targetBranch = pr.getToRef().getId();
-            if (targetBranch.matches(rc.getPublishBranchRegex())) {
+            boolean publishEnabled = cpm.getJobTypeStatusMapping(rc, JobType.PUBLISH);
+            boolean verifyEnabled = cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT);
+            if (publishEnabled && targetBranch.matches(rc.getPublishBranchRegex())) {
                 log.info("Stashbot Trigger: Triggering PUBLISH build for commit "
                     + mergeSha1 + " after merge of branch " + targetBranch);
                 jenkinsManager.triggerBuild(repo, JobType.PUBLISH, mergeSha1, targetBranch);
-            } else if (targetBranch.matches(rc.getVerifyBranchRegex())) {
+            } else if (verifyEnabled && targetBranch.matches(rc.getVerifyBranchRegex())) {
                 // TODO: Build any commits which are new, for now just build latest commit
                 // Do this by doing a revwalk just like in TriggerJenkinsBuildHook, excluding the build we just published.
                 log.info("Stashbot Trigger: Triggering VERIFICATION build for commit "
@@ -137,6 +139,12 @@ public class PullRequestListener {
             if (!rc.getCiEnabled()) {
                 log.debug("Pull Request " + pr.toString()
                     + " ignored, CI not enabled for target repo "
+                    + repo.toString());
+                return;
+            }
+            if (!cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_PR)) {
+                log.debug("Pull Request " + pr.toString()
+                    + " ignored, PR builds not enabled for target repo "
                     + repo.toString());
                 return;
             }
@@ -181,8 +189,6 @@ public class PullRequestListener {
                 + ", fromSha " + prm.getFromSha() + " toSha "
                 + prm.getToSha());
 
-            // jenkinsManager.triggerBuild(repo, JobType.VERIFY_PR, fromSha,
-            // toSha, pr.getId().toString());
             jenkinsManager.triggerBuild(repo, JobType.VERIFY_PR, pr);
 
             // note that we have successfully started the build

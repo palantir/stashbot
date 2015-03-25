@@ -17,8 +17,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import com.offbytwo.jenkins.JenkinsServer;
-import com.palantir.stash.stashbot.config.JenkinsServerConfiguration;
-import com.palantir.stash.stashbot.config.RepositoryConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
 /**
  * This class exists to encapsulate the jenkins client library and make mocking/testing easier.

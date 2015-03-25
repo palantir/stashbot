@@ -22,7 +22,7 @@ import net.java.ao.schema.Table;
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.external.ActiveObjectsUpgradeTask;
 import com.atlassian.activeobjects.external.ModelVersion;
-import com.palantir.stash.stashbot.config.PullRequestMetadata;
+import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 
 public class ConfigurationV1UpgradeTask implements ActiveObjectsUpgradeTask {
 

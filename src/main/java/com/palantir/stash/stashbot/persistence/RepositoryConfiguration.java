@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package com.palantir.stash.stashbot.config;
+package com.palantir.stash.stashbot.persistence;
 
 import net.java.ao.Entity;
 import net.java.ao.Preload;
