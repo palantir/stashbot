@@ -100,6 +100,7 @@
     <web-resource key="pullRequestTriggerResources" name="Pull Request Trigger Link Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
         <dependency>stash.web.resources:jquery</dependency>
+        <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
         <resource type="download" name="pr-trigger.js" location="js/pr-trigger.js"/>
         <context>stash.page.pullRequest.view</context>
     </web-resource>
