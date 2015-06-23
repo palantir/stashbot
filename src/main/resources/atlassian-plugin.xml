@@ -37,6 +37,10 @@
     <servlet key="repositoryConfigurationAdmin" name="Repository Administration Servlet" class="com.palantir.stash.stashbot.servlet.RepoConfigurationServlet">
         <url-pattern>/stashbot/repo-admin/*</url-pattern>
     </servlet>
+    
+    <servlet key="repositoryConfigurationStatus" name="Repository Configuration Status Servlet" class="com.palantir.stash.stashbot.servlet.RepoConfigurationStatusServlet">
+        <url-pattern>/stashbot/repo-status/*</url-pattern>
+    </servlet>
 
     <servlet key="jenkinsConfigurationAdmin" name="Jenkins Administration Servlet" class="com.palantir.stash.stashbot.servlet.JenkinsConfigurationServlet">
         <url-pattern>/stashbot/jenkins-admin*</url-pattern>
@@ -100,7 +104,6 @@
     <web-resource key="pullRequestTriggerResources" name="Pull Request Trigger Link Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
         <dependency>stash.web.resources:jquery</dependency>
-        <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
         <resource type="download" name="pr-trigger.js" location="js/pr-trigger.js"/>
         <context>stash.page.pullRequest.view</context>
     </web-resource>
