@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.config;
 
+import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +31,13 @@ import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.KeyPair;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.AuthenticationCredential;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
@@ -564,5 +569,46 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         prm.save();
         publisher.publish(new StashbotMetadataUpdatedEvent(this, pr));
+    }
+
+    private AuthenticationCredential getDefaultAuthenticationCredential() {
+        AuthenticationCredential[] acs = ao.find(AuthenticationCredential.class, "NAME = ?", "default");
+        if (acs.length == 0) {
+            log.info("Generating SSH key for default:");
+            JSch jsch = new JSch();
+            KeyPair kp;
+            try {
+                kp = KeyPair.genKeyPair(jsch, KeyPair.RSA, 2048);
+            } catch (JSchException e) {
+                log.error("Unable to generate ssh key", e);
+                // seriously, I have no idea what to do here.
+                throw new RuntimeException(e);
+            }
+            ByteArrayOutputStream privKey = new ByteArrayOutputStream();
+            ByteArrayOutputStream pubKey = new ByteArrayOutputStream();
+            kp.writePrivateKey(privKey);
+            kp.writePublicKey(pubKey, "default");
+
+            log.info("Public Key:\n\n" + pubKey.toString());
+            log.info("Private Key:\n\n" + privKey.toString());
+
+            AuthenticationCredential ac = ao.create(AuthenticationCredential.class,
+                new DBParam("NAME", "default"),
+                new DBParam("PUBLIC_KEY", pubKey.toString()),
+                new DBParam("PRIVATE_KEY", privKey.toString()));
+            ac.save();
+            return ac;
+        }
+        return acs[0];
+    }
+
+    @Override
+    public String getDefaultPublicSshKey() {
+        return getDefaultAuthenticationCredential().getPublicKey();
+    }
+
+    @Override
+    public String getDefaultPrivateSshKey() {
+        return getDefaultAuthenticationCredential().getPrivateKey();
     }
 }

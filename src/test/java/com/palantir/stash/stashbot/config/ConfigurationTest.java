@@ -46,6 +46,7 @@ import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailS
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.AuthenticationCredential;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
@@ -240,8 +241,8 @@ public class ConfigurationTest {
         @SuppressWarnings("unchecked")
         @Override
         public void update(EntityManager entityManager) throws Exception {
-            entityManager.migrate(JenkinsServerConfiguration.class,
-                RepositoryConfiguration.class, PullRequestMetadata.class, JobTypeStatusMapping.class);
+            entityManager.migrate(JenkinsServerConfiguration.class, RepositoryConfiguration.class,
+                PullRequestMetadata.class, JobTypeStatusMapping.class, AuthenticationCredential.class);
 
             RepositoryConfiguration rc = entityManager.create(
                 RepositoryConfiguration.class, new DBParam("REPO_ID",
@@ -317,6 +318,24 @@ public class ConfigurationTest {
         Assert.assertTrue(entry.containsKey("text"));
         Assert.assertTrue(entry.containsKey("value"));
         Assert.assertTrue(entry.containsKey("selected"));
+    }
+
+    @Test
+    public void testAuthenticationCredentials() {
+        // get the default key the first time
+        String privKey = cpm.getDefaultPrivateSshKey();
+        String pubKey = cpm.getDefaultPublicSshKey();
+
+        Assert.assertTrue(pubKey.startsWith("ssh-rsa AAAA"));
+        Assert.assertTrue(privKey.startsWith("-----BEGIN RSA PRIVATE KEY-----"));
+
+        // basic sanity check - pub key should be over 300, priv key should be over 1500
+        Assert.assertTrue(pubKey.length() > 300);
+        Assert.assertTrue(privKey.length() > 1500);
+
+        // ensure future calls return the same value
+        Assert.assertEquals(privKey, cpm.getDefaultPrivateSshKey());
+        Assert.assertEquals(pubKey, cpm.getDefaultPublicSshKey());
     }
 
     @Test

@@ -161,7 +161,10 @@ This project uses versions determined by `git describe --dirty='-dirty' --abbrev
 
 If you build using `./build/invoke-sdk.sh`, the version will be set automatically.  Alternatively, you can set the DOMAIN_VERSION environemnt variable when invoking maven directly to override the version.
 
-This is important because Atlassian plugins use OSGi and their version strings *must* be of the form "^\d+\.\d+\.\d+.*", so in order for jars that actually work to be produced, the tag must be a number such as "1.0.0".  For that reason, feature branches will start "features/", and be merged into "master", which will occasionally be tagged for releases.
+This is important because Atlassian plugins use OSGi and their version strings *must* be of the form:
+    ^\d+\.\d+\.\d+.*
+    
+Therefore, for jars that actually work to be produced, the tag must be a number such as "1.0.0".  For that reason, feature branches will start "features/", and be merged into "master", which will occasionally be tagged for releases.
 
 Not every released version will necessarily be put on the Atlassian Marketplace, but every released version should be stable (i.e. pass all unit tests, and be reasonably functional).
 
@@ -170,11 +173,32 @@ Not every released version will necessarily be put on the Atlassian Marketplace,
 ## KNOWN BUGS
 
 * JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
+* PluginUserManager calls UserAdminService.createUser() instead of UserAdminService.createServiceUser().  Service users can't be put in groups and thus do not use up a license slot.  We should fix this.
 
 ## PLANNED FEATURES
 
 * Better Test coverage - especially integration tests
 * Error checking - validate hashes sent to build status, etc.
+* Switch to using access keys (aka deployment keys) instead of creating a user
+* Better handling of ssh keys and jenkins credentials (i.e. support multiple keys with different permissions)
+
+### SSH Key Support
+
+Modern jenkins with modern git plugin doesn't work at all.  Need to add an
+authentication mode that will generate SSH keys, add them as deployment keys to
+the stash repos, and connect to jenkins and configure jobs to use the newly
+created credentials.
+
+Jenkins Bug: https://issues.jenkins-ci.org/browse/JENKINS-26537
+
+Resources:
+* Create credentials in jenkins programmatically: https://github.com/opscode-cookbooks/jenkins/blob/master/libraries/credentials.rb
+* Ask jenkins-client to add an API for that: https://github.com/RisingOak/jenkins-client/issues/72
+* calling API with curl looks like this:  curl -X POST -d 'script=System.out.println("fooz")' http://localhost:8080/scriptText (https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+Script+Console)
+* Ask atlassian how to programmatically add deploy keys: https://answers.atlassian.com/questions/307633/how-do-you-access-service-like-defaultsshkeyservice-from-stash-plugin
+* Details about making the actual rest call to jenkins: https://groups.google.com/forum/#!topic/jenkinsci-users/sdmsiVwqvyg
+* How to generate SSH keys using JSch: http://www.jcraft.com/jsch/examples/KeyGen.java.html
+* Since verify_pr does a manual fetch, the job template itself will have to write out the ssh key then set GIT_SSH_COMMAND to a script that does 'ssh -i someKey "$@"'
 
 ## POSSIBLE FUTURE FEATURES
 
