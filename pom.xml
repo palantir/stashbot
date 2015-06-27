@@ -138,7 +138,7 @@
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>
             <artifactId>jenkins-client</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
+            <version>0.3.1-4f8ce857b5abf662129e8f95f1815db928cc64ea</version>
             <!-- excluding guava because jenkins-client uses 13 but stash needs a different version -->
             <exclusions>
                 <exclusion>
@@ -262,4 +262,12 @@
             </activation>
         </profile>
     </profiles>
+    <!-- needed to pull in local jenkins-client version -->
+    <repositories>
+        <repository>
+            <id>jenkins-client</id>
+            <name>data</name>
+            <url>file://${project.basedir}/jenkins-client</url>
+        </repository>
+    </repositories>
 </project>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.offbytwo.jenkins</groupId>
+  <artifactId>jenkins-client</artifactId>
+  <versioning>
+    <release>0.3.1-4f8ce857b5abf662129e8f95f1815db928cc64ea</release>
+    <versions>
+      <version>0.3.1-4f8ce857b5abf662129e8f95f1815db928cc64ea</version>
+    </versions>
+    <lastUpdated>20150627012709</lastUpdated>
+  </versioning>
+</metadata>
