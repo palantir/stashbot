@@ -469,26 +469,38 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
      */
     @Override
     public PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha) {
-        // We have to check repoId being equal to -1 so that this works with old data.
-        PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
-            "(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
-            toSha, fromSha);
-        if (prms.length == 0) {
+      int count = 0;
+      int retries = 3;
+      while (true) {
+        try {
+          // We have to check repoId being equal to -1 so that this works with old data.
+          PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
+              "(REPO_ID = ? OR REPO_ID = -1) AND PULL_REQUEST_ID = ? and TO_SHA = ? and FROM_SHA = ?", repoId, prId,
+              toSha, fromSha);
+          if (prms.length == 0) {
             // new/updated PR, create a new object
             log.info("Creating PR Metadata for pull request: repo id:" + repoId
                 + "pr id: " + prId + ", fromSha: " + fromSha + ", toSha: " + toSha);
             PullRequestMetadata prm =
-                ao.create(
-                    PullRequestMetadata.class,
-                    new DBParam("REPO_ID", repoId),
-                    new DBParam("PULL_REQUEST_ID", prId),
-                    new DBParam("TO_SHA", toSha),
-                    new DBParam("FROM_SHA", fromSha));
+              ao.create(
+                  PullRequestMetadata.class,
+                  new DBParam("REPO_ID", repoId),
+                  new DBParam("PULL_REQUEST_ID", prId),
+                  new DBParam("TO_SHA", toSha),
+                  new DBParam("FROM_SHA", fromSha));
             prm.save();
             return prm;
 
+          }
+          return prms[0];
+        } catch (Exception e) {
+          count = count + 1;
+          Thread.sleep(5000);
+          if (count > retries) {
+            throw e;
+          }
         }
-        return prms[0];
+      }
     }
 
     /* (non-Javadoc)
