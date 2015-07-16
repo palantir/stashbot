@@ -1,6 +1,7 @@
 **.swp
 .settings/*
 .classpath
+.vagrant/
 .project
 */.settings/*
 */.classpath
