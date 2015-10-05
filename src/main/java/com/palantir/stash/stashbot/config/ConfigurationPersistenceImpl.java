@@ -429,7 +429,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
      */
     @Override
     public void validateName(String name) throws IllegalArgumentException {
-        if (!name.matches("[a-zA-Z0-9]+")) {
+        if (!name.matches("[a-zA-Z0-9-]+")) {
             throw new IllegalArgumentException("Name must match [a-zA-Z0-9]+");
         }
     }
