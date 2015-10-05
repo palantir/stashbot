@@ -70,7 +70,7 @@ public class JenkinsJobXmlFormatter {
         final JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
         StringBuffer sb = new StringBuffer();
-        sb.append("/usr/bin/curl -s -i ");
+        sb.append("/usr/bin/curl -s -k -i ");
         sb.append(sub.buildReportingUrl(repo, jobTemplate.getJobType(), jsc, status));
         return sb.toString();
     }
