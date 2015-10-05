@@ -35,7 +35,7 @@ then
     url="https://$STASH_HOST/rest/api/1.0/projects/$projectKey/repos/$repoSlug/pull-requests/$pullRequestId/comments"
 
     echo "$name: Creating comment \"$1\" using URL $url"
-    curl -s -k -i --fail "$url" --basic --user "$username:$password" -H "Content-Type: application/json" --data-binary "{\"text\":\"$text\"}"
+    curl -s -i --fail "$url" --basic --user "$username:$password" -H "Content-Type: application/json" --data-binary "{\"text\":\"$text\"}"
 else
     echo "$name: Unable to match regex in git URL \"$GIT_URL\" (check .git/config)"
     exit 1

@@ -37,7 +37,7 @@ fi
 echo "Publishing $filename to ${pub_url}/${pub_path}"
 md5=`openssl md5 "$filename" | sed 's/.* //'`
 sha1=`openssl sha1 "$filename" | sed 's/.* //'`
-curl -XPUT -L -k                 \
+curl -XPUT -L                    \
      -H "X-Checksum-Sha1: $sha1" \
      -H "X-Checksum-Md5: $md5"   \
      -u "$user:$pass"            \
