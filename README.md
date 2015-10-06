@@ -172,6 +172,8 @@ Not every released version will necessarily be put on the Atlassian Marketplace,
 
 ## KNOWN BUGS
 
+* Calls to user(null) in RepositoryCloneLinksRequest.Builder() may be broken in Stash 3.11+
+    * Removed them for SSH but haven't tested if they need to be removed for HTTP URLs also yet...
 * JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
 * PluginUserManager calls UserAdminService.createUser() instead of UserAdminService.createServiceUser().  Service users can't be put in groups and thus do not use up a license slot.  We should fix this.
 
