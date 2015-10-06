@@ -169,6 +169,8 @@ Not every released version will necessarily be put on the Atlassian Marketplace,
 
 ## KNOWN BUGS
 
+* Calls to user(null) in RepositoryCloneLinksRequest.Builder() may be broken in Stash 3.11+
+    * Removed them for SSH but haven't tested if they need to be removed for HTTP URLs also yet...
 * JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
 
 ## PLANNED FEATURES
