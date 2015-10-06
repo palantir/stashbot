@@ -8,8 +8,9 @@ To work with Jenkins, you MUST install the following jenkins plugins first.
 1. [Jenkins GIT plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin)
 2. [Post build task](https://wiki.jenkins-ci.org/display/JENKINS/Post+build+task)
 3. [Mailer Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Mailer) (optional, if you want email notifications)
+4. In order to have PR verify builds, your jenkins nodes must be able to create a merge commit, meaning your jenkins users should have a ~/.gitconfig file with a user/email set.  The commits are thrown away so the value doesn't matter.
 
-If either of these are missing, things won't work.
+If any of these are missing, things won't work.
 
 # USER GUIDE
 
@@ -22,7 +23,7 @@ requests are created.
 ## INITIAL CONFIG
 
 After installing stashbot, you will need to do the following as a system
-administrator:
+administrator in stash:
 
 * Create a jenkins server configuration (one for each jenkins server you connect to) by clicking on "Stashbot Jenkins Admin" under the administration page
 * You will need to give stashbot a username/password to access jenkins which has permission to create jobs
