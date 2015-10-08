@@ -100,6 +100,12 @@
               {param value: ($jenkinsConfig.maxVerifyChain == 0 ? '0' : $jenkinsConfig.maxVerifyChain) /}
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
             {/call}
+            {call aui.form.textField}
+              {param id: 'prefixTemplate' /}
+              {param labelContent: stash_i18n('stash.web.stash.prefixTemplate.label', 'Template used to put jobs in separate folders in jenkins') /}
+              {param value: $jenkinsConfig.prefixTemplate /}
+              {param descriptionText: stash_i18n('stash.web.stash.prefixTemplate.description', 'Template used to put jobs in separate folders in jenkins.  Valid variables are $project and $repo') /}
+            {/call}
             {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
               {param fields: [[
@@ -176,6 +182,12 @@
               {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
               {param value: '10' /}
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'prefixTemplate' /}
+              {param labelContent: stash_i18n('stash.web.stash.prefixTemplate.label', 'Template used to put jobs in separate folders in jenkins') /}
+              {param value: '' /}
+              {param descriptionText: stash_i18n('stash.web.stash.prefixTemplate.description', 'Template used to put jobs in separate folders in jenkins.  Valid variables are $project and $repo') /}
             {/call}
             {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}

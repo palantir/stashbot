@@ -31,124 +31,147 @@ import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 @Transactional
 public interface ConfigurationPersistenceService {
 
-    public abstract void deleteJenkinsServerConfiguration(String name);
+	public abstract void deleteJenkinsServerConfiguration(String name);
 
-    public abstract JenkinsServerConfiguration getJenkinsServerConfiguration(String name)
-        throws SQLException;
+	public abstract JenkinsServerConfiguration getJenkinsServerConfiguration(
+			String name) throws SQLException;
 
-    public abstract void setJenkinsServerConfigurationFromRequest(HttpServletRequest req) throws SQLException,
-        NumberFormatException;
+	public abstract void setJenkinsServerConfigurationFromRequest(
+			HttpServletRequest req) throws SQLException, NumberFormatException;
 
-    /**
-     * @deprecated Use
-     *             {@link ConfigurationPersistenceImpl#setJenkinsServerConfiguration(String, String, String, String, AuthenticationMode, String, String, Integer)}
-     *             instead
-     */
-    @Deprecated
-    public abstract void setJenkinsServerConfiguration(String name, String url,
-        String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
-        throws SQLException;
+	/**
+	 * @deprecated Use
+	 *             {@link ConfigurationPersistenceImpl#setJenkinsServerConfiguration(String, String, String, String, AuthenticationMode, String, String, Integer)}
+	 *             instead
+	 */
+	@Deprecated
+	public abstract void setJenkinsServerConfiguration(String name, String url,
+			String username, String password, String stashUsername,
+			String stashPassword, Integer maxVerifyChain) throws SQLException;
 
-    public abstract void setJenkinsServerConfiguration(String name, String url,
-        String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
-        throws SQLException;
+	@Deprecated
+	public abstract void setJenkinsServerConfiguration(String name, String url,
+			String username, String password,
+			AuthenticationMode authenticationMode, String stashUsername,
+			String stashPassword, Integer maxVerifyChain, Boolean isLocked)
+					throws SQLException;
 
-    public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
-        Repository repo) throws SQLException;
+	public abstract void setJenkinsServerConfiguration(String name, String url,
+			String username, String password,
+			AuthenticationMode authenticationMode, String stashUsername,
+			String stashPassword, Integer maxVerifyChain,
+			String prefixTemplate, Boolean isLocked) throws SQLException;
 
-    public abstract void setRepositoryConfigurationForRepository(Repository repo,
-        boolean isCiEnabled, String verifyBranchRegex,
-        String verifyBuildCommand, String publishBranchRegex,
-        String publishBuildCommand, String prebuildCommand, boolean rebuildOnUpdate)
-        throws SQLException, IllegalArgumentException;
+	public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
+			Repository repo) throws SQLException;
 
-    public abstract void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
-        throws SQLException, NumberFormatException;
+	public abstract void setRepositoryConfigurationForRepository(
+			Repository repo, boolean isCiEnabled, String verifyBranchRegex,
+			String verifyBuildCommand, String publishBranchRegex,
+			String publishBuildCommand, String prebuildCommand,
+			boolean rebuildOnUpdate) throws SQLException,
+			IllegalArgumentException;
 
-    public abstract void
-        setRepositoryConfigurationForRepository(Repository repo,
-            boolean isCiEnabled, String verifyBranchRegex,
-            String verifyBuildCommand, boolean isVerifyPinned,
-            String verifyLabel, String publishBranchRegex,
-            String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
-            String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
-            boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
-            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
-            throws SQLException, IllegalArgumentException;
+	public abstract void setRepositoryConfigurationForRepositoryFromRequest(
+			Repository repo, HttpServletRequest req) throws SQLException,
+			NumberFormatException;
 
-    public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
-        throws SQLException;
+	public abstract void setRepositoryConfigurationForRepository(
+			Repository repo, boolean isCiEnabled, String verifyBranchRegex,
+			String verifyBuildCommand, boolean isVerifyPinned,
+			String verifyLabel, String publishBranchRegex,
+			String publishBuildCommand, boolean isPublishPinned,
+			String publishLabel, String prebuildCommand,
+			String jenkinsServerName, boolean rebuildOnUpdate,
+			boolean isJunitEnabled, String junitPath, boolean artifactsEnabled,
+			String artifactsPath, Integer maxVerifyChain,
+			EmailSettings emailSettings, boolean strictVerifyMode,
+			Boolean preserveJenkinsJobConfig) throws SQLException,
+			IllegalArgumentException;
 
-    public abstract ImmutableCollection<String> getAllJenkinsServerNames()
-        throws SQLException;
+	public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
+			throws SQLException;
 
-    public abstract void validateName(String name) throws IllegalArgumentException;
+	public abstract ImmutableCollection<String> getAllJenkinsServerNames()
+			throws SQLException;
 
-    public abstract void validateNameExists(String name) throws IllegalArgumentException;
+	public abstract void validateName(String name)
+			throws IllegalArgumentException;
 
-    public abstract PullRequestMetadata getPullRequestMetadata(PullRequest pr);
+	public abstract void validateNameExists(String name)
+			throws IllegalArgumentException;
 
-    public abstract PullRequestMetadata getPullRequestMetadata(int repoId, Long prId, String fromSha, String toSha);
+	public abstract PullRequestMetadata getPullRequestMetadata(PullRequest pr);
 
-    public abstract ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr);
+	public abstract PullRequestMetadata getPullRequestMetadata(int repoId,
+			Long prId, String fromSha, String toSha);
 
-    // Automatically sets the fromHash and toHash from the PullRequest object
-    public abstract void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
-        Boolean success, Boolean override);
+	public abstract ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(
+			PullRequest pr);
 
-    // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
-    public abstract void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
-        Boolean success, Boolean override);
+	// Automatically sets the fromHash and toHash from the PullRequest object
+	public abstract void setPullRequestMetadata(PullRequest pr,
+			Boolean buildStarted, Boolean success, Boolean override);
 
-    // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
-    public abstract void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
-        Boolean success, Boolean override, Boolean failed);
+	// Allows fromHash and toHash to be set by the caller, in case we are
+	// referring to older commits
+	public abstract void setPullRequestMetadata(PullRequest pr,
+			String fromHash, String toHash, Boolean buildStarted,
+			Boolean success, Boolean override);
 
-    public abstract Boolean getJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt);
+	// Allows fromHash and toHash to be set by the caller, in case we are
+	// referring to older commits
+	public abstract void setPullRequestMetadata(PullRequest pr,
+			String fromHash, String toHash, Boolean buildStarted,
+			Boolean success, Boolean override, Boolean failed);
 
-    public abstract void setJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt, Boolean isEnabled);
+	public abstract Boolean getJobTypeStatusMapping(RepositoryConfiguration rc,
+			JobType jt);
 
-    public static class EmailSettings {
+	public abstract void setJobTypeStatusMapping(RepositoryConfiguration rc,
+			JobType jt, Boolean isEnabled);
 
-        private final Boolean emailNotificationsEnabled;
-        private final String emailRecipients;
-        private final Boolean emailForEveryUnstableBuild;
-        private final Boolean emailSendToIndividuals;
-        private final Boolean emailPerModuleEmail;
+	public static class EmailSettings {
 
-        public EmailSettings() {
-            this(false, "", false, false, false);
-        }
+		private final Boolean emailNotificationsEnabled;
+		private final String emailRecipients;
+		private final Boolean emailForEveryUnstableBuild;
+		private final Boolean emailSendToIndividuals;
+		private final Boolean emailPerModuleEmail;
 
-        public EmailSettings(Boolean emailNotificationsEnabled, String emailRecipients,
-            Boolean emailForEveryUnstableBuild, Boolean emailSendToIndividuals, Boolean emailPerModuleEmail) {
-            this.emailNotificationsEnabled = emailNotificationsEnabled;
-            this.emailRecipients = emailRecipients;
-            this.emailForEveryUnstableBuild = emailForEveryUnstableBuild;
-            this.emailSendToIndividuals = emailSendToIndividuals;
-            this.emailPerModuleEmail = emailPerModuleEmail;
-        }
+		public EmailSettings() {
+			this(false, "", false, false, false);
+		}
 
-        public Boolean getEmailNotificationsEnabled() {
-            return emailNotificationsEnabled;
-        }
+		public EmailSettings(Boolean emailNotificationsEnabled,
+				String emailRecipients, Boolean emailForEveryUnstableBuild,
+				Boolean emailSendToIndividuals, Boolean emailPerModuleEmail) {
+			this.emailNotificationsEnabled = emailNotificationsEnabled;
+			this.emailRecipients = emailRecipients;
+			this.emailForEveryUnstableBuild = emailForEveryUnstableBuild;
+			this.emailSendToIndividuals = emailSendToIndividuals;
+			this.emailPerModuleEmail = emailPerModuleEmail;
+		}
 
-        public String getEmailRecipients() {
-            return emailRecipients;
-        }
+		public Boolean getEmailNotificationsEnabled() {
+			return emailNotificationsEnabled;
+		}
 
-        public Boolean getEmailForEveryUnstableBuild() {
-            return emailForEveryUnstableBuild;
-        }
+		public String getEmailRecipients() {
+			return emailRecipients;
+		}
 
-        public Boolean getEmailSendToIndividuals() {
-            return emailSendToIndividuals;
-        }
+		public Boolean getEmailForEveryUnstableBuild() {
+			return emailForEveryUnstableBuild;
+		}
 
-        public Boolean getEmailPerModuleEmail() {
-            return emailPerModuleEmail;
-        }
-    }
+		public Boolean getEmailSendToIndividuals() {
+			return emailSendToIndividuals;
+		}
+
+		public Boolean getEmailPerModuleEmail() {
+			return emailPerModuleEmail;
+		}
+	}
 
 }
