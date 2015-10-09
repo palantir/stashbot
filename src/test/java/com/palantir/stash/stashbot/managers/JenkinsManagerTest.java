@@ -189,7 +189,7 @@ public class JenkinsManagerTest {
 
 		JobTemplate jt = jtm.getDefaultVerifyJob();
 
-		String jobName = jt.getBuildNameFor(repo);
+        String jobName = jt.getBuildNameFor(repo, jsc);
 		Job existingJob = Mockito.mock(Job.class);
 		Mockito.when(existingJob.getName()).thenReturn(jobName);
 		Map<String, Job> jobMap = new HashMap<String, Job>();
@@ -228,7 +228,7 @@ public class JenkinsManagerTest {
 
 		for (JobTemplate t : templates) {
 			Mockito.verify(jenkinsServer).createJob(
-					Mockito.eq(t.getBuildNameFor(repo)), Mockito.anyString());
+                Mockito.eq(t.getBuildNameFor(repo, jsc)), Mockito.anyString());
 		}
 	}
 
@@ -248,7 +248,7 @@ public class JenkinsManagerTest {
 
 		JobTemplate jt = jtm.getDefaultVerifyJob();
 		HashMap<String, Job> jobs = Maps.newHashMap();
-		jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic
+        jobs.put(jt.getBuildNameFor(repo, jsc), new Job()); // update job logic
 		// requires the job be
 		// there already
 
@@ -266,7 +266,7 @@ public class JenkinsManagerTest {
 
 		JobTemplate jt = jtm.getDefaultVerifyJob();
 		HashMap<String, Job> jobs = Maps.newHashMap();
-		jobs.put(jt.getBuildNameFor(repo), new Job()); // update job logic
+        jobs.put(jt.getBuildNameFor(repo, jsc), new Job()); // update job logic
 		// requires the job be
 		// there already
 

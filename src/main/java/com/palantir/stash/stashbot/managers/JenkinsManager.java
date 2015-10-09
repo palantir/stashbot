@@ -109,7 +109,7 @@ public class JenkinsManager implements DisposableBean {
 					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 			final JenkinsServer jenkinsServer = jenkinsClientManager
 					.getJenkinsServer(jsc, rc, repo);
-			final String jobName = jobTemplate.getBuildNameFor(repo);
+            final String jobName = jobTemplate.getBuildNameFor(repo, jsc);
 
 			// If we try to create a job which already exists, we still get a
 			// 200... so we should check first to make
@@ -151,7 +151,7 @@ public class JenkinsManager implements DisposableBean {
 					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 			final JenkinsServer jenkinsServer = jenkinsClientManager
 					.getJenkinsServer(jsc, rc, repo);
-			final String jobName = jobTemplate.getBuildNameFor(repo);
+            final String jobName = jobTemplate.getBuildNameFor(repo, jsc);
 
 			// If we try to create a job which already exists, we still get a
 			// 200... so we should check first to make
@@ -250,7 +250,7 @@ public class JenkinsManager implements DisposableBean {
 					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 			JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
-			String jenkinsBuildId = jt.getBuildNameFor(repo);
+            String jenkinsBuildId = jt.getBuildNameFor(repo, jsc);
 			String url = jsc.getUrlForRepo(repo);
 			String user = jsc.getUsername();
 			String password = jsc.getPassword();
@@ -262,7 +262,7 @@ public class JenkinsManager implements DisposableBean {
 			final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
 					rc, repo);
 			Map<String, Job> jobMap = js.getJobs();
-			String key = jt.getBuildNameFor(repo);
+            String key = jt.getBuildNameFor(repo, jsc);
 
 			if (!jobMap.containsKey(key)) {
 				throw new RuntimeException("Build doesn't exist: " + key);
@@ -312,7 +312,7 @@ public class JenkinsManager implements DisposableBean {
 					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
 			JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
-			String jenkinsBuildId = jt.getBuildNameFor(repo);
+            String jenkinsBuildId = jt.getBuildNameFor(repo, jsc);
 			String url = jsc.getUrlForRepo(repo);
 			String user = jsc.getUsername();
 			String password = jsc.getPassword();
@@ -324,7 +324,7 @@ public class JenkinsManager implements DisposableBean {
 			final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
 					rc, repo);
 			Map<String, Job> jobMap = js.getJobs();
-			String key = jt.getBuildNameFor(repo);
+            String key = jt.getBuildNameFor(repo, jsc);
 
 			if (!jobMap.containsKey(key)) {
 				throw new RuntimeException("Build doesn't exist: " + key);
@@ -410,7 +410,7 @@ public class JenkinsManager implements DisposableBean {
 			Map<String, Job> jobs = js.getJobs();
 
 			for (JobTemplate template : templates) {
-				if (!jobs.containsKey(template.getBuildNameFor(r))) {
+                if (!jobs.containsKey(template.getBuildNameFor(r, jsc))) {
 					log.info("Creating " + template.getName()
 							+ " job for repo " + r.toString());
 					createJob(r, template);
@@ -490,7 +490,7 @@ public class JenkinsManager implements DisposableBean {
 			JenkinsServer js = jcm.getJenkinsServer(jsc, rc, this.r);
 			Map<String, Job> jobs = js.getJobs();
 			for (JobTemplate jobTemplate : templates) {
-				if (!jobs.containsKey(jobTemplate.getBuildNameFor(r))) {
+                if (!jobs.containsKey(jobTemplate.getBuildNameFor(r, jsc))) {
 					log.info("Creating " + jobTemplate.getName()
 							+ " job for repo " + r.toString());
 					createJob(r, jobTemplate);

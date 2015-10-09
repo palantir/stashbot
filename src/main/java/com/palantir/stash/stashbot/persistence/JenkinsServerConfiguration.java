@@ -186,14 +186,16 @@ public interface JenkinsServerConfiguration extends Entity {
 
 	public void setPrefixTemplate(String template);
 
+    @NotNull
+    @Default("$project_$repo")
+    public String getJobTemplate();
+
+    public void setJobTemplate(String template);
+
 	// Implemented in JenkinsServerConfigurationImpl - expands variables in
 	// template and appends to url.
 	@Ignore
 	public String getUrlForRepo(Repository r);
-
-	@Ignore
-	@Deprecated
-	public void setUrlForRepo(String s);
 
 	// For security - allow a jenkins server config to be locked to
 	// non-system-admins

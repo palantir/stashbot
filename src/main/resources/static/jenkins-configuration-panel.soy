@@ -106,6 +106,12 @@
               {param value: $jenkinsConfig.prefixTemplate /}
               {param descriptionText: stash_i18n('stash.web.stash.prefixTemplate.description', 'Template used to put jobs in separate folders in jenkins.  Valid variables are $project and $repo') /}
             {/call}
+            {call aui.form.textField}
+              {param id: 'jobTemplate' /}
+              {param labelContent: stash_i18n('stash.web.stash.jobTemplate.label', 'Template used to generate job names') /}
+              {param value: $jenkinsConfig.jobTemplate /}
+              {param descriptionText: stash_i18n('stash.web.stash.jobTemplate.description', 'Valid variables are $project and $repo. Template will have the job type appended') /}
+            {/call}
             {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
               {param fields: [[
@@ -188,6 +194,12 @@
               {param labelContent: stash_i18n('stash.web.stash.prefixTemplate.label', 'Template used to put jobs in separate folders in jenkins') /}
               {param value: '' /}
               {param descriptionText: stash_i18n('stash.web.stash.prefixTemplate.description', 'Template used to put jobs in separate folders in jenkins.  Valid variables are $project and $repo') /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'jobTemplate' /}
+              {param labelContent: stash_i18n('stash.web.stash.jobTemplate.label', 'Template used to generate job names') /}
+              {param value: '$project_$repo' /}
+              {param descriptionText: stash_i18n('stash.web.stash.jobTemplate.description', 'Valid variables are $project and $repo. Template will have the job type appended') /}
             {/call}
             {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}

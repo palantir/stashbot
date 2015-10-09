@@ -60,7 +60,7 @@ public interface ConfigurationPersistenceService {
 			String username, String password,
 			AuthenticationMode authenticationMode, String stashUsername,
 			String stashPassword, Integer maxVerifyChain,
-			String prefixTemplate, Boolean isLocked) throws SQLException;
+        String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException;
 
 	public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
 			Repository repo) throws SQLException;

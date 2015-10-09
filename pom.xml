@@ -127,7 +127,7 @@
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>
             <artifactId>jenkins-client</artifactId>
-            <version>0.1.5</version>
+            <version>0.3.0</version>
             <!-- excluding guava because jenkins-client uses 13 but stash needs a different version -->
             <exclusions>
                 <exclusion>

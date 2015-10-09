@@ -132,12 +132,13 @@ ConfigurationPersistenceService {
 		Integer maxVerifyChain = Integer.parseInt(req
 				.getParameter("maxVerifyChain"));
 		String prefixTemplate = req.getParameter("prefixTemplate");
+        String jobTemplate = req.getParameter("jobTemplate");
 		String lockStr = req.getParameter("locked");
 		Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false
 				: true;
 
 		setJenkinsServerConfiguration(name, url, username, password, am,
-				stashUsername, stashPassword, maxVerifyChain, prefixTemplate,
+            stashUsername, stashPassword, maxVerifyChain, prefixTemplate, jobTemplate,
 				isLocked);
 	}
 
@@ -167,7 +168,7 @@ ConfigurationPersistenceService {
 			throws SQLException {
 		setJenkinsServerConfiguration(name, url, username, password,
 				authenticationMode, stashUsername, stashPassword,
-				maxVerifyChain, "", false);
+            maxVerifyChain, "", "$project_$repo", false);
 	}
 
 	/*
@@ -185,7 +186,7 @@ ConfigurationPersistenceService {
 			String username, String password,
 			AuthenticationMode authenticationMode, String stashUsername,
 			String stashPassword, Integer maxVerifyChain,
-			String prefixTemplate, Boolean isLocked) throws SQLException {
+        String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException {
 		if (name == null) {
 			name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
 		}
@@ -202,7 +203,7 @@ ConfigurationPersistenceService {
 					"STASH_USERNAME", stashUsername), new DBParam(
 					"STASH_PASSWORD", stashPassword), new DBParam(
 					"MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam(
-					"PREFIX_TEMPLATE", prefixTemplate), new DBParam("LOCKED",
+                "PREFIX_TEMPLATE", prefixTemplate), new DBParam("JOB_TEMPLATE", jobTemplate), new DBParam("LOCKED",
 					isLocked));
 			return;
 		}
@@ -216,6 +217,7 @@ ConfigurationPersistenceService {
 		configs[0].setStashPassword(stashPassword);
 		configs[0].setMaxVerifyChain(maxVerifyChain);
 		configs[0].setPrefixTemplate(prefixTemplate);
+        configs[0].setJobTemplate(jobTemplate);
 		configs[0].setLocked(isLocked);
 		configs[0].save();
 	}

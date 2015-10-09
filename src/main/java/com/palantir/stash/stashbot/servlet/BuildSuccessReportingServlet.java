@@ -330,11 +330,16 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 	private BuildStatus getSuccessStatus(Repository repo, JobTemplate jt,
 			State state, long buildNumber, String buildHead)
 			throws SQLException {
+        RepositoryConfiguration rc = configurationPersistanceManager
+            .getRepositoryConfigurationForRepository(repo);
+        JenkinsServerConfiguration jsc = configurationPersistanceManager
+            .getJenkinsServerConfiguration(rc.getJenkinsServerName());
+
 		Date now = new Date(java.lang.System.currentTimeMillis());
 
 		DateFormat df = DateFormat.getDateInstance();
 		// key will be the jenkins name
-		String key = jt.getBuildNameFor(repo);
+        String key = jt.getBuildNameFor(repo, jsc);
 		String name = key + " (build " + Long.toString(buildNumber) + ")";
 		String description = "Build " + Long.toString(buildNumber) + " "
 				+ state.toString() + " at " + df.format(now);
@@ -350,7 +355,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 				.getRepositoryConfigurationForRepository(repo);
 		JenkinsServerConfiguration jsc = configurationPersistanceManager
 				.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-		String key = jt.getBuildNameFor(repo);
+        String key = jt.getBuildNameFor(repo, jsc);
 		String url = jsc.getUrlForRepo(repo) + "/job/" + key + "/"
 				+ Long.toString(buildNumber);
 		return url;
