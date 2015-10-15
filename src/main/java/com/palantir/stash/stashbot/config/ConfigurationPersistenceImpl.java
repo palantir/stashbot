@@ -168,7 +168,7 @@ ConfigurationPersistenceService {
 			throws SQLException {
 		setJenkinsServerConfiguration(name, url, username, password,
 				authenticationMode, stashUsername, stashPassword,
-            maxVerifyChain, "", "$project_$repo", false);
+            maxVerifyChain, "/", "$project_$repo", false);
 	}
 
 	/*
