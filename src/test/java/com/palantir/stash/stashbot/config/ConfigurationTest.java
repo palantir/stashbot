@@ -290,7 +290,7 @@ public class ConfigurationTest {
             new DBParam("PASSWORD", "somepw"),
             new DBParam("STASH_USERNAME", "someuser"),
             new DBParam("STASH_PASSWORD", "somepw"),
-            new DBParam("PREFIX_TEMPLATE", ""),
+            new DBParam("PREFIX_TEMPLATE", "/"),
             new DBParam("MAX_VERIFY_CHAIN", 1));
         JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration("sometest");

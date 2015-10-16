@@ -182,8 +182,9 @@ public interface JenkinsServerConfiguration extends Entity {
 
 	public void setMaxVerifyChain(Integer max);
 
+	@NotNull
+	@Default("/")
 	public String getPrefixTemplate();
-
 	public void setPrefixTemplate(String template);
 
     @NotNull
