@@ -30,8 +30,6 @@ import com.palantir.stash.stashbot.jobtemplate.JobType;
 @Implementation(JobTemplateImpl.class)
 public interface JobTemplate extends Entity {
 
-
-
     @NotNull
     @Unique
     public String getName();

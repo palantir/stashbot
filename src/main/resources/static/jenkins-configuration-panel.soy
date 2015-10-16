@@ -63,13 +63,6 @@
               {param value: $jenkinsConfig.url /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
             {/call}
-            {call aui.form.selectField}
-              {param id: 'authenticationMode' /}
-              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
-              {param options: $authenticationModeData[$jenkinsConfig.name] /}
-              {param value: $jenkinsConfig.authenticationModeStr /}
-              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
-            {/call}
             {call aui.form.textField}
               {param id: 'username' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
@@ -82,6 +75,13 @@
               {param value: $jenkinsConfig.password /}
               {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
             {/call}
+            {call aui.form.selectField}
+              {param id: 'authenticationMode' /}
+              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
+              {param options: $authenticationModeData[$jenkinsConfig.name] /}
+              {param value: $jenkinsConfig.authenticationModeStr /}
+              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
+            {/call}
             {call aui.form.textField}
               {param id: 'stashUsername' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
@@ -92,7 +92,7 @@
               {param id: 'stashPassword' /}
               {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
               {param value: $jenkinsConfig.stashPassword /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
+              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password.  Supports $password and $repo replacement in Credential UUID mode.') /}
             {/call}
             {call aui.form.textField}
               {param id: 'maxVerifyChain' /}

@@ -44,4 +44,10 @@ public class JenkinsServerConfigurationImpl {
 			return "";
 		}
 	}
+
+	public static String convertCredUUID (String password, Repository r) {
+	    password = password.replaceAll("\\$project", r.getProject().getKey());
+	    password = password.replaceAll("\\$repo", r.getSlug());
+	    return password;
+	}
 }

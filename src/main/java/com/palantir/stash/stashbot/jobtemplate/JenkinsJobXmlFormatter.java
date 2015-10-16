@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.managers.VelocityManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfigurationImpl;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
@@ -82,21 +83,27 @@ public class JenkinsJobXmlFormatter {
         final JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
-        RepositoryCloneLinksRequest rclr =
-            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
-        String repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
-        String cleanRepositoryUrl = repositoryUrl;
+
+        RepositoryCloneLinksRequest rclr = null;
+        String repositoryUrl = null;
+        String cleanRepositoryUrl = null;
 
         // Handle the various Authentication modes
         switch (jsc.getAuthenticationMode()) {
         case USERNAME_AND_PASSWORD:
             // manually insert the username and pw we are configured to use
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+            repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
+            cleanRepositoryUrl = repositoryUrl;
             repositoryUrl = repositoryUrl.replace("://",
                 "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
                     + "@");
             break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
-            vc.put("credentialUUID", jsc.getStashPassword());
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").user(null).build();
+            repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
+            cleanRepositoryUrl = repositoryUrl;
+            vc.put("credentialUUID", JenkinsServerConfigurationImpl.convertCredUUID(jsc.getStashPassword(), repo));
             break;
         }
         vc.put("repositoryUrl", repositoryUrl);
@@ -225,7 +232,7 @@ public class JenkinsJobXmlFormatter {
 
     /**
      * XML specific parameter types
-     * 
+     *
      * @author cmyers
      */
     public static enum JenkinsBuildParamType {
@@ -236,9 +243,9 @@ public class JenkinsJobXmlFormatter {
     /**
      * Appends the shell magics to the build command to make it succeed/fail
      * properly.
-     * 
+     *
      * TODO: move this into the template?
-     * 
+     *
      * @param command
      * @return
      */
