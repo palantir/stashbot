@@ -56,7 +56,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 	/**
 	 * Handle information about build success / failure for a given hash and/or
 	 * pull request
-	 * 
+	 *
 	 * URL is of the form
 	 * BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD
 	 * /PULLREQUEST_ID] <br/>
@@ -68,7 +68,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 	 * is being built<br/>
 	 * MERGE_HEAD/PULLREQUEST_ID is the (optional) sha1 hash that was merged
 	 * into, along with the pull request ID<br/>
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 	private final Logger log;
@@ -356,7 +356,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
 		JenkinsServerConfiguration jsc = configurationPersistanceManager
 				.getJenkinsServerConfiguration(rc.getJenkinsServerName());
         String key = jt.getBuildNameFor(repo, jsc);
-		String url = jsc.getUrlForRepo(repo) + "/job/" + key + "/"
+		String url = jsc.getUrl() + jsc.getUrlForRepo(repo) + "/job/" + key + "/"
 				+ Long.toString(buildNumber);
 		return url;
 	}

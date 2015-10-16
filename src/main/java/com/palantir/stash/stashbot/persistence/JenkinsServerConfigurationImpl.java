@@ -39,9 +39,9 @@ public class JenkinsServerConfigurationImpl {
 					.getKey());
 			template = template.replaceAll("\\$repo", r.getSlug());
 
-			return jsc.getUrl() + template;
+			return template;
 		} else {
-			return jsc.getUrl();
+			return "";
 		}
 	}
 }

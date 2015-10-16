@@ -101,12 +101,6 @@ ConfigurationPersistenceService {
 			configs[0].setUrl(url);
 			configs[0].save();
 		}
-		String template = configs[0].getPrefixTemplate();
-		if (template.endsWith("/")) {
-			template = template.substring(0, template.length() - 1);
-			configs[0].setPrefixTemplate(template);
-			configs[0].save();
-		}
 		return configs[0];
 	}
 

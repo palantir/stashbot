@@ -251,7 +251,7 @@ public class JenkinsManager implements DisposableBean {
 			JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
             String jenkinsBuildId = jt.getBuildNameFor(repo, jsc);
-			String url = jsc.getUrlForRepo(repo);
+			String url = jsc.getUrl() + jsc.getUrlForRepo(repo);
 			String user = jsc.getUsername();
 			String password = jsc.getPassword();
 
@@ -313,7 +313,7 @@ public class JenkinsManager implements DisposableBean {
 			JobTemplate jt = jtm.getJobTemplate(jobType, rc);
 
             String jenkinsBuildId = jt.getBuildNameFor(repo, jsc);
-			String url = jsc.getUrlForRepo(repo);
+			String url = jsc.getUrl() + jsc.getUrlForRepo(repo);
 			String user = jsc.getUsername();
 			String password = jsc.getPassword();
 

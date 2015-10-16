@@ -35,7 +35,7 @@ public class JenkinsClientManager {
 	public JenkinsServer getJenkinsServer(JenkinsServerConfiguration jsc,
 			RepositoryConfiguration rc, Repository r) throws URISyntaxException {
         System.out.println(jsc.getUrlForRepo(r));
-		return new JenkinsServer(new URI(jsc.getUrlForRepo(r)),
+		return new JenkinsServer(new URI(jsc.getUrl()), jsc.getUrlForRepo(r),
 				jsc.getUsername(), jsc.getPassword());
 	}
 
