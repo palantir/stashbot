@@ -42,7 +42,7 @@ public class IsCiEnabledForRepoCondition implements Condition {
     @Override
     public boolean shouldDisplay(Map<String, Object> context) {
 
-        // request, principal, changeset, repository
+        // request, principal, commit, repository
         Repository repo = (Repository) context.get("repository");
         RepositoryConfiguration rc;
         if (repo == null) {

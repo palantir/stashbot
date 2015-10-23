@@ -185,10 +185,10 @@ public class TriggerJenkinsBuildHook implements PostReceiveHook {
 
         // returns in old-to-new order, already limited by max-verify-build limiter
         @SuppressWarnings("unchecked")
-        ImmutableList<String> changesets = (ImmutableList<String>) rloh.getOutput();
+        ImmutableList<String> commits = (ImmutableList<String>) rloh.getOutput();
 
         // For each new commit
-        for (String cs : changesets) {
+        for (String cs : commits) {
 
             if (publishBuilds.contains(cs)) {
                 log.info("Stashbot Trigger: NOT triggering VERIFICATION build for commit " + cs

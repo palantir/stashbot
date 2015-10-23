@@ -104,7 +104,7 @@ public class PullRequestListener {
                 return;
             }
             // just trigger a build of the new commit since the other hook doesn't catch merged PRs.
-            String mergeSha1 = event.getChangeset().getId();
+            String mergeSha1 = event.getCommit().getId();
             String targetBranch = pr.getToRef().getId();
             boolean publishEnabled = cpm.getJobTypeStatusMapping(rc, JobType.PUBLISH);
             boolean verifyEnabled = cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT);
@@ -175,7 +175,7 @@ public class PullRequestListener {
                         // build not started, so don't consider this PRM
                         continue;
                     }
-                    if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())) {
+                    if (cur.getFromSha().equals(pr.getFromRef().getLatestCommit())) {
                         // we found a PRM for which buildstarted = true and fromSha matches, so return
                         return;
                     }

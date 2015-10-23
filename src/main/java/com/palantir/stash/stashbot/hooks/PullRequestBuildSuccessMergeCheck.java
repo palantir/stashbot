@@ -23,8 +23,8 @@ import org.slf4j.Logger;
 import com.atlassian.stash.build.BuildStats;
 import com.atlassian.stash.build.BuildStatusService;
 import com.atlassian.stash.commit.CommitService;
-import com.atlassian.stash.content.Changeset;
-import com.atlassian.stash.content.ChangesetsBetweenRequest;
+import com.atlassian.stash.commit.Commit;
+import com.atlassian.stash.commit.CommitsBetweenRequest;
 import com.atlassian.stash.pull.PullRequest;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.scm.pull.MergeRequest;
@@ -113,11 +113,11 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
 
         // First, if strict mode is on, we want to veto for each commit in the PR that is missing a successful verify build
         if (rc.getStrictVerifyMode()) {
-            ChangesetsBetweenRequest cbr = new ChangesetsBetweenRequest.Builder(pr).build();
+            CommitsBetweenRequest cbr = new CommitsBetweenRequest.Builder(pr).build();
             PageRequest pageReq = new PageRequestImpl(0, 500);
-            Page<? extends Changeset> page = cs.getChangesetsBetween(cbr, pageReq);
+            Page<? extends Commit> page = cs.getCommitsBetween(cbr, pageReq);
             while (true) {
-                for (Changeset c : page.getValues()) {
+                for (Commit c : page.getValues()) {
                     log.trace("Processing commit " + c.getId());
                     BuildStats bs = bss.getStats(c.getId());
                     if (bs.getSuccessfulCount() == 0) {
@@ -130,7 +130,7 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
                     break;
                 }
                 pageReq = page.getNextPageRequest();
-                page = cs.getChangesetsBetween(cbr, pageReq);
+                page = cs.getCommitsBetween(cbr, pageReq);
             }
         }
 
@@ -139,7 +139,7 @@ public class PullRequestBuildSuccessMergeCheck implements MergeRequestCheck {
             // we want a PRM which simply matches the fromSha and the pull request ID.
             Collection<PullRequestMetadata> prms = cpm.getPullRequestMetadataWithoutToRef(pr);
             for (PullRequestMetadata cur : prms) {
-                if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())
+                if (cur.getFromSha().equals(pr.getFromRef().getLatestCommit())
                     && (cur.getOverride() || cur.getSuccess())) {
                     log.debug("Found match PRM");
                     log.debug("PRM: success " + cur.getSuccess().toString() + " override "

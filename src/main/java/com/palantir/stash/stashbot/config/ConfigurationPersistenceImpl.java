@@ -450,8 +450,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     private String pullRequestToString(PullRequest pr) {
         return "[id:" + Long.toString(pr.getId()) + ", from:"
-            + pr.getFromRef().getLatestChangeset() + ", to:"
-            + pr.getToRef().getLatestChangeset() + "]";
+            + pr.getFromRef().getLatestCommit() + ", to:"
+            + pr.getToRef().getLatestCommit() + "]";
     }
 
     /* (non-Javadoc)
@@ -460,8 +460,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     @Override
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
-            pr.getFromRef().getLatestChangeset().toString(),
-            pr.getToRef().getLatestChangeset().toString());
+            pr.getFromRef().getLatestCommit().toString(),
+            pr.getToRef().getLatestCommit().toString());
     }
 
     /* (non-Javadoc)
@@ -497,8 +497,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     @Override
     public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
         Long id = pr.getId();
-        String fromSha = pr.getFromRef().getLatestChangeset().toString();
-        String toSha = pr.getToRef().getLatestChangeset().toString();
+        String fromSha = pr.getFromRef().getLatestCommit().toString();
+        String toSha = pr.getToRef().getLatestCommit().toString();
 
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
             "PULL_REQUEST_ID = ? and FROM_SHA = ?", id, fromSha);
@@ -526,8 +526,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     @Override
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
         Boolean success, Boolean override) {
-        setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
-            pr.getToRef().getLatestChangeset(), buildStarted, success, override);
+        setPullRequestMetadata(pr, pr.getFromRef().getLatestCommit(),
+            pr.getToRef().getLatestCommit(), buildStarted, success, override);
     }
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
