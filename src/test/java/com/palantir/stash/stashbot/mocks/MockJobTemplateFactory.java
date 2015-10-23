@@ -64,10 +64,11 @@ public class MockJobTemplateFactory {
         Mockito.when(jm.isVisible()).thenReturn(true);
         Mockito.when(jm.isEnabled()).thenReturn(true);
 
+        templates.add(template);
+
         Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
         Mockito.when(jtm.fromString(rc, jt.toString())).thenReturn(template);
 
-        templates.add(template);
         mappings.add(jm);
         return template;
     }
