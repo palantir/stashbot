@@ -68,7 +68,7 @@ public class RetriggerLinkWebPanel implements WebPanel {
                 return;
             }
 
-            Commit Commit = (Commit) context.get("changeset");
+            Commit Commit = (Commit) context.get("commit");
             String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT,
                 Commit.getId(), null);
             String pubUrl = ub.getJenkinsTriggerUrl(repo, JobType.PUBLISH,
