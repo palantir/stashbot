@@ -210,5 +210,22 @@
     </hudson.tasks.ArtifactArchiver>
 #end
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+#if ($isTimestampJobOutputEnabled)
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6"/>
+#end
+#if ($isAnsiColorJobOutputEnabled)
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+#end
+#if ($isBuildTimeoutEnabled)
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.14.1">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>$buildTimeout</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+#end
+  </buildWrappers>
 </project>

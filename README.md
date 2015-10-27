@@ -9,10 +9,18 @@ To work with Jenkins, you MUST install the following jenkins plugins first.
 
 1. [Jenkins GIT plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin)
 2. [Post build task](https://wiki.jenkins-ci.org/display/JENKINS/Post+build+task)
-3. [Mailer Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Mailer) (optional, if you want email notifications)
-4. In order to have PR verify builds, your jenkins nodes must be able to create a merge commit, meaning your jenkins users should have a ~/.gitconfig file with a user/email set.  The commits are thrown away so the value doesn't matter.
+3. In order to have PR verify builds, your jenkins nodes must be able to create a merge commit, meaning your jenkins users should have a ~/.gitconfig file with a user/email set.  The commits are thrown away so the value doesn't matter.
 
 If any of these are missing, things won't work.
+
+Optionally, you may install the following plugins; stashbot will function
+without them, but the related options in your build configurations will have no
+effect:
+
+1. [Mailer Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Mailer) (required for email notifications)
+2. [Build timeout plugin](https://wiki.jenkins-ci.org/display/JENKINS/Build-timeout+Plugin)
+3. [Timestamper plugin](https://wiki.jenkins-ci.org/display/JENKINS/Timestamper)
+4. [ANSI color plugin](https://wiki.jenkins-ci.org/display/JENKINS/AnsiColor+Plugin)
 
 # USER GUIDE
 

@@ -160,6 +160,10 @@ public class RepoConfigurationServlet extends HttpServlet {
                         .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
                         .put("isStrictVerifyMode", rc.getStrictVerifyMode())
                         .put("isPreserveJenkinsJobConfig", rc.getPreserveJenkinsJobConfig())
+                        .put("isBuildTimeoutEnabled", rc.getBuildTimeoutEnabled())
+                        .put("buildTimeout", rc.getBuildTimeout())
+                        .put("isTimestampJobOutputEnabled", rc.getTimestampJobOutputEnabled())
+                        .put("isAnsiColorJobOutputEnabled", rc.getAnsiColorJobOutputEnabled())
                         .put("isLocked", isLocked(theJsc))
                         .put("verificationEnabled",
                             configurationPersistanceManager.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT))

@@ -31,6 +31,10 @@
  * @param verificationEnabled
  * @param verifyPREnabled
  * @param publishEnabled
+ * @param isTimestampJobOutputEnabled
+ * @param isAnsiColorJobOutputEnabled
+ * @param isBuildTimeoutEnabled
+ * @param buildTimeout
  *
  **/
 {template .repositoryConfigurationPanel}
@@ -257,6 +261,44 @@
               'id': 'isEmailPerModuleEmail',
               'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send e-mail for each failed module'),
               'isChecked': $isEmailPerModuleEmail
+              ]] /}
+          {/call}
+
+          <h4>&nbsp;</h4>
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.timeout-enabled.button.description', 'Set manual build timeout') /}
+            {param fields: [[
+              'id': 'isBuildTimeoutEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isBuildTimeoutEnabled
+              ]] /}
+          {/call}
+          {call aui.form.textField}
+            {param id: 'buildTimeout' /}
+            {param labelContent: stash_i18n('stash.web.stash.buildTimeout.label', 'Manual build timeout in minutes') /}
+            {param value: $buildTimeout /}
+          {/call}
+
+          <h4>&nbsp;</h4>
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.timestamp-enabled.button.description', 'Timestamp build output') /}
+            {param fields: [[
+              'id': 'isTimestampJobOutputEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isTimestampJobOutputEnabled
+              ]] /}
+          {/call}
+
+          <h4>&nbsp;</h4>
+
+          {call aui.form.checkboxField}
+            {param legendContent: stash_i18n('stash.web.stash.timestamp-enabled.button.description', 'ANSI colorize build output') /}
+            {param fields: [[
+              'id': 'isAnsiColorJobOutputEnabled',
+              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+              'isChecked': $isAnsiColorJobOutputEnabled
               ]] /}
           {/call}
 

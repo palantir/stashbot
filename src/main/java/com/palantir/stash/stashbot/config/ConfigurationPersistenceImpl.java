@@ -230,7 +230,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false);
+            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false, false, false, new BuildTimeoutSettings());
     }
 
     /* (non-Javadoc)
@@ -269,10 +269,15 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         EmailSettings emailSettings = getEmailSettings(req);
 
+        Boolean timestampJobOutputEnabled = getBoolean(req, "isTimestampJobOutputEnabled");
+        Boolean ansiColorJobOutputEnabled = getBoolean(req, "isAnsiColorJobOutputEnabled");
+        BuildTimeoutSettings buildTimeoutSettings = getBuildTimeoutSettings(req);
+
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
             verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
             jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, artifactsEnabled, artifactsPath,
-            maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig);
+            maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig,
+            timestampJobOutputEnabled, ansiColorJobOutputEnabled, buildTimeoutSettings);
         RepositoryConfiguration rc = getRepositoryConfigurationForRepository(repo);
         setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, getBoolean(req, "verificationEnabled"));
         setJobTypeStatusMapping(rc, JobType.VERIFY_PR, getBoolean(req, "verifyPREnabled"));
@@ -314,6 +319,12 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             emailSendToIndividuals, emailPerModuleEmail);
     }
 
+    private BuildTimeoutSettings getBuildTimeoutSettings(HttpServletRequest req) {
+        Boolean buildTimeoutEnabled = getBoolean(req, "isBuildTimeoutEnabled");
+        Integer buildTimeout = Integer.parseInt(req.getParameter("buildTimeout"));
+        return new BuildTimeoutSettings(buildTimeoutEnabled, buildTimeout);
+    }
+
     private boolean getBoolean(HttpServletRequest req, String parameter) {
         return (req.getParameter(parameter) == null) ? false : true;
     }
@@ -330,7 +341,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
             String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
             boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
-            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
+            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig,
+            boolean timestampJobOutputEnabled, boolean ansiColorJobOutputEnabled, BuildTimeoutSettings buildTimeoutSettings)
             throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -367,7 +379,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
                 new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals()),
                 new DBParam("STRICT_VERIFY_MODE", strictVerifyMode),
-                new DBParam("PRESERVE_JENKINS_JOB_CONFIG", preserveJenkinsJobConfig)
+                new DBParam("PRESERVE_JENKINS_JOB_CONFIG", preserveJenkinsJobConfig),
+                new DBParam("TIMESTAMPS_ENABLED", timestampJobOutputEnabled),
+                new DBParam("ANSICOLOR_ENABLED", ansiColorJobOutputEnabled),
+                new DBParam("BUILD_TIMEOUT_ENABLED", buildTimeoutSettings.getBuildTimeoutEnabled()),
+                new DBParam("BUILD_TIMEOUT", buildTimeoutSettings.getBuildTimeout())
                 );
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
@@ -406,6 +422,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         foundRepo.setEmailSendToIndividuals(emailSettings.getEmailSendToIndividuals());
         foundRepo.setStrictVerifyMode(strictVerifyMode);
         foundRepo.setPreserveJenkinsJobConfig(preserveJenkinsJobConfig);
+        foundRepo.setTimestampJobOutputEnabled(timestampJobOutputEnabled);
+        foundRepo.setAnsiColorJobOutputEnabled(ansiColorJobOutputEnabled);
+        foundRepo.setBuildTimeoutEnabled(buildTimeoutSettings.getBuildTimeoutEnabled());
+        foundRepo.setBuildTimeout(buildTimeoutSettings.getBuildTimeout());
         foundRepo.save();
     }
 

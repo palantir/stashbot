@@ -139,6 +139,16 @@ public class JenkinsJobXmlFormatter {
             break;
         }
 
+        // Configure build timestamps
+        vc.put("isTimestampJobOutputEnabled", rc.getTimestampJobOutputEnabled());
+
+        // Configure ANSI color
+        vc.put("isAnsiColorJobOutputEnabled", rc.getAnsiColorJobOutputEnabled());
+
+        // Configure build timeout
+        vc.put("isBuildTimeoutEnabled", rc.getBuildTimeoutEnabled());
+        vc.put("buildTimeout", rc.getBuildTimeout());
+
         // Add email notification stuff for all build types
         vc.put("isEmailNotificationsEnabled", rc.getEmailNotificationsEnabled());
         vc.put("emailRecipients", rc.getEmailRecipients());

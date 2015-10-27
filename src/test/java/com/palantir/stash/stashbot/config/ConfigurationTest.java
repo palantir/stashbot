@@ -43,6 +43,7 @@ import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildTimeoutSettings;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -184,7 +185,8 @@ public class ConfigurationTest {
             "verifyBranchRegex", "verifyBuildCommand",
             false, "N/A", "publishBranchRegex",
             "publishBuildCommand", false, "N/A", "prebuildCommand", "default", true, false, "N/A", false, "N/A",
-            size, new EmailSettings(true, "a@a.a", true, true, true), false, false);
+            size, new EmailSettings(true, "a@a.a", true, true, true), false, false,
+            false, false, new BuildTimeoutSettings(false, 0));
 
         RepositoryConfiguration rc = cpm
             .getRepositoryConfigurationForRepository(repo);
@@ -213,7 +215,8 @@ public class ConfigurationTest {
                 "verifyBranchRegex", "verifyBuildCommand",
                 false, "N/A",
                 "publishBranchRegex", "publishBuildCommand", false, "N/A", "prebuildCommand", "BADNAME", true, false,
-                "N/A", false, "N/A", null, new EmailSettings(), false, false);
+                "N/A", false, "N/A", null, new EmailSettings(), false, false,
+                false, false, new BuildTimeoutSettings(false, 0));
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success
