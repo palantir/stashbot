@@ -1,34 +1,41 @@
 # How to build
 
-Stashbot currently depends upon a custom version of the jenkins-client lib.
+Stashbot occasioanlly, during development, needs to depends upon a custom
+version of the jenkins-client lib.  These directions explain how to do this.
+You can tell if it is currently happening by examining the pom.xml file and
+looking to see if the version number includes a sha1 hash.  Once any changes are
+merged into the jenkins-client project, the hash will be removed and the version
+updated to use a stock version.
 
-This is because jenkins-client requires a newish version of Google Guava, but
-stash requires an ass-old version of guava.  The only way to square this is to
-modify jenkins-client to bundle its own copy of the guava libs it needs using
-"jarjar".
+It is also worth noting that, for complex reasons, we must depend upon a
+specific "classifier" of the jenkins-client lib, the one called "stash", because
+it has guava "shaded" (jarjar'd) into it.  This is because the jenkins-client
+lib needs a newer version of guava than stash currently uses.
 
-For now this custom jar is checked into git, but to rebuild them or produce your
-own, you can do the following:
+See references below for more resources explaining what happened and why.
+
+Suffice it to say, further development may require building a custom jar of
+jenkins-client and then depending upon it.  Below is the "correct way" I will
+accept in pull requests.  Your pull request should update the info below with
+the correct sha1 hashes and/or versions as well.
 
     git clone https://github.com/terabyte/jenkins-client.git
-    cd jenkins-client && git checkout feature/jarjar
+    cd jenkins-client && git checkout dff62680e778a73f13d6e9a2419300111b165c88
     mvn clean test compile
     mvn source:jar
-    mvn install:install-file -DgroupId=com.offbytwo.jenkins -DartifactId=jenkins-client -Dpackaging=jar -Dversion=0.3.1-`git log -1 --format="%H"` -DpomFile=pom.xml -Dsources=target/jenkins-client-0.3.1-SNAPSHOT-sources.jar -Dfile=target/jenkins-client-0.3.1-SNAPSHOT.jar -DlocalRepositoryPath=/home/cmyers/projects/stash/stashbot/jenkins-client
-
+    # deploy special stash version with jarjar
+    mvn install:install-file -DgroupId=com.offbytwo.jenkins -DartifactId=jenkins-client -Dclassifier=stash -Dpackaging=jar -Dversion=0.3.3-`git log -1 --format="%H"` -DpomFile=pom.xml -Dsources=target/jenkins-client-0.3.3-SNAPSHOT-sources.jar -Dfile=target/jenkins-client-0.3.3-SNAPSHOT-stash.jar -DlocalRepositoryPath=/home/cmyers/projects/oss/stashbot/jenkins-client
+    mvn install:install-file -DgroupId=com.offbytwo.jenkins -DartifactId=jenkins-client -Dpackaging=jar -Dversion=0.3.3-`git log -1 --format="%H"` -DpomFile=pom.xml -Dsources=target/jenkins-client-0.3.3-SNAPSHOT-sources.jar -Dfile=target/jenkins-client-0.3.3-SNAPSHOT.jar -DlocalRepositoryPath=/home/cmyers/projects/oss/stashbot/jenkins-client
 
 Then edit the pom.xml to point at the new jar.
 
-Sometimes maven flips out and running the source:jar target ruins the actual jar
-produced, so make sure the installed jar is over 2MB and not under 400kb (which
-is the difference between having guava bundled properly, or not)
-
-The exact sha1 used to generate the current libs is: 4f8ce857b5abf662129e8f95f1815db928cc64ea
+The exact sha1 used to generate the current libs is: dff62680e778a73f13d6e9a2419300111b165c88
 The upstream repo for jenkins-client is: https://github.com/RisingOak/jenkins-client.git
-The canonical sha1 from the upstream repo is: 032588c7eacdb73a3311d5943e1e363936d63f27
+The canonical sha1 from the upstream repo is: 078cebd3484e2e573d4e06f900ed27a4de3f3b0f (which had my 4-5 commits added to it)
 
 # References
 
+* https://github.com/RisingOak/jenkins-client/issues/75 
 * http://stackoverflow.com/questions/3765903/how-to-include-local-jar-files-in-maven-project
 
     vi: ft=markdown

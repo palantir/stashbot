@@ -3,10 +3,10 @@
   <groupId>com.offbytwo.jenkins</groupId>
   <artifactId>jenkins-client</artifactId>
   <versioning>
-    <release>0.3.1-4f8ce857b5abf662129e8f95f1815db928cc64ea</release>
+    <release>0.3.3-dff62680e778a73f13d6e9a2419300111b165c88</release>
     <versions>
-      <version>0.3.1-4f8ce857b5abf662129e8f95f1815db928cc64ea</version>
+      <version>0.3.3-dff62680e778a73f13d6e9a2419300111b165c88</version>
     </versions>
-    <lastUpdated>20150627012709</lastUpdated>
+    <lastUpdated>20151105030419</lastUpdated>
   </versioning>
 </metadata>

@@ -138,7 +138,7 @@
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>
             <artifactId>jenkins-client</artifactId>
-            <version>0.3.2</version>
+            <version>0.3.3-dff62680e778a73f13d6e9a2419300111b165c88</version>
             <classifier>stash</classifier><!-- has guava jarjar'd -->
             <!-- excluding guava because jenkins-client uses 13 but stash needs a different version -->
             <exclusions>
