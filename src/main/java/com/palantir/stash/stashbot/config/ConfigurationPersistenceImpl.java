@@ -207,6 +207,7 @@ ConfigurationPersistenceService {
 		configs[0].setUsername(username);
 		configs[0].setPassword(password);
 		configs[0].setAuthenticationMode(authenticationMode);
+		configs[0].setAuthenticationModeStr(authenticationMode.toString());
 		configs[0].setStashUsername(stashUsername);
 		configs[0].setStashPassword(stashPassword);
 		configs[0].setMaxVerifyChain(maxVerifyChain);
