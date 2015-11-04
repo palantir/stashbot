@@ -51,7 +51,8 @@ public interface ConfigurationPersistenceService {
 
     public abstract void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
+        String stashPassword, Integer maxVerifyChain, Boolean isLocked, Boolean foldersEnabled,
+        Boolean subfoldersEnabled, String folderPrefix)
         throws SQLException;
 
     public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
@@ -154,5 +155,4 @@ public interface ConfigurationPersistenceService {
             return emailPerModuleEmail;
         }
     }
-
 }

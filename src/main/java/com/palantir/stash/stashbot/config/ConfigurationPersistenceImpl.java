@@ -119,8 +119,18 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String lockStr = req.getParameter("locked");
         Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false : true;
 
+        // folder stuff
+        String foldersEnabledStr = req.getParameter("foldersEnabled");
+        Boolean foldersEnabled = (foldersEnabledStr == null || !foldersEnabledStr.equals("on")) ? false : true;
+        String subfoldersEnabledStr = req.getParameter("subfoldersEnabled");
+        Boolean subfoldersEnabled = (subfoldersEnabledStr == null || !subfoldersEnabledStr.equals("on")) ? false : true;
+        String folderPrefix = req.getParameter("folderPrefix");
+        if (folderPrefix != null && folderPrefix.isEmpty()) {
+            folderPrefix = null;
+        }
+
         setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain,
-            isLocked);
+            isLocked, foldersEnabled, subfoldersEnabled, folderPrefix);
     }
 
     /* (non-Javadoc)
@@ -132,7 +142,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
         throws SQLException {
         setJenkinsServerConfiguration(name, url, username, password, AuthenticationMode.USERNAME_AND_PASSWORD,
-            stashUsername, stashPassword, maxVerifyChain, false);
+            stashUsername, stashPassword, maxVerifyChain, false, false, false, null);
     }
 
     /* (non-Javadoc)
@@ -141,8 +151,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     @Override
     public void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
-        throws SQLException {
+        String stashPassword, Integer maxVerifyChain, Boolean isLocked, Boolean foldersEnabled,
+        Boolean subfoldersEnabled, String folderPrefix) throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
@@ -153,12 +163,19 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         if (configs.length == 0) {
             log.info("Creating jenkins configuration: " + name);
-            ao.create(JenkinsServerConfiguration.class, new DBParam("NAME",
-                name), new DBParam("URL", url), new DBParam("USERNAME",
-                username), new DBParam("PASSWORD", password), new DBParam(
-                "STASH_USERNAME", stashUsername), new DBParam(
-                "STASH_PASSWORD", stashPassword), new DBParam(
-                "MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam("LOCKED", isLocked));
+            ao.create(JenkinsServerConfiguration.class,
+                new DBParam("NAME", name),
+                new DBParam("URL", url),
+                new DBParam("USERNAME", username),
+                new DBParam("PASSWORD", password),
+                new DBParam("STASH_USERNAME", stashUsername),
+                new DBParam("STASH_PASSWORD", stashPassword),
+                new DBParam("MAX_VERIFY_CHAIN", maxVerifyChain),
+                new DBParam("LOCKED", isLocked),
+                new DBParam("FOLDER_SUPPORT", foldersEnabled),
+                new DBParam("USE_SUBFOLDERS", subfoldersEnabled),
+                new DBParam("FOLDER_PREFIX", folderPrefix)
+                );
             return;
         }
         // already exists, so update it
@@ -171,6 +188,9 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         configs[0].setStashPassword(stashPassword);
         configs[0].setMaxVerifyChain(maxVerifyChain);
         configs[0].setLocked(isLocked);
+        configs[0].setFolderSupportEnabled(foldersEnabled);
+        configs[0].setUseSubFolders(subfoldersEnabled);
+        configs[0].setFolderPrefix(folderPrefix);
         configs[0].save();
     }
 

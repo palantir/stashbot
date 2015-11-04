@@ -101,6 +101,28 @@
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
             {/call}
             {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Enable Folders (Requires Plugin)') /}
+              {param fields: [[
+                'id': 'foldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'Folders Enabled'),
+                'isChecked': $jenkinsConfig.folderSupportEnabled
+                ]] /}
+            {/call}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Use SubFolders') /}
+              {param fields: [[
+                'id': 'subfoldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'SubFolders Enabled'),
+                'isChecked': $jenkinsConfig.useSubFolders
+                ]] /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'folderPrefix' /}
+              {param labelContent: stash_i18n('stash.web.stash.folderPrefix.label', 'Folder Prefix (all jobs stored under this prefix)') /}
+              {param value: $jenkinsConfig.folderPrefix /}
+              {param descriptionText: stash_i18n('stash.web.stash.folderPrefix.description', 'Prefix to store jobs under') /}
+            {/call}
+            {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
               {param fields: [[
                 'id': 'locked',
@@ -176,6 +198,25 @@
               {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
               {param value: '10' /}
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+            {/call}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Enable Folders (Requires Plugin)') /}
+              {param fields: [[
+                'id': 'foldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'Folders Enabled'),
+                ]] /}
+            {/call}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Use SubFolders') /}
+              {param fields: [[
+                'id': 'subfoldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'SubFolders Enabled'),
+                ]] /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'folderPrefix' /}
+              {param labelContent: stash_i18n('stash.web.stash.folderPrefix.label', 'Folder Prefix (all jobs stored under this prefix)') /}
+              {param descriptionText: stash_i18n('stash.web.stash.folderPrefix.description', 'Prefix to store jobs under') /}
             {/call}
             {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}

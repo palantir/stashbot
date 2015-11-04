@@ -43,6 +43,7 @@ import com.atlassian.stash.user.StashUser;
 import com.atlassian.stash.user.UserService;
 import com.google.common.collect.Maps;
 import com.offbytwo.jenkins.JenkinsServer;
+import com.offbytwo.jenkins.model.FolderJob;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
@@ -203,7 +204,7 @@ public class JenkinsManagerTest {
             .forClass(String.class);
 
         Mockito.verify(xmlFormatter).generateJobXml(jt, repo);
-        Mockito.verify(jenkinsServer).createJob(Mockito.anyString(),
+        Mockito.verify(jenkinsServer).createJob(Mockito.any(FolderJob.class), Mockito.anyString(),
             xmlCaptor.capture(), Mockito.eq(false));
 
         Assert.assertEquals(XML_STRING, xmlCaptor.getValue());
@@ -218,6 +219,7 @@ public class JenkinsManagerTest {
         Map<String, Job> jobMap = new HashMap<String, Job>();
         jobMap.put(jobName, existingJob);
         Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
+        Mockito.when(jenkinsServer.getJobs((FolderJob) null)).thenReturn(jobMap);
 
         JobTemplate jt = jtm.getDefaultVerifyJob();
 
@@ -227,7 +229,8 @@ public class JenkinsManagerTest {
             .forClass(String.class);
 
         Mockito.verify(xmlFormatter).generateJobXml(jt, repo);
-        Mockito.verify(jenkinsServer).updateJob(Mockito.anyString(),
+        Mockito.verify(jenkinsServer).getJobs((FolderJob) null);
+        Mockito.verify(jenkinsServer).updateJob(Mockito.any(FolderJob.class), Mockito.anyString(),
             xmlCaptor.capture(), Mockito.eq(false));
         Mockito.verify(jenkinsServer, Mockito.never()).createJob(
             Mockito.anyString(), Mockito.anyString(), Mockito.eq(false));
@@ -248,6 +251,7 @@ public class JenkinsManagerTest {
         Map<String, Job> jobMap = new HashMap<String, Job>();
         jobMap.put(jobName, existingJob);
         Mockito.when(jenkinsServer.getJobs()).thenReturn(jobMap);
+        Mockito.when(jenkinsServer.getJobs((FolderJob) null)).thenReturn(jobMap);
 
         Mockito.when(jtm.getJobTemplate(JobType.VERIFY_COMMIT, rc)).thenReturn(
             jt);
@@ -280,8 +284,9 @@ public class JenkinsManagerTest {
         List<JobTemplate> templates = jtf.getMockTemplates();
 
         for (JobTemplate t : templates) {
-            Mockito.verify(jenkinsServer).createJob(
-                Mockito.eq(t.getBuildNameFor(repo)), Mockito.anyString(), Mockito.eq(false));
+            String buildName = t.getBuildNameFor(repo);
+            Mockito.verify(jenkinsServer).createJob((FolderJob) Mockito.isNull(), Mockito.eq(buildName),
+                Mockito.anyString(), Mockito.eq(false));
         }
     }
 
@@ -305,10 +310,12 @@ public class JenkinsManagerTest {
 
         Mockito.when(rc.getPreserveJenkinsJobConfig()).thenReturn(false);
         Mockito.when(jenkinsServer.getJobs()).thenReturn(jobs);
+        Mockito.when(jenkinsServer.getJobs((FolderJob) null)).thenReturn(jobs);
 
         jenkinsManager.updateJob(repo, jt);
 
-        Mockito.verify(jenkinsServer).updateJob(Mockito.anyString(), Mockito.anyString(), Mockito.eq(false));
+        Mockito.verify(jenkinsServer).updateJob(Mockito.any(FolderJob.class), Mockito.anyString(), Mockito.anyString(),
+            Mockito.eq(false));
     }
 
     @Test

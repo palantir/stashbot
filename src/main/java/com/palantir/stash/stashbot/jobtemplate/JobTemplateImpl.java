@@ -27,6 +27,13 @@ public class JobTemplateImpl {
     }
 
     // TODO: remove invalid characters from repo
+    public String getPathFor(Repository repo) {
+        String project = repo.getProject().getKey();
+        String nameSlug = repo.getSlug();
+        return new String(project + "/" + nameSlug).toLowerCase();
+    }
+
+    // TODO: remove invalid characters from repo
     public String getBuildNameFor(Repository repo) {
         String project = repo.getProject().getKey();
         String nameSlug = repo.getSlug();

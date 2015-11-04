@@ -50,4 +50,7 @@ public interface JobTemplate extends Entity {
     // Implemented logic outside of CRUD
     @Ignore
     public String getBuildNameFor(Repository repo);
+
+    @Ignore
+    public String getPathFor(Repository repo);
 }

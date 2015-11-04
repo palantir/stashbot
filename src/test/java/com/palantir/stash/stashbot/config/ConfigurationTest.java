@@ -112,7 +112,7 @@ public class ConfigurationTest {
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
         cpm.setJenkinsServerConfiguration(null, url, username, password,
-            null, stashUsername, stashPassword, maxVerifyChain, false);
+            null, stashUsername, stashPassword, maxVerifyChain, false, false, false, null);
         JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(null);
         Assert.assertEquals("default", jsc.getName());
@@ -152,9 +152,9 @@ public class ConfigurationTest {
     public void getsAllJenkinsServerConfigurationsNotEmpty() throws Exception {
 
         cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw",
-            null, "stashuser", "stashpw", 10, false);
+            null, "stashuser", "stashpw", 10, false, false, false, null);
         cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw",
-            null, "stashuser", "stashpw", 10, false);
+            null, "stashuser", "stashpw", 10, false, false, false, null);
 
         Collection<JenkinsServerConfiguration> jscs = cpm
             .getAllJenkinsServerConfigurations();
