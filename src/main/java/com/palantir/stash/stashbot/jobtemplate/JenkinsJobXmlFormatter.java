@@ -85,7 +85,7 @@ public class JenkinsJobXmlFormatter {
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
         RepositoryCloneLinksRequest rclr =
-            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").build();
         String repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
         String cleanRepositoryUrl = repositoryUrl;
 
