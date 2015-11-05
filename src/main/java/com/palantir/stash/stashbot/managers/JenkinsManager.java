@@ -179,6 +179,7 @@ public class JenkinsManager implements DisposableBean {
 
     private FolderJob getOrCreateFolderJob(JenkinsServer js, FolderJob root, String name) {
         try {
+            log.info("Attempting to fetch job '" + name + "' in folder '" + (root == null ? "/" : root) + "'");
             if (js.getJobs(root).containsKey(name)) {
                 Job j = js.getJob(root, name);
                 Optional<FolderJob> fj = js.getFolderJob(j);
@@ -188,7 +189,7 @@ public class JenkinsManager implements DisposableBean {
                 throw new IllegalStateException("job " + name + " exists in folder " + (root == null ? "/" : root)
                     + " but is not a folder");
             }
-            // job doesn't exist, so create folder
+            log.info("Job " + name + " did not exist; creating.");
             js.createFolder(root, name);
             Job j = js.getJob(root, name);
             Optional<FolderJob> fj = js.getFolderJob(j);

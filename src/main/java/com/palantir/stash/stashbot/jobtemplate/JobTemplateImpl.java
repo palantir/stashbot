@@ -30,6 +30,9 @@ public class JobTemplateImpl {
     public String getPathFor(Repository repo) {
         String project = repo.getProject().getKey();
         String nameSlug = repo.getSlug();
+        if (project.contains("~")) {
+            project = "_user_projects/" + project.replace("~", "_");
+        }
         return new String(project + "/" + nameSlug).toLowerCase();
     }
 
