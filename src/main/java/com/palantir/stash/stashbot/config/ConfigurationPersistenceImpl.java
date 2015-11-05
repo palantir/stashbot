@@ -117,13 +117,13 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String stashPassword = req.getParameter("stashPassword");
         Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
         String lockStr = req.getParameter("locked");
-        Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false : true;
+        Boolean isLocked = (lockStr != null && lockStr.equals("on"));
 
         // folder stuff
         String foldersEnabledStr = req.getParameter("foldersEnabled");
-        Boolean foldersEnabled = (foldersEnabledStr == null || !foldersEnabledStr.equals("on")) ? false : true;
+        Boolean foldersEnabled = (foldersEnabledStr != null && foldersEnabledStr.equals("on"));
         String subfoldersEnabledStr = req.getParameter("subfoldersEnabled");
-        Boolean subfoldersEnabled = (subfoldersEnabledStr == null || !subfoldersEnabledStr.equals("on")) ? false : true;
+        Boolean subfoldersEnabled = (subfoldersEnabledStr != null && subfoldersEnabledStr.equals("on"));
         String folderPrefix = req.getParameter("folderPrefix");
         if (folderPrefix != null && folderPrefix.isEmpty()) {
             folderPrefix = null;
