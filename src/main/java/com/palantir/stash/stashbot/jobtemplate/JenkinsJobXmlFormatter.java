@@ -94,7 +94,7 @@ public class JenkinsJobXmlFormatter {
         switch (jsc.getAuthenticationMode()) {
         case USERNAME_AND_PASSWORD:
             // manually insert the username and pw we are configured to use
-            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").build();
             repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
             cleanRepositoryUrl = repositoryUrl;
             repositoryUrl = repositoryUrl.replace("://",
