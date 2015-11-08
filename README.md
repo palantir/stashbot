@@ -1,3 +1,5 @@
+# Stashbot [![Build Status](https://travis-ci.org/terabyte/stashbot.svg?branch=master)](https://travis-ci.org/terabyte/stashbot)
+
 Stashbot Helper is a plugin designed to enable a continuous integration
 workflow within stash (similar to gerrit + jenkins).
 

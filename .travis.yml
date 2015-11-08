@@ -1,0 +1,19 @@
+language: java
+jdk:
+    - oraclejdk8
+notifications:
+    irc:
+        channels:
+            - "irc.freenode.org#stashbot"
+        on_success: always
+        on_failure: always
+        use_notice: true
+        skip_join: true
+
+install: ./bin/travis-install.sh
+cache:
+    directories:
+        - .sdk
+        - $HOME/.m2
+
+script: ./bin/travis.sh
