@@ -185,4 +185,27 @@ public interface JenkinsServerConfiguration extends Entity {
 
     @Mutator("LOCKED")
     public void setLocked(Boolean isLocked);
+
+    // Enable folder support
+    @NotNull
+    @Default("false")
+    @Accessor("FOLDER_SUPPORT")
+    public Boolean getFolderSupportEnabled();
+
+    @Mutator("FOLDER_SUPPORT")
+    public void setFolderSupportEnabled(Boolean isEnabled);
+
+    @NotNull
+    @Default("false")
+    @Accessor("USE_SUBFOLDERS")
+    public Boolean getUseSubFolders();
+
+    @Mutator("USE_SUBFOLDERS")
+    public void setUseSubFolders(Boolean useSubFolders);
+
+    @Accessor("FOLDER_PREFIX")
+    public String getFolderPrefix();
+
+    @Mutator("FOLDER_PREFIX")
+    public void setFolderPrefix(String folderPrefix);
 }

@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -46,9 +47,12 @@ import com.atlassian.stash.util.Operation;
 import com.atlassian.stash.util.Page;
 import com.atlassian.stash.util.PageRequest;
 import com.atlassian.stash.util.PageRequestImpl;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
+import com.google.common.jenkins_client_jarjar.base.Optional;
 import com.offbytwo.jenkins.JenkinsServer;
+import com.offbytwo.jenkins.model.FolderJob;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
@@ -173,6 +177,56 @@ public class JenkinsManager implements DisposableBean {
         }
     }
 
+    private FolderJob getOrCreateFolderJob(JenkinsServer js, FolderJob root, String name) {
+        try {
+            log.info("Attempting to fetch job '" + name + "' in folder '" + (root == null ? "/" : root) + "'");
+            if (js.getJobs(root).containsKey(name)) {
+                Job j = js.getJob(root, name);
+                Optional<FolderJob> fj = js.getFolderJob(j);
+                if (fj.isPresent()) {
+                    return fj.get();
+                }
+                throw new IllegalStateException("job " + name + " exists in folder " + (root == null ? "/" : root)
+                    + " but is not a folder");
+            }
+            log.info("Job " + name + " did not exist; creating.");
+            js.createFolder(root, name);
+            Job j = js.getJob(root, name);
+            Optional<FolderJob> fj = js.getFolderJob(j);
+            if (fj.isPresent()) {
+                return fj.get();
+            }
+            throw new IllegalStateException("tried to create folder " + name + " in folder "
+                + (root == null ? "/" : root) + " but it still doesn't exist");
+        } catch (IOException e) {
+            throw new RuntimeException("Exception while attempting to get/vivify folder chain", e);
+        }
+    }
+
+    private FolderJob getPrefixFolderJob(JenkinsServer js, JenkinsServerConfiguration jsc, JobTemplate jt,
+        Repository repo) {
+        String prefix = jsc.getFolderPrefix();
+        String folderName = jt.getPathFor(repo);
+        String fullPath = "";
+        if (prefix != null && !prefix.isEmpty()) {
+            fullPath = prefix;
+        }
+        if (jsc.getUseSubFolders()) {
+            if (!fullPath.isEmpty()) {
+                fullPath = StringUtils.join(ImmutableList.of(fullPath, folderName), "/");
+            } else {
+                fullPath = folderName;
+            }
+        }
+
+        FolderJob root = null;
+        List<String> pathParts = ImmutableList.copyOf(StringUtils.split(fullPath, "/"));
+        for (String part : pathParts) {
+            root = getOrCreateFolderJob(js, root, part);
+        }
+        return root;
+    }
+
     public void createJob(Repository repo, JobTemplate jobTemplate) {
         try {
             final RepositoryConfiguration rc = cpm
@@ -200,7 +254,8 @@ public class JenkinsManager implements DisposableBean {
             // If we try to create a job which already exists, we still get a
             // 200... so we should check first to make
             // sure it doesn't already exist
-            Map<String, Job> jobMap = jenkinsServer.getJobs();
+            FolderJob root = getPrefixFolderJob(jenkinsServer, jsc, jobTemplate, repo);
+            Map<String, Job> jobMap = jenkinsServer.getJobs(root);
 
             if (jobMap.containsKey(jobName)) {
                 throw new IllegalArgumentException("Job " + jobName
@@ -210,7 +265,7 @@ public class JenkinsManager implements DisposableBean {
             String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
 
             log.trace("Sending XML to jenkins to create job: " + xml);
-            jenkinsServer.createJob(jobName, xml, false);
+            jenkinsServer.createJob(root, jobName, xml, false);
         } catch (IOException e) {
             // TODO: something other than just rethrow?
             throw new RuntimeException(e);
@@ -252,25 +307,24 @@ public class JenkinsManager implements DisposableBean {
                 // do nothing
                 break;
             }
-            // If we try to create a job which already exists, we still get a
-            // 200... so we should check first to make
-            // sure it doesn't already exist
-            Map<String, Job> jobMap = jenkinsServer.getJobs();
+
+            FolderJob root = getPrefixFolderJob(jenkinsServer, jsc, jobTemplate, repo);
+            Map<String, Job> jobMap = jenkinsServer.getJobs(root);
 
             String xml = xmlFormatter.generateJobXml(jobTemplate, repo);
 
             if (jobMap.containsKey(jobName)) {
                 if (!rc.getPreserveJenkinsJobConfig()) {
                     log.trace("Sending XML to jenkins to update job: " + xml);
-                    jenkinsServer.updateJob(jobName, xml, false);
+                    jenkinsServer.updateJob(root, jobName, xml, false);
                 } else {
                     log.trace("Skipping sending XML to jenkins. Repo Config is set to preserve jenkins job config.");
                 }
                 return;
             }
 
-            log.trace("Sending XML to jenkins to create job: " + xml);
-            jenkinsServer.createJob(jobName, xml, false);
+            log.trace("Sending XML to jenkins to update job: " + xml);
+            jenkinsServer.createJob(root, jobName, xml, false);
         } catch (IOException e) {
             // TODO: something other than just rethrow?
             throw new RuntimeException(e);
@@ -351,7 +405,8 @@ public class JenkinsManager implements DisposableBean {
 
             final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
                 rc);
-            Map<String, Job> jobMap = js.getJobs();
+            FolderJob root = getPrefixFolderJob(js, jsc, jt, repo);
+            Map<String, Job> jobMap = js.getJobs(root);
             String key = jt.getBuildNameFor(repo);
 
             if (!jobMap.containsKey(key)) {
@@ -413,7 +468,8 @@ public class JenkinsManager implements DisposableBean {
 
             final JenkinsServer js = jenkinsClientManager.getJenkinsServer(jsc,
                 rc);
-            Map<String, Job> jobMap = js.getJobs();
+            FolderJob root = getPrefixFolderJob(js, jsc, jt, repo);
+            Map<String, Job> jobMap = js.getJobs(root);
             String key = jt.getBuildNameFor(repo);
 
             if (!jobMap.containsKey(key)) {
@@ -497,9 +553,10 @@ public class JenkinsManager implements DisposableBean {
             // make sure jobs exist
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
             JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
-            Map<String, Job> jobs = js.getJobs();
 
             for (JobTemplate template : templates) {
+                FolderJob root = getPrefixFolderJob(js, jsc, template, r);
+                Map<String, Job> jobs = js.getJobs(root);
                 if (!jobs.containsKey(template.getBuildNameFor(r))) {
                     log.info("Creating " + template.getName()
                         + " job for repo " + r.toString());
@@ -579,8 +636,9 @@ public class JenkinsManager implements DisposableBean {
             // make sure jobs are up to date
             List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
             JenkinsServer js = jcm.getJenkinsServer(jsc, rc);
-            Map<String, Job> jobs = js.getJobs();
             for (JobTemplate jobTemplate : templates) {
+                FolderJob root = getPrefixFolderJob(js, jsc, jobTemplate, r);
+                Map<String, Job> jobs = js.getJobs(root);
                 if (!jobs.containsKey(jobTemplate.getBuildNameFor(r))) {
                     log.info("Creating " + jobTemplate.getName()
                         + " job for repo " + r.toString());

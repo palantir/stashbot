@@ -27,6 +27,16 @@ public class JobTemplateImpl {
     }
 
     // TODO: remove invalid characters from repo
+    public String getPathFor(Repository repo) {
+        String project = repo.getProject().getKey();
+        String nameSlug = repo.getSlug();
+        if (project.contains("~")) {
+            project = "_user_projects/" + project.replace("~", "_");
+        }
+        return new String(project + "/" + nameSlug).toLowerCase();
+    }
+
+    // TODO: remove invalid characters from repo
     public String getBuildNameFor(Repository repo) {
         String project = repo.getProject().getKey();
         String nameSlug = repo.getSlug();

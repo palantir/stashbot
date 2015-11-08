@@ -101,6 +101,28 @@
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
             {/call}
             {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Enable Folders (Requires Plugin)') /}
+              {param fields: [[
+                'id': 'foldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'Folders Enabled'),
+                'isChecked': $jenkinsConfig.folderSupportEnabled
+                ]] /}
+            {/call}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Use SubFolders') /}
+              {param fields: [[
+                'id': 'subfoldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'SubFolders Enabled'),
+                'isChecked': $jenkinsConfig.useSubFolders
+                ]] /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'folderPrefix' /}
+              {param labelContent: stash_i18n('stash.web.stash.folderPrefix.label', 'Folder Prefix (all jobs stored under this prefix)') /}
+              {param value: $jenkinsConfig.folderPrefix /}
+              {param descriptionText: stash_i18n('stash.web.stash.folderPrefix.description', 'Prefix to store jobs under') /}
+            {/call}
+            {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
               {param fields: [[
                 'id': 'locked',
@@ -178,6 +200,25 @@
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
             {/call}
             {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Enable Folders (Requires Plugin)') /}
+              {param fields: [[
+                'id': 'foldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'Folders Enabled'),
+                ]] /}
+            {/call}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Use SubFolders') /}
+              {param fields: [[
+                'id': 'subfoldersEnabled',
+                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'SubFolders Enabled'),
+                ]] /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'folderPrefix' /}
+              {param labelContent: stash_i18n('stash.web.stash.folderPrefix.label', 'Folder Prefix (all jobs stored under this prefix)') /}
+              {param descriptionText: stash_i18n('stash.web.stash.folderPrefix.description', 'Prefix to store jobs under') /}
+            {/call}
+            {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
               {param fields: [[
                 'id': 'locked',
@@ -210,6 +251,7 @@ Jenkins configurations include the following fields:
 <li><b>stashUsername</b>: The username to use to log into stash from jenkins (for cloning repos and reporting build results).  This account is automatically created if it does not exist already.  It is recommended you generate a reasonable username/password pair.  If you prefer for auditing purposes, you may use an account from crowd/LDAP by using the existing credentials in this field.</li>
 <li><b>stashPassword</b>: The password to use to log into stash from jenkins (same comment applies as for the username).</li>
 <li><b>maxVerifyChain</b>: The maximum number of builds to trigger for a single push.  Individual repositories also have this setting, but they are limited by the setting of the jenkins server as well.  Set to 0 for "no limit".  You probably want to set this to between 50% and 200% of the number of executors your jenkins instance has, depending on how long your build takes, your expected latency, and load.</li>
+<li><b>Folder Support / Prefix</b>: Enabling folder support requires you have the Cloudbees Folder Plugin installed in your jenkins instance.  This allows stashbot to place builds into folders for organization.  If you select "use subfolders", you will additionally get the jobs placed into a subfolder - one per repo.  If you set a non-empty prefix, such as "stashbot", the folders/jobs will be placed under a folder by that name (which is created if it does not exist).  If you use a prefix string which contains slashes (i.e. "premerge/stashbot" you will get a nested structure (stashbot folder under the premerge folder).</li>  
 </ul>
 </p>
 </div>
