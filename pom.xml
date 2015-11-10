@@ -211,9 +211,7 @@
                             <dataVersion>${bitbucket.data.version}</dataVersion>
                             <containerId>${bitbucket.containerId}</containerId>
                             <log4jProperties>${basedir}/log4j.properties</log4jProperties>
-                            <!-- XXX This is currently broken, fix it!
                             <productDataPath>${basedir}/home-data/generated-test-resources.zip</productDataPath>
-                            -->
                         </product>
                     </products>
                 </configuration>
