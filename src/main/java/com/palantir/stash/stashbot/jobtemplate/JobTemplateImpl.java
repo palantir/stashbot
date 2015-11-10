@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.jobtemplate;
 
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.repository.Repository;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 
 // Custom AO implementation

@@ -21,7 +21,7 @@ import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.repository.Repository;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateImpl;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 

@@ -12,7 +12,7 @@
 <html>
 <head>
     <meta name="decorator" content="atl.admin">
-    <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot Jenkins Server Configuration')}}</title>
+    <title>Stashbot Jenkins Server Configuration</title>
 </head>
 <body>
 {if $error}
@@ -39,7 +39,7 @@
     {param content}
         {call aui.group.item}
             {param content}
-                <h2>{{stash_i18n('stash.web.repository.stashbot.heading', 'Stashbot Jenkins Settings')}}</h2>
+                <h2>Stashbot Jenkins Settings</h2>
             {/param}
         {/call}
     {/param}
@@ -53,80 +53,80 @@
           {param content}
             {call aui.form.textField}
               {param id: 'name' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
+              {param labelContent: 'Jenkins Server Name' /}
               {param value: $jenkinsConfig.name /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
+              {param descriptionText: 'Jenkins Server Name (referred to in the repository configuration)' /}
             {/call}
             {call aui.form.textField}
               {param id: 'url' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
+              {param labelContent: 'Jenkins URL' /}
               {param value: $jenkinsConfig.url /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+              {param descriptionText: 'Jenkins URL (e.g. http://jenkins.example.com:1234/)' /}
             {/call}
             {call aui.form.selectField}
               {param id: 'authenticationMode' /}
-              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
+              {param labelContent: 'Bitbucket Authentication Mode' /}
               {param options: $authenticationModeData[$jenkinsConfig.name] /}
               {param value: $jenkinsConfig.authenticationModeStr /}
-              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
+              {param descriptionText: 'Bitbucket Authentication Mode' /}
             {/call}
             {call aui.form.textField}
               {param id: 'username' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
+              {param labelContent: 'Jenkins Username' /}
               {param value: $jenkinsConfig.username /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
+              {param descriptionText: 'Jenkins Username' /}
             {/call}
             {call aui.form.passwordField}
               {param id: 'password' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
+              {param labelContent: 'Jenkins Password' /}
               {param value: $jenkinsConfig.password /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
+              {param descriptionText: 'Jenkins Password' /}
             {/call}
             {call aui.form.textField}
               {param id: 'stashUsername' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
+              {param labelContent: 'Bitbucket Username' /}
               {param value: $jenkinsConfig.stashUsername /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
+              {param descriptionText: 'Bitbucket Username' /}
             {/call}
             {call aui.form.passwordField}
               {param id: 'stashPassword' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
+              {param labelContent: 'Bitbucket Password' /}
               {param value: $jenkinsConfig.stashPassword /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
+              {param descriptionText: 'Bitbucket Password' /}
             {/call}
             {call aui.form.textField}
               {param id: 'maxVerifyChain' /}
-              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+              {param labelContent: 'Maximum number of commits to verify on a single push' /}
               {param value: ($jenkinsConfig.maxVerifyChain == 0 ? '0' : $jenkinsConfig.maxVerifyChain) /}
-              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+              {param descriptionText: 'Maximum number of commits to verify on a single push' /}
             {/call}
             {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Enable Folders (Requires Plugin)') /}
+              {param legendContent: 'Enable Folders (Requires Plugin)' /}
               {param fields: [[
                 'id': 'foldersEnabled',
-                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'Folders Enabled'),
+                'labelText': 'Folders Enabled',
                 'isChecked': $jenkinsConfig.folderSupportEnabled
                 ]] /}
             {/call}
             {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Use SubFolders') /}
+              {param legendContent: 'Use SubFolders' /}
               {param fields: [[
                 'id': 'subfoldersEnabled',
-                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'SubFolders Enabled'),
+                'labelText': 'SubFolders Enabled',
                 'isChecked': $jenkinsConfig.useSubFolders
                 ]] /}
             {/call}
             {call aui.form.textField}
               {param id: 'folderPrefix' /}
-              {param labelContent: stash_i18n('stash.web.stash.folderPrefix.label', 'Folder Prefix (all jobs stored under this prefix)') /}
+              {param labelContent: 'Folder Prefix (all jobs stored under this prefix)' /}
               {param value: $jenkinsConfig.folderPrefix /}
-              {param descriptionText: stash_i18n('stash.web.stash.folderPrefix.description', 'Prefix to store jobs under') /}
+              {param descriptionText: 'Prefix to store jobs under' /}
             {/call}
             {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
+              {param legendContent: 'Lock projects into this configuration' /}
               {param fields: [[
                 'id': 'locked',
-                'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
+                'labelText': 'Locked',
                 'isChecked': $jenkinsConfig.locked
                 ]] /}
             {/call}
@@ -139,7 +139,8 @@
 	            {/call}
 	          {/param}
             {/call}
-		    {call stash.buttons.button}
+            /* bitbucket.INTERNAL.buttons.button => ...uh oh?  */
+	    {call bitbucket.internal.buttons.button}
               {param id: 'delete' /}
               {param buttonText: 'Delete Entry ' + $jenkinsConfig.name /}
               {param href: $relUrl + '/delete/' + $jenkinsConfig.name /}
@@ -153,76 +154,76 @@
           {param content}
             {call aui.form.textField}
               {param id: 'name' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
+              {param labelContent: 'Jenkins Server Name' /}
               {param value: 'enter name here [a-zA-Z0-9]+' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
+              {param descriptionText: 'Jenkins Server Name (referred to in the repository configuration)' /}
             {/call}
             {call aui.form.textField}
               {param id: 'url' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
+              {param labelContent: 'Jenkins URL' /}
               {param value: 'http://jenkins.example.com:8080/' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+              {param descriptionText: 'Jenkins URL (e.g. http://jenkins.example.com:1234/)' /}
             {/call}
             {call aui.form.selectField}
               {param id: 'authenticationMode' /}
-              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
+              {param labelContent: 'Bitbucket Authentication Mode' /}
               {param options: $authenticationModeData['default'] /}
-              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
+              {param descriptionText: 'Bitbucket Authentication Mode' /}
             {/call}
             {call aui.form.textField}
               {param id: 'username' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
+              {param labelContent: 'Jenkins Username' /}
               {param value: 'jenkins_user' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
+              {param descriptionText: 'Jenkins Username' /}
             {/call}
             {call aui.form.passwordField}
               {param id: 'password' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
+              {param labelContent: 'Jenkins Password' /}
               {param value: 'jenkins_password' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
+              {param descriptionText: 'Jenkins Password' /}
             {/call}
             {call aui.form.textField}
               {param id: 'stashUsername' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
+              {param labelContent: 'Bitbucket Username' /}
               {param value: 'stash_user' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
+              {param descriptionText: 'Bitbucket Username' /}
             {/call}
             {call aui.form.passwordField}
               {param id: 'stashPassword' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
+              {param labelContent: 'Bitbucket Password' /}
               {param value: 'stash_password' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
+              {param descriptionText: 'Bitbucket Password' /}
             {/call}
             {call aui.form.textField}
               {param id: 'maxVerifyChain' /}
-              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+              {param labelContent: 'Maximum number of commits to verify on a single push' /}
               {param value: '10' /}
-              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+              {param descriptionText: 'Maximum number of commits to verify on a single push' /}
             {/call}
             {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Enable Folders (Requires Plugin)') /}
+              {param legendContent: 'Enable Folders (Requires Plugin)' /}
               {param fields: [[
                 'id': 'foldersEnabled',
-                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'Folders Enabled'),
+                'labelText': 'Folders Enabled',
                 ]] /}
             {/call}
             {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.foldersEnabled.button.description', 'Use SubFolders') /}
+              {param legendContent: 'Use SubFolders' /}
               {param fields: [[
                 'id': 'subfoldersEnabled',
-                'labelText': stash_i18n('stash.web.stash.foldersEnabled.button.label', 'SubFolders Enabled'),
+                'labelText': 'SubFolders Enabled',
                 ]] /}
             {/call}
             {call aui.form.textField}
               {param id: 'folderPrefix' /}
-              {param labelContent: stash_i18n('stash.web.stash.folderPrefix.label', 'Folder Prefix (all jobs stored under this prefix)') /}
-              {param descriptionText: stash_i18n('stash.web.stash.folderPrefix.description', 'Prefix to store jobs under') /}
+              {param labelContent: 'Folder Prefix (all jobs stored under this prefix)' /}
+              {param descriptionText: 'Prefix to store jobs under' /}
             {/call}
             {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
+              {param legendContent: 'Lock projects into this configuration' /}
               {param fields: [[
                 'id': 'locked',
-                'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
+                'labelText': 'Locked',
                 ]] /}
             {/call}
             {call aui.form.buttons}
@@ -245,11 +246,12 @@ Jenkins configurations include the following fields:
 <ul>
 <li><b>name</b>: The name users will see when they select this jenkins server</li>
 <li><b>url</b>: The URL for the jenkins instance.  (e.g. https://jenkins.example.com:8080/)</li>
-<li><b>Authentication Mode</b>: The authentication mode to use for jenkins to talk back to stash.  If you select Manual Credentials, create it in jenkins first then add the UUID of the credential in the password field, while using a valid username for stash in the username field (which is still used for comments on pull requests, etc.)</li>
+<li><b>Authentication Mode</b>: The authentication mode to use for jenkins to
+talk back to Bitbucket.  If you select Manual Credentials, create it in jenkins first then add the UUID of the credential in the password field, while using a valid username for bitbucket in the username field (which is still used for comments on pull requests, etc.)</li>
 <li><b>username</b>: The username to use to log into jenkins (value is ignored if authentication is not enabled).
 <li><b>password</b>: The password to use to log into jenkins (value is ignored if authentication is not enabled).
-<li><b>stashUsername</b>: The username to use to log into stash from jenkins (for cloning repos and reporting build results).  This account is automatically created if it does not exist already.  It is recommended you generate a reasonable username/password pair.  If you prefer for auditing purposes, you may use an account from crowd/LDAP by using the existing credentials in this field.</li>
-<li><b>stashPassword</b>: The password to use to log into stash from jenkins (same comment applies as for the username).</li>
+<li><b>Bitbucket Username</b>: The username to use to log into bitbucket from jenkins (for cloning repos and reporting build results).  This account is automatically created if it does not exist already.  It is recommended you generate a reasonable username/password pair.  If you prefer for auditing purposes, you may use an account from crowd/LDAP by using the existing credentials in this field.</li>
+<li><b>Bitbucket Password</b>: The password to use to log into bitbucket from jenkins (same comment applies as for the username).</li>
 <li><b>maxVerifyChain</b>: The maximum number of builds to trigger for a single push.  Individual repositories also have this setting, but they are limited by the setting of the jenkins server as well.  Set to 0 for "no limit".  You probably want to set this to between 50% and 200% of the number of executors your jenkins instance has, depending on how long your build takes, your expected latency, and load.</li>
 <li><b>Folder Support / Prefix</b>: Enabling folder support requires you have the Cloudbees Folder Plugin installed in your jenkins instance.  This allows stashbot to place builds into folders for organization.  If you select "use subfolders", you will additionally get the jobs placed into a subfolder - one per repo.  If you set a non-empty prefix, such as "stashbot", the folders/jobs will be placed under a folder by that name (which is created if it does not exist).  If you use a prefix string which contains slashes (i.e. "premerge/stashbot" you will get a nested structure (stashbot folder under the premerge folder).</li>  
 </ul>

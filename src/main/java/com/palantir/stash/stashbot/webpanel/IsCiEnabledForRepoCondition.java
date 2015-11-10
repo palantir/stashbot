@@ -18,9 +18,9 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 
+import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.plugin.PluginParseException;
 import com.atlassian.plugin.web.Condition;
-import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;

@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import com.atlassian.stash.scm.CommandOutputHandler;
+import com.atlassian.bitbucket.scm.CommandOutputHandler;
 import com.atlassian.utils.process.ProcessException;
 import com.atlassian.utils.process.Watchdog;
 import com.google.common.collect.ImmutableList;

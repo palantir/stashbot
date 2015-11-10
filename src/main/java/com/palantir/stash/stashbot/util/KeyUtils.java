@@ -7,15 +7,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 /**
- * This class implements some helper functions since com.atlassian.stash.ssh.utils.KeyUtils is not available to
+ * This class implements some helper functions since com.atlassian.bitbucket.ssh.utils.KeyUtils is not available to
  * plugins.
  * 
  * @author cmyers
@@ -49,7 +49,7 @@ public class KeyUtils {
             // http://stackoverflow.com/questions/5616052/how-can-i-convert-a-4-byte-array-to-an-integer
             int typeLength = ByteBuffer.wrap(decoded, position, 4).getInt();
             position += 4;
-            String type = bytesToStringAscii(ArrayUtils.subarray(decoded, position, position + typeLength));
+            String type = bytesToStringAscii(Arrays.copyOfRange(decoded, position, position + typeLength));
             position += typeLength;
 
             // next read the exponent
@@ -57,13 +57,13 @@ public class KeyUtils {
             int exponentLength = ByteBuffer.wrap(decoded, position, 4).getInt();
             position += 4;
             //int exponent = ByteBuffer.wrap(decoded, position, 4).getInt();
-            BigInteger exponent = new BigInteger(ArrayUtils.subarray(decoded, position, position + exponentLength));
+            BigInteger exponent = new BigInteger(Arrays.copyOfRange(decoded, position, position + exponentLength));
             position += exponentLength;
 
             // next read the modulus
             int modulusLength = ByteBuffer.wrap(decoded, position, 4).getInt();
             position += 4;
-            BigInteger modulus = new BigInteger(ArrayUtils.subarray(decoded, position, position + modulusLength));
+            BigInteger modulus = new BigInteger(Arrays.copyOfRange(decoded, position, position + modulusLength));
 
             KeyFactory kf = KeyFactory.getInstance("RSA");
             // need modulus and private exponent
@@ -78,7 +78,6 @@ public class KeyUtils {
         } catch (Exception e) {
             log.error("Unable to parse public key", e);
             return null;
-
         }
     }
 

@@ -26,9 +26,9 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.jcraft.jsch.JSch;
@@ -195,7 +195,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getRepositoryConfigurationForRepository(com.atlassian.bitbucket.repository.Repository)
      */
     @Override
     public RepositoryConfiguration getRepositoryConfigurationForRepository(
@@ -219,7 +219,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.bitbucket.repository.Repository, boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean)
      */
     @Override
     public void setRepositoryConfigurationForRepository(Repository repo,
@@ -234,7 +234,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepositoryFromRequest(com.atlassian.stash.repository.Repository, javax.servlet.http.HttpServletRequest)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepositoryFromRequest(com.atlassian.bitbucket.repository.Repository, javax.servlet.http.HttpServletRequest)
      */
     @Override
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
@@ -330,7 +330,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, java.lang.String, boolean, java.lang.String, java.lang.Integer, com.palantir.stash.stashbot.config.EmailSettings, boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.bitbucket.repository.Repository, boolean, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, java.lang.String, boolean, java.lang.String, java.lang.Integer, com.palantir.stash.stashbot.config.EmailSettings, boolean, java.lang.Boolean)
      */
     @Override
     public void
@@ -353,7 +353,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             Query.select().where("REPO_ID = ?", repo.getId()));
         if (repos.length == 0) {
             log.info("Creating repository configuration for id: "
-                + repo.getId().toString());
+                + repo.getId());
             RepositoryConfiguration rc = ao.create(
                 RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()), new DBParam(
@@ -495,18 +495,18 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     private String pullRequestToString(PullRequest pr) {
         return "[id:" + Long.toString(pr.getId()) + ", from:"
-            + pr.getFromRef().getLatestChangeset() + ", to:"
-            + pr.getToRef().getLatestChangeset() + "]";
+            + pr.getFromRef().getLatestCommit() + ", to:"
+            + pr.getToRef().getLatestCommit() + "]";
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(com.atlassian.stash.pull.PullRequest)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest)
      */
     @Override
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
-            pr.getFromRef().getLatestChangeset().toString(),
-            pr.getToRef().getLatestChangeset().toString());
+            pr.getFromRef().getLatestCommit().toString(),
+            pr.getToRef().getLatestCommit().toString());
     }
 
     /* (non-Javadoc)
@@ -537,13 +537,13 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadataWithoutToRef(com.atlassian.stash.pull.PullRequest)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadataWithoutToRef(com.atlassian.bitbucket.pull.PullRequest)
      */
     @Override
     public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
         Long id = pr.getId();
-        String fromSha = pr.getFromRef().getLatestChangeset().toString();
-        String toSha = pr.getToRef().getLatestChangeset().toString();
+        String fromSha = pr.getFromRef().getLatestCommit().toString();
+        String toSha = pr.getToRef().getLatestCommit().toString();
 
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
             "PULL_REQUEST_ID = ? and FROM_SHA = ?", id, fromSha);
@@ -566,18 +566,18 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     // Automatically sets the fromHash and toHash from the PullRequest object
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
      */
     @Override
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
         Boolean success, Boolean override) {
-        setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
-            pr.getToRef().getLatestChangeset(), buildStarted, success, override);
+        setPullRequestMetadata(pr, pr.getFromRef().getLatestCommit(),
+            pr.getToRef().getLatestCommit(), buildStarted, success, override);
     }
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
      */
     @Override
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
@@ -587,7 +587,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
      */
     @Override
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,

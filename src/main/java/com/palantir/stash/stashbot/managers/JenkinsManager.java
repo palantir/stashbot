@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -36,17 +36,17 @@ import org.apache.velocity.app.VelocityEngine;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.user.UserService;
+import com.atlassian.bitbucket.util.Operation;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequest;
+import com.atlassian.bitbucket.util.PageRequestImpl;
 import com.atlassian.sal.api.user.UserManager;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.SecurityService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.user.UserService;
-import com.atlassian.stash.util.Operation;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
-import com.atlassian.stash.util.PageRequestImpl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
@@ -339,7 +339,7 @@ public class JenkinsManager implements DisposableBean {
         final String hashToBuild, final String buildRef) {
 
         final String username = um.getRemoteUser().getUsername();
-        final StashUser su = us.findUserByNameOrEmail(username);
+        final ApplicationUser su = us.findUserByNameOrEmail(username);
 
         es.submit(new Callable<Void>() {
 
@@ -364,7 +364,7 @@ public class JenkinsManager implements DisposableBean {
         final PullRequest pr) {
 
         final String username = um.getRemoteUser().getUsername();
-        final StashUser su = us.findUserByNameOrEmail(username);
+        final ApplicationUser su = us.findUserByNameOrEmail(username);
 
         es.submit(new Callable<Void>() {
 
@@ -415,7 +415,7 @@ public class JenkinsManager implements DisposableBean {
 
             Builder<String, String> builder = ImmutableMap.builder();
             builder.put("buildHead", hashToBuild);
-            builder.put("repoId", repo.getId().toString());
+            builder.put("repoId", String.valueOf(repo.getId()));
             if (buildRef != null) {
                 builder.put("buildRef", buildRef);
             }
@@ -448,8 +448,8 @@ public class JenkinsManager implements DisposableBean {
         PullRequest pullRequest) {
 
         try {
-            String pullRequestId = pullRequest.getId().toString();
-            String hashToBuild = pullRequest.getToRef().getLatestChangeset();
+            String pullRequestId = String.valueOf(pullRequest.getId());
+            String hashToBuild = pullRequest.getToRef().getLatestCommit();
 
             RepositoryConfiguration rc = cpm
                 .getRepositoryConfigurationForRepository(repo);
@@ -477,19 +477,19 @@ public class JenkinsManager implements DisposableBean {
             }
 
             Builder<String, String> builder = ImmutableMap.builder();
-            builder.put("repoId", repo.getId().toString());
+            builder.put("repoId", String.valueOf(repo.getId()));
             if (pullRequest != null) {
                 log.debug("Determined pullRequestId " + pullRequestId);
                 builder.put("pullRequestId", pullRequestId);
                 // toRef is always present in the repo
                 builder.put("buildHead", pullRequest.getToRef()
-                    .getLatestChangeset().toString());
+                    .getLatestCommit().toString());
                 // fromRef may be in a different repo
                 builder.put("mergeRef", pullRequest.getFromRef().getId());
                 builder.put("buildRef", pullRequest.getToRef().getId());
                 builder.put("mergeRefUrl", sub.buildCloneUrl(pullRequest.getFromRef().getRepository(), jsc));
                 builder.put("mergeHead", pullRequest.getFromRef()
-                    .getLatestChangeset().toString());
+                    .getLatestCommit().toString());
             }
 
             jobMap.get(key).build(builder.build(), false);

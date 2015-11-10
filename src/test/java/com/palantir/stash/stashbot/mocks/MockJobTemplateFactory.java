@@ -18,7 +18,7 @@ import java.util.List;
 
 import org.mockito.Mockito;
 
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;

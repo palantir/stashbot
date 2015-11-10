@@ -35,18 +35,18 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.atlassian.bitbucket.AuthorisationException;
+import com.atlassian.bitbucket.i18n.KeyedMessage;
+import com.atlassian.bitbucket.permission.Permission;
+import com.atlassian.bitbucket.permission.PermissionValidationService;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestSearchRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequest;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
-import com.atlassian.stash.exception.AuthorisationException;
-import com.atlassian.stash.i18n.KeyedMessage;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestSearchRequest;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.Permission;
-import com.atlassian.stash.user.PermissionValidationService;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.atlassian.webresource.api.assembler.WebResourceAssembler;
@@ -319,7 +319,7 @@ public class RepoConfigurationServletTest {
         when(jsc.getLocked()).thenReturn(true);
         when(jsc2.getLocked()).thenReturn(false);
         Exception permissionException =
-            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+            new AuthorisationException(new KeyedMessage("permission exceptionz", "", ""));
         Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         when(req.getParameter("jenkinsServerName")).thenReturn("default2");
@@ -336,7 +336,7 @@ public class RepoConfigurationServletTest {
         when(jsc.getLocked()).thenReturn(false);
         when(jsc2.getLocked()).thenReturn(true);
         Exception permissionException =
-            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+            new AuthorisationException(new KeyedMessage("permission exceptionz", "", ""));
         Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         when(req.getParameter("jenkinsServerName")).thenReturn("default2");

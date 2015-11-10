@@ -23,11 +23,11 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
-import com.atlassian.stash.nav.NavBuilder;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.util.NamedLink;
+import com.atlassian.bitbucket.nav.NavBuilder;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryCloneLinksRequest;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.util.NamedLink;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
