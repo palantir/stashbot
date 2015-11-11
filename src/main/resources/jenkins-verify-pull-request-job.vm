@@ -121,7 +121,7 @@
   <builders>
     <hudson.tasks.Shell>
         <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
-        <command>(git reset --hard HEAD &amp;&amp; (sudo -n git clean -fdx || git clean -fdx)) || (echo "SETUP exited with status $? ; FAILURE1" ; /bin/false)</command>
+        <command>(git reset --hard HEAD &amp;&amp; (git clean -fdx || sudo -n git clean -fdx)) || (echo "SETUP exited with status $? ; FAILURE1" ; /bin/false)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$esc.xml($startedCommand)</command>
