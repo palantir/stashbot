@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -26,6 +27,7 @@ import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
 import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.stash.util.NamedLink;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
@@ -92,7 +94,7 @@ public class JenkinsJobXmlFormatter {
         switch (jsc.getAuthenticationMode()) {
         case USERNAME_AND_PASSWORD:
             // manually insert the username and pw we are configured to use
-            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").build();
             repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
             cleanRepositoryUrl = repositoryUrl;
             repositoryUrl = repositoryUrl.replace("://",
@@ -100,8 +102,21 @@ public class JenkinsJobXmlFormatter {
                     + "@");
             break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
-            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").user(null).build();
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").build();
+            // FIXME: Carl replaced the following line:
             repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
+            /* FIXME with something like the following:
+
+            Set<NamedLink> links = rs.getCloneLinks(sshrclr);
+            if (links.size() != 1) {
+                throw new RuntimeException("Unable to get a unique ssh clone URL for repo " + repo.getName());
+            }
+            repositoryUrl = links.iterator().next().getHref();
+
+             * But that was for CREDENTIAL_AUTOMATIC_SSH_KEY, and I don't know
+             * how similar/different it is from CREDENTIAL_MANUALLY_CONFIGURED.
+             */
+
             cleanRepositoryUrl = repositoryUrl;
             vc.put("credentialUUID", JenkinsServerConfigurationImpl.convertCredUUID(jsc.getStashPassword(), repo));
             break;

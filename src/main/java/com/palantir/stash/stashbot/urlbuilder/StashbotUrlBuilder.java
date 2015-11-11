@@ -80,7 +80,7 @@ public class StashbotUrlBuilder {
                     + "@");
             break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
-            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").user(null).build();
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").build();
             url = rs.getCloneLinks(rclr).iterator().next().getHref();
             break;
         default:

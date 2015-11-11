@@ -51,6 +51,7 @@ public class MockJobTemplateFactory {
         Mockito.when(jtm.getDefaultVerifyJob()).thenReturn(verifyCommit);
         Mockito.when(jtm.getDefaultVerifyPullRequestJob()).thenReturn(verifyPR);
         Mockito.when(jtm.getDefaultPublishJob()).thenReturn(publish);
+        Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
     }
 
     public JobTemplate getJobTemplate(Repository repo, RepositoryConfiguration rc, JobType jt) throws Exception {
@@ -70,10 +71,11 @@ public class MockJobTemplateFactory {
         Mockito.when(jm.isVisible()).thenReturn(true);
         Mockito.when(jm.isEnabled()).thenReturn(true);
 
+        templates.add(template);
+
         Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
         Mockito.when(jtm.fromString(rc, jt.toString())).thenReturn(template);
 
-        templates.add(template);
         mappings.add(jm);
         return template;
     }

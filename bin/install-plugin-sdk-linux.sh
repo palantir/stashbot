@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Version 4.2.20
-DOWNLOAD_URL="https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz/version/42230"
+# Version 5.0.13
+DOWNLOAD_URL="https://marketplace.atlassian.com/download/plugins/atlassian-plugin-sdk-tgz/version/42260"
 # To find new URLs, see: https://marketplace.atlassian.com/plugins/atlassian-plugin-sdk-tgz/versions
 
 INSTALL_BIN=`pwd`/.sdk.tar.gz

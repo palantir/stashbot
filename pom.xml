@@ -212,9 +212,9 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>3.6.0</stash.version>
-        <stash.data.version>3.6.0</stash.data.version>
-        <stash.containerId>tomcat7x</stash.containerId>
+        <stash.version>3.11.4</stash.version>
+        <stash.data.version>3.11.4</stash.data.version>
+        <stash.containerId>tomcat8x</stash.containerId>
         <!--
         WARNING: manually sync this with the version in stash - variable in the
         pom has the same name but isn't imported for some reason.
