@@ -41,8 +41,8 @@ public class AtlassianPluginTest {
     @Before
     public void setUp() {
         exceptionClasses = ImmutableSet.of(
-            "com.atlassian.stash.web.conditions.HasRepositoryPermissionCondition",
-            "com.atlassian.stash.web.conditions.HasGlobalPermissionCondition"
+            "com.atlassian.bitbucket.web.conditions.HasRepositoryPermissionCondition",
+            "com.atlassian.bitbucket.web.conditions.HasGlobalPermissionCondition"
             );
     }
 

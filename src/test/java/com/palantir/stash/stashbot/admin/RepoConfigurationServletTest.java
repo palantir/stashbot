@@ -19,9 +19,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.Map;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,18 +35,18 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.atlassian.bitbucket.AuthorisationException;
+import com.atlassian.bitbucket.i18n.KeyedMessage;
+import com.atlassian.bitbucket.permission.Permission;
+import com.atlassian.bitbucket.permission.PermissionValidationService;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestSearchRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequest;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
-import com.atlassian.stash.exception.AuthorisationException;
-import com.atlassian.stash.i18n.KeyedMessage;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestSearchRequest;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.Permission;
-import com.atlassian.stash.user.PermissionValidationService;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.atlassian.webresource.api.assembler.RequiredResources;
 import com.atlassian.webresource.api.assembler.WebResourceAssembler;
@@ -54,6 +57,7 @@ import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.servlet.RepoConfigurationServlet;
 
@@ -170,8 +174,10 @@ public class RepoConfigurationServletTest {
 
         Mockito.when(jsc.getName()).thenReturn(JSN);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
+        Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
         Mockito.when(jsc2.getName()).thenReturn(JSN + "2");
         Mockito.when(jsc2.getStashUsername()).thenReturn("someuser");
+        Mockito.when(jsc2.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
 
         allServers = ImmutableList.of(jsc, jsc2);
         when(cpm.getAllJenkinsServerConfigurations()).thenReturn(allServers);
@@ -313,7 +319,7 @@ public class RepoConfigurationServletTest {
         when(jsc.getLocked()).thenReturn(true);
         when(jsc2.getLocked()).thenReturn(false);
         Exception permissionException =
-            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+            new AuthorisationException(new KeyedMessage("permission exceptionz", "", ""));
         Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         when(req.getParameter("jenkinsServerName")).thenReturn("default2");
@@ -330,7 +336,7 @@ public class RepoConfigurationServletTest {
         when(jsc.getLocked()).thenReturn(false);
         when(jsc2.getLocked()).thenReturn(true);
         Exception permissionException =
-            new AuthorisationException(new KeyedMessage("permission exceptionz", null, null));
+            new AuthorisationException(new KeyedMessage("permission exceptionz", "", ""));
         Mockito.doThrow(permissionException).when(pvs).validateForGlobal(Permission.SYS_ADMIN);
 
         when(req.getParameter("jenkinsServerName")).thenReturn("default2");
@@ -339,5 +345,17 @@ public class RepoConfigurationServletTest {
 
         rcs.doPost(req, res);
         verify(res).sendError(Mockito.anyInt(), Mockito.anyString());
+    }
+
+    @Test
+    public void testAddsUserToRepo() throws SQLException, ServletException, IOException {
+        when(req.getParameter("jenkinsServerName")).thenReturn("default");
+        when(cpm.getDefaultPublicSshKey()).thenReturn("somekey");
+        when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.CREDENTIAL_AUTOMATIC_SSH_KEY);
+
+        rcs.doPost(req, res);
+
+        // verify the key is added
+        verify(pum).addUserToRepoForReading("someuser", mockRepo);
     }
 }

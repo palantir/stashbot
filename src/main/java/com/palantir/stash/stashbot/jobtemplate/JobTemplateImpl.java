@@ -13,7 +13,7 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.jobtemplate;
 
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.repository.Repository;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 
 // Custom AO implementation
@@ -24,6 +24,16 @@ public class JobTemplateImpl {
 
     public JobTemplateImpl(JobTemplate jt) {
         this.dis = jt;
+    }
+
+    // TODO: remove invalid characters from repo
+    public String getPathFor(Repository repo) {
+        String project = repo.getProject().getKey();
+        String nameSlug = repo.getSlug();
+        if (project.contains("~")) {
+            project = "_user_projects/" + project.replace("~", "_");
+        }
+        return new String(project + "/" + nameSlug).toLowerCase();
     }
 
     // TODO: remove invalid characters from repo

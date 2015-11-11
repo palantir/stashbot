@@ -15,9 +15,9 @@ package com.palantir.stash.stashbot.event;
 
 import javax.annotation.Nonnull;
 
-import com.atlassian.stash.event.pull.PullRequestEvent;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestAction;
+import com.atlassian.bitbucket.event.pull.PullRequestEvent;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestAction;
 
 /*
  * Defines an event to describe when the stashbot metadata is updated

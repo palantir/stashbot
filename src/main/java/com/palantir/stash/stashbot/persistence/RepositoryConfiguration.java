@@ -13,7 +13,9 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.persistence;
 
+import net.java.ao.Accessor;
 import net.java.ao.Entity;
+import net.java.ao.Mutator;
 import net.java.ao.Preload;
 import net.java.ao.schema.Default;
 import net.java.ao.schema.NotNull;
@@ -174,6 +176,38 @@ public interface RepositoryConfiguration extends Entity {
     public Boolean getStrictVerifyMode();
 
     public void setStrictVerifyMode(Boolean strictVerifyMode);
+
+    @NotNull
+    @Default("false")
+    @Accessor("TIMESTAMPS_ENABLED")
+    public Boolean getTimestampJobOutputEnabled();
+
+    @Mutator("TIMESTAMPS_ENABLED")
+    public void setTimestampJobOutputEnabled(Boolean timestampJobOutputEnabled);
+
+    @NotNull
+    @Default("false")
+    @Accessor("BUILD_TIMEOUT_ENABLED")
+    public Boolean getBuildTimeoutEnabled();
+
+    @Mutator("BUILD_TIMEOUT_ENABLED")
+    public void setBuildTimeoutEnabled(Boolean buildTimeoutEnabled);
+
+    @NotNull
+    @Default("180")
+    @Accessor("BUILD_TIMEOUT")
+    public Integer getBuildTimeout();
+
+    @Mutator("BUILD_TIMEOUT")
+    public void setBuildTimeout(Integer buildTimeout);
+
+    @NotNull
+    @Default("false")
+    @Accessor("ANSICOLOR_ENABLED")
+    public Boolean getAnsiColorJobOutputEnabled();
+
+    @Mutator("ANSICOLOR_ENABLED")
+    public void setAnsiColorJobOutputEnabled(Boolean ansiColorJobOutputEnabled);
 
     @NotNull
     @Default("false")

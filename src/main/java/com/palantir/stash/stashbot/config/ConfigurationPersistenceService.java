@@ -18,8 +18,8 @@ import java.sql.SQLException;
 import javax.servlet.http.HttpServletRequest;
 
 import com.atlassian.activeobjects.tx.Transactional;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -51,7 +51,8 @@ public interface ConfigurationPersistenceService {
 
     public abstract void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
+        String stashPassword, Integer maxVerifyChain, Boolean isLocked, Boolean foldersEnabled,
+        Boolean subfoldersEnabled, String folderPrefix)
         throws SQLException;
 
     public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
@@ -74,7 +75,8 @@ public interface ConfigurationPersistenceService {
             String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
             String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
             boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
-            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
+            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig, boolean timestampJobOutputEnabled,
+            boolean ansiColorJobOutputEnabled, BuildTimeoutSettings buildTimeoutSettings)
             throws SQLException, IllegalArgumentException;
 
     public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
@@ -108,6 +110,10 @@ public interface ConfigurationPersistenceService {
     public abstract Boolean getJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt);
 
     public abstract void setJobTypeStatusMapping(RepositoryConfiguration rc, JobType jt, Boolean isEnabled);
+
+    public abstract String getDefaultPublicSshKey();
+
+    public abstract String getDefaultPrivateSshKey();
 
     public static class EmailSettings {
 
@@ -148,6 +154,29 @@ public interface ConfigurationPersistenceService {
 
         public Boolean getEmailPerModuleEmail() {
             return emailPerModuleEmail;
+        }
+    }
+
+    public static class BuildTimeoutSettings {
+
+        private final Boolean buildTimeoutEnabled;
+        private final Integer buildTimeout;
+
+        public BuildTimeoutSettings() {
+            this(false, null);
+        }
+
+        public BuildTimeoutSettings(Boolean buildTimeoutEnabled, Integer buildTimeout) {
+            this.buildTimeoutEnabled = buildTimeoutEnabled;
+            this.buildTimeout = buildTimeout;
+        }
+
+        public Boolean getBuildTimeoutEnabled() {
+            return buildTimeoutEnabled;
+        }
+
+        public Integer getBuildTimeout() {
+            return buildTimeout;
         }
     }
 

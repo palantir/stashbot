@@ -18,6 +18,8 @@
   credentialUUID
   artifactsEnabled
   artifactsPath
+  authVersion
+  privKey
 
   esc - escape tool - required
   @author cmyers
@@ -45,6 +47,7 @@
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
   </properties>
+#if ( $authVersion == 1 )
   <scm class="hudson.plugins.git.GitSCM" plugin="git@1.1.26">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
@@ -86,6 +89,27 @@
     <includedRegions></includedRegions>
     <scmName></scmName>
   </scm>
+#else
+## new style auth
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@2.3.5">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <name>origin</name>
+        <url>$esc.xml($repositoryUrl)</url>
+        <credentialsId>$credentialUUID</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>$buildHead</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+#end
 #if ( $isPinned )
   <assignedNode>$label</assignedNode>
   <canRoam>false</canRoam>
@@ -186,5 +210,22 @@
     </hudson.tasks.ArtifactArchiver>
 #end
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+#if ($isTimestampJobOutputEnabled)
+    <hudson.plugins.timestamper.TimestamperBuildWrapper plugin="timestamper@1.6"/>
+#end
+#if ($isAnsiColorJobOutputEnabled)
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.4.1">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+#end
+#if ($isBuildTimeoutEnabled)
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.14.1">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+        <timeoutMinutes>$buildTimeout</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+#end
+  </buildWrappers>
 </project>

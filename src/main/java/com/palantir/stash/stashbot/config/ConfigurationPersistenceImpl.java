@@ -13,6 +13,7 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.config;
 
+import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +26,18 @@ import net.java.ao.Query;
 import org.slf4j.Logger;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.KeyPair;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.AuthenticationCredential;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
@@ -112,10 +117,20 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String stashPassword = req.getParameter("stashPassword");
         Integer maxVerifyChain = Integer.parseInt(req.getParameter("maxVerifyChain"));
         String lockStr = req.getParameter("locked");
-        Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false : true;
+        Boolean isLocked = (lockStr != null && lockStr.equals("on"));
+
+        // folder stuff
+        String foldersEnabledStr = req.getParameter("foldersEnabled");
+        Boolean foldersEnabled = (foldersEnabledStr != null && foldersEnabledStr.equals("on"));
+        String subfoldersEnabledStr = req.getParameter("subfoldersEnabled");
+        Boolean subfoldersEnabled = (subfoldersEnabledStr != null && subfoldersEnabledStr.equals("on"));
+        String folderPrefix = req.getParameter("folderPrefix");
+        if (folderPrefix != null && folderPrefix.isEmpty()) {
+            folderPrefix = null;
+        }
 
         setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain,
-            isLocked);
+            isLocked, foldersEnabled, subfoldersEnabled, folderPrefix);
     }
 
     /* (non-Javadoc)
@@ -127,7 +142,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String username, String password, String stashUsername, String stashPassword, Integer maxVerifyChain)
         throws SQLException {
         setJenkinsServerConfiguration(name, url, username, password, AuthenticationMode.USERNAME_AND_PASSWORD,
-            stashUsername, stashPassword, maxVerifyChain, false);
+            stashUsername, stashPassword, maxVerifyChain, false, false, false, null);
     }
 
     /* (non-Javadoc)
@@ -136,8 +151,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     @Override
     public void setJenkinsServerConfiguration(String name, String url,
         String username, String password, AuthenticationMode authenticationMode, String stashUsername,
-        String stashPassword, Integer maxVerifyChain, Boolean isLocked)
-        throws SQLException {
+        String stashPassword, Integer maxVerifyChain, Boolean isLocked, Boolean foldersEnabled,
+        Boolean subfoldersEnabled, String folderPrefix) throws SQLException {
         if (name == null) {
             name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
         }
@@ -148,12 +163,19 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         if (configs.length == 0) {
             log.info("Creating jenkins configuration: " + name);
-            ao.create(JenkinsServerConfiguration.class, new DBParam("NAME",
-                name), new DBParam("URL", url), new DBParam("USERNAME",
-                username), new DBParam("PASSWORD", password), new DBParam(
-                "STASH_USERNAME", stashUsername), new DBParam(
-                "STASH_PASSWORD", stashPassword), new DBParam(
-                "MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam("LOCKED", isLocked));
+            ao.create(JenkinsServerConfiguration.class,
+                new DBParam("NAME", name),
+                new DBParam("URL", url),
+                new DBParam("USERNAME", username),
+                new DBParam("PASSWORD", password),
+                new DBParam("STASH_USERNAME", stashUsername),
+                new DBParam("STASH_PASSWORD", stashPassword),
+                new DBParam("MAX_VERIFY_CHAIN", maxVerifyChain),
+                new DBParam("LOCKED", isLocked),
+                new DBParam("FOLDER_SUPPORT", foldersEnabled),
+                new DBParam("USE_SUBFOLDERS", subfoldersEnabled),
+                new DBParam("FOLDER_PREFIX", folderPrefix)
+                );
             return;
         }
         // already exists, so update it
@@ -166,11 +188,14 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         configs[0].setStashPassword(stashPassword);
         configs[0].setMaxVerifyChain(maxVerifyChain);
         configs[0].setLocked(isLocked);
+        configs[0].setFolderSupportEnabled(foldersEnabled);
+        configs[0].setUseSubFolders(subfoldersEnabled);
+        configs[0].setFolderPrefix(folderPrefix);
         configs[0].save();
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getRepositoryConfigurationForRepository(com.atlassian.bitbucket.repository.Repository)
      */
     @Override
     public RepositoryConfiguration getRepositoryConfigurationForRepository(
@@ -194,7 +219,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.bitbucket.repository.Repository, boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean)
      */
     @Override
     public void setRepositoryConfigurationForRepository(Repository repo,
@@ -205,11 +230,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false);
+            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false, false, false, new BuildTimeoutSettings());
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepositoryFromRequest(com.atlassian.stash.repository.Repository, javax.servlet.http.HttpServletRequest)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepositoryFromRequest(com.atlassian.bitbucket.repository.Repository, javax.servlet.http.HttpServletRequest)
      */
     @Override
     public void setRepositoryConfigurationForRepositoryFromRequest(Repository repo, HttpServletRequest req)
@@ -244,10 +269,15 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         EmailSettings emailSettings = getEmailSettings(req);
 
+        Boolean timestampJobOutputEnabled = getBoolean(req, "isTimestampJobOutputEnabled");
+        Boolean ansiColorJobOutputEnabled = getBoolean(req, "isAnsiColorJobOutputEnabled");
+        BuildTimeoutSettings buildTimeoutSettings = getBuildTimeoutSettings(req);
+
         setRepositoryConfigurationForRepository(repo, ciEnabled, verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
             verifyLabel, publishBranchRegex, publishBuildCommand, isPublishPinned, publishLabel, prebuildCommand,
             jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath, artifactsEnabled, artifactsPath,
-            maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig);
+            maxVerifyChain, emailSettings, strictVerifyMode, preserveJenkinsJobConfig,
+            timestampJobOutputEnabled, ansiColorJobOutputEnabled, buildTimeoutSettings);
         RepositoryConfiguration rc = getRepositoryConfigurationForRepository(repo);
         setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, getBoolean(req, "verificationEnabled"));
         setJobTypeStatusMapping(rc, JobType.VERIFY_PR, getBoolean(req, "verifyPREnabled"));
@@ -289,12 +319,18 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             emailSendToIndividuals, emailPerModuleEmail);
     }
 
+    private BuildTimeoutSettings getBuildTimeoutSettings(HttpServletRequest req) {
+        Boolean buildTimeoutEnabled = getBoolean(req, "isBuildTimeoutEnabled");
+        Integer buildTimeout = Integer.parseInt(req.getParameter("buildTimeout"));
+        return new BuildTimeoutSettings(buildTimeoutEnabled, buildTimeout);
+    }
+
     private boolean getBoolean(HttpServletRequest req, String parameter) {
         return (req.getParameter(parameter) == null) ? false : true;
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.stash.repository.Repository, boolean, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, java.lang.String, boolean, java.lang.String, java.lang.Integer, com.palantir.stash.stashbot.config.EmailSettings, boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setRepositoryConfigurationForRepository(com.atlassian.bitbucket.repository.Repository, boolean, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, java.lang.String, java.lang.String, java.lang.String, boolean, boolean, java.lang.String, boolean, java.lang.String, java.lang.Integer, com.palantir.stash.stashbot.config.EmailSettings, boolean, java.lang.Boolean)
      */
     @Override
     public void
@@ -305,7 +341,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             String publishBuildCommand, boolean isPublishPinned, String publishLabel, String prebuildCommand,
             String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
             boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
-            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig)
+            boolean strictVerifyMode, Boolean preserveJenkinsJobConfig,
+            boolean timestampJobOutputEnabled, boolean ansiColorJobOutputEnabled, BuildTimeoutSettings buildTimeoutSettings)
             throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -316,7 +353,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             Query.select().where("REPO_ID = ?", repo.getId()));
         if (repos.length == 0) {
             log.info("Creating repository configuration for id: "
-                + repo.getId().toString());
+                + repo.getId());
             RepositoryConfiguration rc = ao.create(
                 RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()), new DBParam(
@@ -342,7 +379,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
                 new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals()),
                 new DBParam("STRICT_VERIFY_MODE", strictVerifyMode),
-                new DBParam("PRESERVE_JENKINS_JOB_CONFIG", preserveJenkinsJobConfig)
+                new DBParam("PRESERVE_JENKINS_JOB_CONFIG", preserveJenkinsJobConfig),
+                new DBParam("TIMESTAMPS_ENABLED", timestampJobOutputEnabled),
+                new DBParam("ANSICOLOR_ENABLED", ansiColorJobOutputEnabled),
+                new DBParam("BUILD_TIMEOUT_ENABLED", buildTimeoutSettings.getBuildTimeoutEnabled()),
+                new DBParam("BUILD_TIMEOUT", buildTimeoutSettings.getBuildTimeout())
                 );
             if (maxVerifyChain != null) {
                 rc.setMaxVerifyChain(maxVerifyChain);
@@ -381,6 +422,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         foundRepo.setEmailSendToIndividuals(emailSettings.getEmailSendToIndividuals());
         foundRepo.setStrictVerifyMode(strictVerifyMode);
         foundRepo.setPreserveJenkinsJobConfig(preserveJenkinsJobConfig);
+        foundRepo.setTimestampJobOutputEnabled(timestampJobOutputEnabled);
+        foundRepo.setAnsiColorJobOutputEnabled(ansiColorJobOutputEnabled);
+        foundRepo.setBuildTimeoutEnabled(buildTimeoutSettings.getBuildTimeoutEnabled());
+        foundRepo.setBuildTimeout(buildTimeoutSettings.getBuildTimeout());
         foundRepo.save();
     }
 
@@ -424,7 +469,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
      */
     @Override
     public void validateName(String name) throws IllegalArgumentException {
-        if (!name.matches("[a-zA-Z0-9]+")) {
+        if (!name.matches("[a-zA-Z0-9-]+")) {
             throw new IllegalArgumentException("Name must match [a-zA-Z0-9]+");
         }
     }
@@ -450,18 +495,18 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     private String pullRequestToString(PullRequest pr) {
         return "[id:" + Long.toString(pr.getId()) + ", from:"
-            + pr.getFromRef().getLatestChangeset() + ", to:"
-            + pr.getToRef().getLatestChangeset() + "]";
+            + pr.getFromRef().getLatestCommit() + ", to:"
+            + pr.getToRef().getLatestCommit() + "]";
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(com.atlassian.stash.pull.PullRequest)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest)
      */
     @Override
     public PullRequestMetadata getPullRequestMetadata(PullRequest pr) {
         return getPullRequestMetadata(pr.getToRef().getRepository().getId(), pr.getId(),
-            pr.getFromRef().getLatestChangeset().toString(),
-            pr.getToRef().getLatestChangeset().toString());
+            pr.getFromRef().getLatestCommit().toString(),
+            pr.getToRef().getLatestCommit().toString());
     }
 
     /* (non-Javadoc)
@@ -492,13 +537,13 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
     }
 
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadataWithoutToRef(com.atlassian.stash.pull.PullRequest)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#getPullRequestMetadataWithoutToRef(com.atlassian.bitbucket.pull.PullRequest)
      */
     @Override
     public ImmutableList<PullRequestMetadata> getPullRequestMetadataWithoutToRef(PullRequest pr) {
         Long id = pr.getId();
-        String fromSha = pr.getFromRef().getLatestChangeset().toString();
-        String toSha = pr.getToRef().getLatestChangeset().toString();
+        String fromSha = pr.getFromRef().getLatestCommit().toString();
+        String toSha = pr.getToRef().getLatestCommit().toString();
 
         PullRequestMetadata[] prms = ao.find(PullRequestMetadata.class,
             "PULL_REQUEST_ID = ? and FROM_SHA = ?", id, fromSha);
@@ -521,18 +566,18 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     // Automatically sets the fromHash and toHash from the PullRequest object
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
      */
     @Override
     public void setPullRequestMetadata(PullRequest pr, Boolean buildStarted,
         Boolean success, Boolean override) {
-        setPullRequestMetadata(pr, pr.getFromRef().getLatestChangeset(),
-            pr.getToRef().getLatestChangeset(), buildStarted, success, override);
+        setPullRequestMetadata(pr, pr.getFromRef().getLatestCommit(),
+            pr.getToRef().getLatestCommit(), buildStarted, success, override);
     }
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
      */
     @Override
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
@@ -542,7 +587,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
     // Allows fromHash and toHash to be set by the caller, in case we are referring to older commits
     /* (non-Javadoc)
-     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.stash.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
+     * @see com.palantir.stash.stashbot.config.ConfigurationPersistenceService#setPullRequestMetadata(com.atlassian.bitbucket.pull.PullRequest, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
      */
     @Override
     public void setPullRequestMetadata(PullRequest pr, String fromHash, String toHash, Boolean buildStarted,
@@ -564,5 +609,46 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         prm.save();
         publisher.publish(new StashbotMetadataUpdatedEvent(this, pr));
+    }
+
+    private AuthenticationCredential getDefaultAuthenticationCredential() {
+        AuthenticationCredential[] acs = ao.find(AuthenticationCredential.class, "NAME = ?", "default");
+        if (acs.length == 0) {
+            log.info("Generating SSH key for default:");
+            JSch jsch = new JSch();
+            KeyPair kp;
+            try {
+                kp = KeyPair.genKeyPair(jsch, KeyPair.RSA, 2048);
+            } catch (JSchException e) {
+                log.error("Unable to generate ssh key", e);
+                // seriously, I have no idea what to do here.
+                throw new RuntimeException(e);
+            }
+            ByteArrayOutputStream privKey = new ByteArrayOutputStream();
+            ByteArrayOutputStream pubKey = new ByteArrayOutputStream();
+            kp.writePrivateKey(privKey);
+            kp.writePublicKey(pubKey, "default");
+
+            log.info("Public Key:\n\n" + pubKey.toString());
+            log.info("Private Key:\n\n" + privKey.toString());
+
+            AuthenticationCredential ac = ao.create(AuthenticationCredential.class,
+                new DBParam("NAME", "default"),
+                new DBParam("PUBLIC_KEY", pubKey.toString()),
+                new DBParam("PRIVATE_KEY", privKey.toString()));
+            ac.save();
+            return ac;
+        }
+        return acs[0];
+    }
+
+    @Override
+    public String getDefaultPublicSshKey() {
+        return getDefaultAuthenticationCredential().getPublicKey();
+    }
+
+    @Override
+    public String getDefaultPrivateSshKey() {
+        return getDefaultAuthenticationCredential().getPrivateKey();
     }
 }

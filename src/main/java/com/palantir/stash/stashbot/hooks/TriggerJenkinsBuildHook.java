@@ -22,15 +22,15 @@ import javax.annotation.Nonnull;
 
 import org.slf4j.Logger;
 
-import com.atlassian.stash.hook.HookResponse;
-import com.atlassian.stash.hook.PostReceiveHook;
-import com.atlassian.stash.repository.RefChange;
-import com.atlassian.stash.repository.RefChangeType;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.scm.CommandOutputHandler;
-import com.atlassian.stash.scm.git.GitCommandBuilderFactory;
-import com.atlassian.stash.scm.git.GitScmCommandBuilder;
-import com.atlassian.stash.scm.git.revlist.GitRevListBuilder;
+import com.atlassian.bitbucket.hook.HookResponse;
+import com.atlassian.bitbucket.hook.PostReceiveHook;
+import com.atlassian.bitbucket.repository.RefChange;
+import com.atlassian.bitbucket.repository.RefChangeType;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.scm.CommandOutputHandler;
+import com.atlassian.bitbucket.scm.git.command.GitCommandBuilderFactory;
+import com.atlassian.bitbucket.scm.git.command.GitScmCommandBuilder;
+import com.atlassian.bitbucket.scm.git.command.revlist.GitRevListBuilder;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;

@@ -21,13 +21,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.stash.comment.Comment;
-import com.atlassian.stash.event.pull.PullRequestCommentEvent;
-import com.atlassian.stash.event.pull.PullRequestOpenedEvent;
-import com.atlassian.stash.event.pull.PullRequestRescopedEvent;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestRef;
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.comment.Comment;
+import com.atlassian.bitbucket.event.pull.PullRequestCommentEvent;
+import com.atlassian.bitbucket.event.pull.PullRequestOpenedEvent;
+import com.atlassian.bitbucket.event.pull.PullRequestRescopedEvent;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestRef;
+import com.atlassian.bitbucket.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -96,10 +96,10 @@ public class PullRequestListenerTest {
 
         Mockito.when(fromRef.getRepository()).thenReturn(repo);
         Mockito.when(fromRef.getId()).thenReturn(HEAD_BR);
-        Mockito.when(fromRef.getLatestChangeset()).thenReturn(HEAD);
+        Mockito.when(fromRef.getLatestCommit()).thenReturn(HEAD);
         Mockito.when(toRef.getRepository()).thenReturn(repo);
         Mockito.when(toRef.getId()).thenReturn(MERGE_BR);
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(MERGE_HEAD);
+        Mockito.when(toRef.getLatestCommit()).thenReturn(MERGE_HEAD);
 
         Mockito.when(prm.getPullRequestId()).thenReturn(PULL_REQUEST_ID);
         Mockito.when(prm.getToSha()).thenReturn(MERGE_HEAD);
@@ -220,7 +220,7 @@ public class PullRequestListenerTest {
         Mockito.when(prm.getBuildStarted()).thenReturn(true);
         Mockito.when(prm2.getBuildStarted()).thenReturn(true);
         Mockito.when(prm2.getToSha()).thenReturn("different value");
-        Mockito.when(toRef.getLatestChangeset()).thenReturn("different value");
+        Mockito.when(toRef.getLatestCommit()).thenReturn("different value");
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
         Mockito.when(cpm.getPullRequestMetadataWithoutToRef(pr)).thenReturn(ImmutableList.of(prm, prm2));
         Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(false);

@@ -36,16 +36,18 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestRef;
+import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestRef;
-import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildTimeoutSettings;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.AuthenticationCredential;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.JobTypeStatusMapping;
@@ -87,8 +89,8 @@ public class ConfigurationTest {
         Mockito.when(pr.getFromRef()).thenReturn(fromRef);
         Mockito.when(pr.getId()).thenReturn(PR_ID);
         Mockito.when(toRef.getRepository()).thenReturn(repo);
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA);
-        Mockito.when(fromRef.getLatestChangeset()).thenReturn(FROM_SHA);
+        Mockito.when(toRef.getLatestCommit()).thenReturn(TO_SHA);
+        Mockito.when(fromRef.getLatestCommit()).thenReturn(FROM_SHA);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
         // ensure our runner sets this for us
@@ -111,7 +113,7 @@ public class ConfigurationTest {
         int sizeOfData = ao.count(JenkinsServerConfiguration.class);
 
         cpm.setJenkinsServerConfiguration(null, url, username, password,
-            null, stashUsername, stashPassword, maxVerifyChain, false);
+            null, stashUsername, stashPassword, maxVerifyChain, false, false, false, null);
         JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(null);
         Assert.assertEquals("default", jsc.getName());
@@ -151,9 +153,9 @@ public class ConfigurationTest {
     public void getsAllJenkinsServerConfigurationsNotEmpty() throws Exception {
 
         cpm.setJenkinsServerConfiguration(null, "url1", "yuser", "pw",
-            null, "stashuser", "stashpw", 10, false);
+            null, "stashuser", "stashpw", 10, false, false, false, null);
         cpm.setJenkinsServerConfiguration("foo", "url2", "yuser", "pw",
-            null, "stashuser", "stashpw", 10, false);
+            null, "stashuser", "stashpw", 10, false, false, false, null);
 
         Collection<JenkinsServerConfiguration> jscs = cpm
             .getAllJenkinsServerConfigurations();
@@ -183,7 +185,8 @@ public class ConfigurationTest {
             "verifyBranchRegex", "verifyBuildCommand",
             false, "N/A", "publishBranchRegex",
             "publishBuildCommand", false, "N/A", "prebuildCommand", "default", true, false, "N/A", false, "N/A",
-            size, new EmailSettings(true, "a@a.a", true, true, true), false, false);
+            size, new EmailSettings(true, "a@a.a", true, true, true), false, false,
+            false, false, new BuildTimeoutSettings(false, 0));
 
         RepositoryConfiguration rc = cpm
             .getRepositoryConfigurationForRepository(repo);
@@ -212,7 +215,8 @@ public class ConfigurationTest {
                 "verifyBranchRegex", "verifyBuildCommand",
                 false, "N/A",
                 "publishBranchRegex", "publishBuildCommand", false, "N/A", "prebuildCommand", "BADNAME", true, false,
-                "N/A", false, "N/A", null, new EmailSettings(), false, false);
+                "N/A", false, "N/A", null, new EmailSettings(), false, false,
+                false, false, new BuildTimeoutSettings(false, 0));
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success
@@ -240,8 +244,8 @@ public class ConfigurationTest {
         @SuppressWarnings("unchecked")
         @Override
         public void update(EntityManager entityManager) throws Exception {
-            entityManager.migrate(JenkinsServerConfiguration.class,
-                RepositoryConfiguration.class, PullRequestMetadata.class, JobTypeStatusMapping.class);
+            entityManager.migrate(JenkinsServerConfiguration.class, RepositoryConfiguration.class,
+                PullRequestMetadata.class, JobTypeStatusMapping.class, AuthenticationCredential.class);
 
             RepositoryConfiguration rc = entityManager.create(
                 RepositoryConfiguration.class, new DBParam("REPO_ID",
@@ -317,6 +321,24 @@ public class ConfigurationTest {
         Assert.assertTrue(entry.containsKey("text"));
         Assert.assertTrue(entry.containsKey("value"));
         Assert.assertTrue(entry.containsKey("selected"));
+    }
+
+    @Test
+    public void testAuthenticationCredentials() {
+        // get the default key the first time
+        String privKey = cpm.getDefaultPrivateSshKey();
+        String pubKey = cpm.getDefaultPublicSshKey();
+
+        Assert.assertTrue(pubKey.startsWith("ssh-rsa AAAA"));
+        Assert.assertTrue(privKey.startsWith("-----BEGIN RSA PRIVATE KEY-----"));
+
+        // basic sanity check - pub key should be over 300, priv key should be over 1500
+        Assert.assertTrue(pubKey.length() > 300);
+        Assert.assertTrue(privKey.length() > 1500);
+
+        // ensure future calls return the same value
+        Assert.assertEquals(privKey, cpm.getDefaultPrivateSshKey());
+        Assert.assertEquals(pubKey, cpm.getDefaultPublicSshKey());
     }
 
     @Test

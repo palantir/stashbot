@@ -18,7 +18,7 @@ import java.util.List;
 
 import org.mockito.Mockito;
 
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -47,6 +47,7 @@ public class MockJobTemplateFactory {
         Mockito.when(jtm.getDefaultVerifyJob()).thenReturn(verifyCommit);
         Mockito.when(jtm.getDefaultVerifyPullRequestJob()).thenReturn(verifyPR);
         Mockito.when(jtm.getDefaultPublishJob()).thenReturn(publish);
+        Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
     }
 
     public JobTemplate getJobTemplate(Repository repo, RepositoryConfiguration rc, JobType jt) throws Exception {
@@ -64,10 +65,11 @@ public class MockJobTemplateFactory {
         Mockito.when(jm.isVisible()).thenReturn(true);
         Mockito.when(jm.isEnabled()).thenReturn(true);
 
+        templates.add(template);
+
         Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
         Mockito.when(jtm.fromString(rc, jt.toString())).thenReturn(template);
 
-        templates.add(template);
         mappings.add(jm);
         return template;
     }

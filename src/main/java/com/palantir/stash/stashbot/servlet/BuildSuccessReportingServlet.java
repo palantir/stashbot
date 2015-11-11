@@ -15,9 +15,7 @@ package com.palantir.stash.stashbot.servlet;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.sql.Date;
 import java.sql.SQLException;
-import java.text.DateFormat;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,18 +24,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 
-import com.atlassian.stash.build.BuildStatus;
-import com.atlassian.stash.build.BuildStatus.State;
-import com.atlassian.stash.build.BuildStatusService;
-import com.atlassian.stash.internal.build.InternalBuildStatus;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.Permission;
-import com.atlassian.stash.user.SecurityService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.user.UserService;
+import com.atlassian.bitbucket.build.BuildState;
+import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.permission.Permission;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.user.UserService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
@@ -75,6 +71,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
     private final JobTemplateManager jtm;
     private final SecurityService ss;
     private final UserService us;
+    private final PluginLoggerFactory plf;
 
     /**
      * @deprecated Use
@@ -108,6 +105,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         this.log = lf.getLoggerForThis(this);
         this.ss = ss;
         this.us = us;
+        this.plf = lf;
     }
 
     @Override
@@ -153,7 +151,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                     "Unable to get a valid JobTemplate from " + parts[2]);
             }
 
-            final State state = BuildStatus.State.fromString(parts[3]);
+            final BuildState state = BuildState.fromString(parts[3]);
             if (state == null) {
                 throw new IllegalArgumentException(
                     "The state must be 'successful', 'failed', or 'inprogress'");
@@ -187,7 +185,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
                     if (pullRequest == null) {
                         throw new IllegalArgumentException(
                             "Unable to find pull request for repo id "
-                                + repo.getId().toString() + " pr id "
+                                + repo.getId() + " pr id "
                                 + Long.toString(pullRequestId));
                     }
                 } catch (NumberFormatException e) {
@@ -205,11 +203,9 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             }
 
             if (mergeHead == null) {
-                BuildStatus bs;
-                bs = getSuccessStatus(repo, jt, state, buildNumber, buildHead);
-                log.debug("Registering build status for buildHead " + buildHead
-                    + " " + bsToString(bs));
-                BuildStatusAddOperation bssAdder = new BuildStatusAddOperation(buildStatusService, buildHead, bs);
+                BuildStatusAddOperation bssAdder = new BuildStatusAddOperation(ub, buildStatusService, plf, buildHead);
+                bssAdder.setBuildStatus(repo, jt, state, buildNumber);
+                
                 // Yeah, I know what you are thinking... "Admin permission?  To add a build status?"
                 // I tried REPO_WRITE and REPO_ADMIN and neither was enough, but this worked!
                 ss.withPermission(Permission.SYS_ADMIN, "BUILD SUCCESS REPORT").call(bssAdder);
@@ -221,13 +217,13 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // comment events will have the updated state.
 
             // arg order for bools is started, success, override, failed
-            if (state.equals(State.SUCCESSFUL)) {
+            if (state.equals(BuildState.SUCCESSFUL)) {
                 configurationPersistanceManager.setPullRequestMetadata(
                     pullRequest, mergeHead, buildHead, null, true, null, false);
-            } else if (state.equals(State.INPROGRESS)) {
+            } else if (state.equals(BuildState.INPROGRESS)) {
                 configurationPersistanceManager.setPullRequestMetadata(
                     pullRequest, mergeHead, buildHead, true, false, null, null);
-            } else if (state.equals(State.FAILED)) {
+            } else if (state.equals(BuildState.FAILED)) {
                 configurationPersistanceManager.setPullRequestMetadata(
                     pullRequest, mergeHead, buildHead, null, false, null, true);
             }
@@ -235,7 +231,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // mergeHead is not null *and* pullRequest is not null if we reach
             // here.
             final StringBuffer sb = new StringBuffer();
-            final String url = getJenkinsUrl(repo, jt, buildNumber);
+            final String url = ub.getJenkinsBuildUrl(repo, jt, buildNumber);
 
             /* NOTE: mergeHead and buildHead are the reverse of what you might
              * think, because we have to check out the "toRef" becasue it is
@@ -280,7 +276,7 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             // So in order to create comments, we have to do it AS some user.  ss.doAsUser rather than ss.doWithPermission is the magic sauce here.
             JenkinsServerConfiguration jsc =
                 configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-            StashUser user = us.findUserByNameOrEmail(jsc.getStashUsername());
+            ApplicationUser user = us.findUserByNameOrEmail(jsc.getStashUsername());
             ss.impersonating(user, "BUILD SUCCESS REPORT").call(prcao);
 
             printOutput(req, res);
@@ -299,43 +295,5 @@ public class BuildSuccessReportingServlet extends HttpServlet {
         Writer w = res.getWriter();
         w.append("Status Updated");
         w.close();
-    }
-
-    private BuildStatus getSuccessStatus(Repository repo, JobTemplate jt,
-        State state, long buildNumber, String buildHead)
-        throws SQLException {
-        Date now = new Date(java.lang.System.currentTimeMillis());
-
-        DateFormat df = DateFormat.getDateInstance();
-        // key will be the jenkins name
-        String key = jt.getBuildNameFor(repo);
-        String name = key + " (build " + Long.toString(buildNumber) + ")";
-        String description = "Build " + Long.toString(buildNumber) + " "
-            + state.toString() + " at " + df.format(now);
-        String url = getJenkinsUrl(repo, jt, buildNumber);
-        BuildStatus bs = new InternalBuildStatus(state, name, name, url,
-            description, now);
-        return bs;
-    }
-
-    private String getJenkinsUrl(Repository repo, JobTemplate jt,
-        long buildNumber) throws SQLException {
-        RepositoryConfiguration rc = configurationPersistanceManager
-            .getRepositoryConfigurationForRepository(repo);
-        JenkinsServerConfiguration jsc = configurationPersistanceManager
-            .getJenkinsServerConfiguration(rc.getJenkinsServerName());
-        String key = jt.getBuildNameFor(repo);
-        String url = jsc.getUrl() + "/job/" + key + "/"
-            + Long.toString(buildNumber);
-        return url;
-    }
-
-    private static String bsToString(BuildStatus bs) {
-        StringBuffer sb = new StringBuffer();
-        sb.append("[BuildStatus ");
-        sb.append("Name:'" + bs.getKey() + "' ");
-        sb.append("Type:'" + bs.getName() + "' ");
-        sb.append("State:'" + bs.getState().toString() + "']");
-        return sb.toString();
     }
 }

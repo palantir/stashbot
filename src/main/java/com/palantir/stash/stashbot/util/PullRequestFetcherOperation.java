@@ -13,9 +13,9 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.util;
 
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.util.Operation;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.util.Operation;
 
 public class PullRequestFetcherOperation implements Operation<Void, Exception> {
 

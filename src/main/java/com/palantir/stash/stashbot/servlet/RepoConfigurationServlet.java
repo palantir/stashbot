@@ -27,19 +27,19 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 
+import com.atlassian.bitbucket.AuthorisationException;
+import com.atlassian.bitbucket.permission.Permission;
+import com.atlassian.bitbucket.permission.PermissionValidationService;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestSearchRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequest;
+import com.atlassian.bitbucket.util.PageRequestImpl;
 import com.atlassian.soy.renderer.SoyException;
 import com.atlassian.soy.renderer.SoyTemplateRenderer;
-import com.atlassian.stash.exception.AuthorisationException;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestSearchRequest;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.Permission;
-import com.atlassian.stash.user.PermissionValidationService;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
-import com.atlassian.stash.util.PageRequestImpl;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
@@ -160,6 +160,10 @@ public class RepoConfigurationServlet extends HttpServlet {
                         .put("isEmailSendToIndividuals", rc.getEmailSendToIndividuals())
                         .put("isStrictVerifyMode", rc.getStrictVerifyMode())
                         .put("isPreserveJenkinsJobConfig", rc.getPreserveJenkinsJobConfig())
+                        .put("isBuildTimeoutEnabled", rc.getBuildTimeoutEnabled())
+                        .put("buildTimeout", rc.getBuildTimeout())
+                        .put("isTimestampJobOutputEnabled", rc.getTimestampJobOutputEnabled())
+                        .put("isAnsiColorJobOutputEnabled", rc.getAnsiColorJobOutputEnabled())
                         .put("isLocked", isLocked(theJsc))
                         .put("verificationEnabled",
                             configurationPersistanceManager.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT))
@@ -252,6 +256,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     page = prs.search(prsr, pageReq);
                 }
                 // add permission to the requisite user
+                // (even if we are using ssh keys, the user has the proper keys)
                 JenkinsServerConfiguration jsc =
                     configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
                 pluginUserManager.addUserToRepoForReading(jsc.getStashUsername(), rep);

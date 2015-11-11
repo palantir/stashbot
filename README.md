@@ -1,5 +1,10 @@
-Stashbot Helper is a plugin designed to enable a continuous integration
-workflow within stash (similar to gerrit + jenkins).
+# Stashbot
+
+Bitbucket Server 4.X Build Status: [![Build Status](https://travis-ci.org/terabyte/stashbot.svg?branch=master)](https://travis-ci.org/terabyte/stashbot)
+
+Stash 3.X Build Status: [![Build Status](https://travis-ci.org/terabyte/stashbot.svg?branch=stash-3.x-backports)](https://travis-ci.org/terabyte/stashbot)
+
+Stashbot is a plugin designed to enable a continuous integration workflow within stash (similar to gerrit + jenkins).
 
 # INSTALL GUIDE
 
@@ -7,9 +12,18 @@ To work with Jenkins, you MUST install the following jenkins plugins first.
 
 1. [Jenkins GIT plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin)
 2. [Post build task](https://wiki.jenkins-ci.org/display/JENKINS/Post+build+task)
-3. [Mailer Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Mailer) (optional, if you want email notifications)
+3. In order to have PR verify builds, your jenkins nodes must be able to create a merge commit, meaning your jenkins users should have a ~/.gitconfig file with a user/email set.  The commits are thrown away so the value doesn't matter.
 
-If either of these are missing, things won't work.
+If any of these are missing, things won't work.
+
+Optionally, you may install the following plugins; stashbot will function
+without them, but the related options in your build configurations will have no
+effect:
+
+1. [Mailer Plugin](https://wiki.jenkins-ci.org/display/JENKINS/Mailer) (required for email notifications)
+2. [Build timeout plugin](https://wiki.jenkins-ci.org/display/JENKINS/Build-timeout+Plugin)
+3. [Timestamper plugin](https://wiki.jenkins-ci.org/display/JENKINS/Timestamper)
+4. [ANSI color plugin](https://wiki.jenkins-ci.org/display/JENKINS/AnsiColor+Plugin)
 
 # USER GUIDE
 
@@ -22,7 +36,7 @@ requests are created.
 ## INITIAL CONFIG
 
 After installing stashbot, you will need to do the following as a system
-administrator:
+administrator in stash:
 
 * Create a jenkins server configuration (one for each jenkins server you connect to) by clicking on "Stashbot Jenkins Admin" under the administration page
 * You will need to give stashbot a username/password to access jenkins which has permission to create jobs
@@ -161,7 +175,10 @@ This project uses versions determined by `git describe --dirty='-dirty' --abbrev
 
 If you build using `./build/invoke-sdk.sh`, the version will be set automatically.  Alternatively, you can set the DOMAIN_VERSION environemnt variable when invoking maven directly to override the version.
 
-This is important because Atlassian plugins use OSGi and their version strings *must* be of the form "^\d+\.\d+\.\d+.*", so in order for jars that actually work to be produced, the tag must be a number such as "1.0.0".  For that reason, feature branches will start "features/", and be merged into "master", which will occasionally be tagged for releases.
+This is important because Atlassian plugins use OSGi and their version strings *must* be of the form:
+    ^\d+\.\d+\.\d+.*
+    
+Therefore, for jars that actually work to be produced, the tag must be a number such as "1.0.0".  For that reason, feature branches will start "features/", and be merged into "master", which will occasionally be tagged for releases.
 
 Not every released version will necessarily be put on the Atlassian Marketplace, but every released version should be stable (i.e. pass all unit tests, and be reasonably functional).
 
@@ -169,12 +186,35 @@ Not every released version will necessarily be put on the Atlassian Marketplace,
 
 ## KNOWN BUGS
 
+* Calls to user(null) in RepositoryCloneLinksRequest.Builder() may be broken in Stash 3.11+
+    * Removed them for SSH but haven't tested if they need to be removed for HTTP URLs also yet...
 * JenkinsManager.updateAllJobs() and createMissingJobs() are untested.
+* PluginUserManager calls UserAdminService.createUser() instead of UserAdminService.createServiceUser().  Service users can't be put in groups and thus do not use up a license slot.  We should fix this.
 
 ## PLANNED FEATURES
 
 * Better Test coverage - especially integration tests
 * Error checking - validate hashes sent to build status, etc.
+* Switch to using access keys (aka deployment keys) instead of creating a user
+* Better handling of ssh keys and jenkins credentials (i.e. support multiple keys with different permissions)
+
+### SSH Key Support
+
+Modern jenkins with modern git plugin doesn't work at all.  Need to add an
+authentication mode that will generate SSH keys, add them as deployment keys to
+the stash repos, and connect to jenkins and configure jobs to use the newly
+created credentials.
+
+Jenkins Bug: https://issues.jenkins-ci.org/browse/JENKINS-26537
+
+Resources:
+* Create credentials in jenkins programmatically: https://github.com/opscode-cookbooks/jenkins/blob/master/libraries/credentials.rb
+* Ask jenkins-client to add an API for that: https://github.com/RisingOak/jenkins-client/issues/72
+* calling API with curl looks like this:  curl -X POST -d 'script=System.out.println("fooz")' http://localhost:8080/scriptText (https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+Script+Console)
+* Ask atlassian how to programmatically add deploy keys: https://answers.atlassian.com/questions/307633/how-do-you-access-service-like-defaultsshkeyservice-from-stash-plugin
+* Details about making the actual rest call to jenkins: https://groups.google.com/forum/#!topic/jenkinsci-users/sdmsiVwqvyg
+* How to generate SSH keys using JSch: http://www.jcraft.com/jsch/examples/KeyGen.java.html
+* Since verify_pr does a manual fetch, the job template itself will have to write out the ssh key then set GIT_SSH_COMMAND to a script that does 'ssh -i someKey "$@"'
 
 ## POSSIBLE FUTURE FEATURES
 

@@ -13,25 +13,59 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.util;
 
-import com.atlassian.stash.build.BuildStatus;
-import com.atlassian.stash.build.BuildStatusService;
-import com.atlassian.stash.util.Operation;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.util.Date;
+
+import org.slf4j.Logger;
+
+import com.atlassian.bitbucket.build.BuildState;
+import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.build.BuildStatusSetRequest;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.util.Operation;
+import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class BuildStatusAddOperation implements Operation<Void, Exception> {
 
+    private final StashbotUrlBuilder sub;
     private final BuildStatusService bss;
-    private final BuildStatus bs;
-    private final String buildHead;
+    private final BuildStatusSetRequest.Builder b;
+    private final Logger log;
 
-    public BuildStatusAddOperation(BuildStatusService bss, String buildHead, BuildStatus bs) {
+    public BuildStatusAddOperation(StashbotUrlBuilder sub, BuildStatusService bss, PluginLoggerFactory plf, String buildHead) {
+    	this.sub = sub;
         this.bss = bss;
-        this.buildHead = buildHead;
-        this.bs = bs;
+        this.b = new BuildStatusSetRequest.Builder(buildHead);
+        this.log = plf.getLoggerForThis(this);
     }
 
+    public void setBuildStatus(Repository repo, JobTemplate jt, BuildState bs, long buildNumber) throws SQLException {
+        Date now = new Date(java.lang.System.currentTimeMillis());
+        DateFormat df = DateFormat.getDateInstance();
+
+        // key should be the jenkins job name
+        String key = jt.getBuildNameFor(repo);
+        String name = key + " (build " + Long.toString(buildNumber) + ")";
+        String description = "Build " + Long.toString(buildNumber) + " "
+            + bs.toString() + " at " + df.format(now);
+        String url = sub.getJenkinsBuildUrl(repo, jt, buildNumber);
+        
+        b.dateAdded(now);
+        b.key(key);
+        b.name(name);
+        b.description(description);
+        b.url(url);
+        b.state(bs);
+    }
+    
     @Override
     public Void perform() throws Exception {
-        bss.add(buildHead, bs);
+    	BuildStatusSetRequest bssr = b.build();
+    	log.debug("Registering build status for " + bssr.getKey() + " commit " + bssr.getCommitId());
+        bss.set(bssr);
         return null;
     }
 }

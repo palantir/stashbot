@@ -22,17 +22,17 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.stash.build.BuildStats;
-import com.atlassian.stash.build.BuildStatusService;
-import com.atlassian.stash.commit.CommitService;
-import com.atlassian.stash.content.Changeset;
-import com.atlassian.stash.content.ChangesetsBetweenRequest;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestRef;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.scm.pull.MergeRequest;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
+import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.build.BuildSummary;
+import com.atlassian.bitbucket.commit.Commit;
+import com.atlassian.bitbucket.commit.CommitService;
+import com.atlassian.bitbucket.commit.CommitsBetweenRequest;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestRef;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.scm.pull.MergeRequest;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequest;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -78,18 +78,18 @@ public class PullRequestBuildSuccessMergeCheckTest {
     @Mock
     private PullRequestMetadata prm2;
     @Mock
-    private Page<Changeset> mockPage;
+    private Page<Commit> mockPage;
     @Mock
-    private Changeset changeA;
+    private Commit changeA;
     @Mock
-    private Changeset changeB;
+    private Commit changeB;
     @Mock
-    private BuildStats bsA;
+    private BuildSummary bsA;
     @Mock
-    private BuildStats bsB;
+    private BuildSummary bsB;
 
     private final PluginLoggerFactory lf = new PluginLoggerFactory();
-    private List<Changeset> changesets;
+    private List<Commit> changesets;
 
     @Before
     public void setUp() throws SQLException {
@@ -111,10 +111,10 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(pr.getToRef()).thenReturn(toRef);
 
         Mockito.when(fromRef.getRepository()).thenReturn(repo);
-        Mockito.when(fromRef.getLatestChangeset()).thenReturn(TO_SHA);
+        Mockito.when(fromRef.getLatestCommit()).thenReturn(TO_SHA);
         Mockito.when(toRef.getRepository()).thenReturn(repo);
         Mockito.when(toRef.getId()).thenReturn(TO_SHA);
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA);
+        Mockito.when(toRef.getLatestCommit()).thenReturn(TO_SHA);
 
         Mockito.when(cpm.getPullRequestMetadata(pr)).thenReturn(prm);
         Mockito.when(cpm.getPullRequestMetadataWithoutToRef(pr)).thenReturn(ImmutableList.of(prm, prm2));
@@ -127,14 +127,14 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
         changesets = ImmutableList.of(changeA, changeB);
         Mockito.when(
-            cs.getChangesetsBetween(Mockito.any(ChangesetsBetweenRequest.class), Mockito.any(PageRequest.class)))
+            cs.getCommitsBetween(Mockito.any(CommitsBetweenRequest.class), Mockito.any(PageRequest.class)))
             .thenReturn(mockPage);
         Mockito.when(mockPage.getValues()).thenReturn(changesets);
         Mockito.when(mockPage.getIsLastPage()).thenReturn(true);
         Mockito.when(changeA.getId()).thenReturn(SHA_A);
         Mockito.when(changeB.getId()).thenReturn(SHA_B);
-        Mockito.when(bss.getStats(SHA_A)).thenReturn(bsA);
-        Mockito.when(bss.getStats(SHA_B)).thenReturn(bsB);
+        Mockito.when(bss.getSummary(SHA_A)).thenReturn(bsA);
+        Mockito.when(bss.getSummary(SHA_B)).thenReturn(bsB);
 
         Mockito.when(bsA.getSuccessfulCount()).thenReturn(1);
         Mockito.when(bsB.getSuccessfulCount()).thenReturn(1);
@@ -185,7 +185,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
     @Test
     public void testSuccessMergeCheckWhenPartialMatchTest() {
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA2); // instead of TO_SHA
+        Mockito.when(toRef.getLatestCommit()).thenReturn(TO_SHA2); // instead of TO_SHA
         // returns only prm2, not prm (so no success)
         Mockito.when(cpm.getPullRequestMetadataWithoutToRef(pr)).thenReturn(ImmutableList.of(prm2));
         Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(false);
@@ -202,7 +202,7 @@ public class PullRequestBuildSuccessMergeCheckTest {
 
     @Test
     public void testFailsMergeCheckWhenPartialMatchTest() {
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA2); // instead of TO_SHA
+        Mockito.when(toRef.getLatestCommit()).thenReturn(TO_SHA2); // instead of TO_SHA
         Mockito.when(rc.getRebuildOnTargetUpdate()).thenReturn(false);
 
         // neither exact match nor inexact match have success
