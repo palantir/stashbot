@@ -12,6 +12,13 @@
     <name>stashbot</name>
     <description>Stashbot is a plugin for Atlassian Stash that makes continuous integration via jenkins easy and self-servicable for end-users.</description>
     <packaging>atlassian-plugin</packaging>
+    <repositories>
+      <repository>
+        <name>stashbot-internal</name>
+        <id>stashbot-internal</id>
+        <url>file://${project.basedir}/libs</url>
+      </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
