@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -27,7 +26,6 @@ import com.atlassian.stash.nav.NavBuilder;
 import com.atlassian.stash.repository.Repository;
 import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
 import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.util.NamedLink;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
@@ -220,6 +218,13 @@ public class JenkinsJobXmlFormatter {
         // Artifact settings
         vc.put("artifactsEnabled", rc.getArtifactsEnabled());
         vc.put("artifactsPath", rc.getArtifactsPath());
+
+        // Timeout setting
+        Integer buildTimeout = rc.getBuildTimeout();
+        if (buildTimeout == -1) {
+            buildTimeout = jsc.getDefaultTimeout();
+        }
+        vc.put("buildTimeout", buildTimeout);
 
         // insert pinned data
         switch (jobTemplate.getJobType()) {
