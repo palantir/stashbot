@@ -51,11 +51,4 @@ public class JenkinsServerConfigurationImpl {
 	    return password;
 	}
 
-	public Integer getDefaultTimeoutMin() {
-	    return JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MIN; // Five minutes minimum.
-	}
-
-	public Integer getDefaultTimeoutMax() {
-	    return JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MAX; // One week maximum
-	}
 }

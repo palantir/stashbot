@@ -208,12 +208,6 @@ public interface JenkinsServerConfiguration extends Entity {
 	public Integer getDefaultTimeout();
 	public void setDefaultTimeout(Integer defaultMinutes);
 
-	// These two are implemented in Impl
-	@Ignore
-	public Integer getDefaultTimeoutMin();
-	@Ignore
-	public Integer getDefaultTimeoutMax();
-
 	// For security - allow a jenkins server config to be locked to
 	// non-system-admins
 	@NotNull
