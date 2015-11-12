@@ -33,6 +33,10 @@ import com.google.common.collect.ImmutableMap;
 @Implementation(JenkinsServerConfigurationImpl.class)
 public interface JenkinsServerConfiguration extends Entity {
 
+    public static final Integer BUILD_TIMEOUT_MINUTES_MIN = 5;
+    public static final Integer BUILD_TIMEOUT_MINUTES_MAX = 7 * 24 * 60; // One week
+    public static final Integer BUILD_TIMEOUT_MINUTES_DEFAULT = 4 * 60; // Four hours
+
 	static public enum AuthenticationMode {
 		// NOTE: when you add stuff here, edit StashbotUrlBuilder as well.
 		USERNAME_AND_PASSWORD(Constants.UAP_VALUE, "Username and Password"), CREDENTIAL_MANUALLY_CONFIGURED(
@@ -197,6 +201,18 @@ public interface JenkinsServerConfiguration extends Entity {
 	// template and appends to url.
 	@Ignore
 	public String getUrlForRepo(Repository r);
+
+
+	@NotNull
+	@Default("240") // Four Hours in minutes
+	public Integer getDefaultTimeout();
+	public void setDefaultTimeout(Integer defaultMinutes);
+
+	// These two are implemented in Impl
+	@Ignore
+	public Integer getDefaultTimeoutMin();
+	@Ignore
+	public Integer getDefaultTimeoutMax();
 
 	// For security - allow a jenkins server config to be locked to
 	// non-system-admins

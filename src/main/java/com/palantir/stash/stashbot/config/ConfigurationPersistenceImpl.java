@@ -131,9 +131,11 @@ ConfigurationPersistenceService {
 		Boolean isLocked = (lockStr == null || !lockStr.equals("on")) ? false
 				: true;
 
+		Integer defaultTimeout = Integer.parseInt(req.getParameter("defaultTimeout"));
+
 		setJenkinsServerConfiguration(name, url, username, password, am,
-            stashUsername, stashPassword, maxVerifyChain, prefixTemplate, jobTemplate,
-				isLocked);
+            stashUsername, stashPassword, maxVerifyChain, defaultTimeout,
+            prefixTemplate, jobTemplate, isLocked);
 	}
 
 	/*
@@ -162,7 +164,7 @@ ConfigurationPersistenceService {
 			throws SQLException {
 		setJenkinsServerConfiguration(name, url, username, password,
 				authenticationMode, stashUsername, stashPassword,
-            maxVerifyChain, "/", "$project_$repo", false);
+            maxVerifyChain, JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_DEFAULT, "/", "$project_$repo", false);
 	}
 
 	/*
@@ -179,12 +181,14 @@ ConfigurationPersistenceService {
 	public void setJenkinsServerConfiguration(String name, String url,
 			String username, String password,
 			AuthenticationMode authenticationMode, String stashUsername,
-			String stashPassword, Integer maxVerifyChain,
+			String stashPassword, Integer maxVerifyChain, Integer defaultTimeout,
         String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException {
 		if (name == null) {
 			name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
 		}
 		validateName(name);
+		validateDefaultTimeout(defaultTimeout);
+
 		JenkinsServerConfiguration[] configs = ao.find(
 				JenkinsServerConfiguration.class,
 				Query.select().where("NAME = ?", name));
@@ -197,6 +201,7 @@ ConfigurationPersistenceService {
 					"STASH_USERNAME", stashUsername), new DBParam(
 					"STASH_PASSWORD", stashPassword), new DBParam(
 					"MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam(
+					"DEFAULT_TIMEOUT", defaultTimeout), new DBParam(
                 "PREFIX_TEMPLATE", prefixTemplate), new DBParam("JOB_TEMPLATE", jobTemplate), new DBParam("LOCKED",
 					isLocked));
 			return;
@@ -211,6 +216,7 @@ ConfigurationPersistenceService {
 		configs[0].setStashUsername(stashUsername);
 		configs[0].setStashPassword(stashPassword);
 		configs[0].setMaxVerifyChain(maxVerifyChain);
+		configs[0].setDefaultTimeout(defaultTimeout);
 		configs[0].setPrefixTemplate(prefixTemplate);
         configs[0].setJobTemplate(jobTemplate);
 		configs[0].setLocked(isLocked);
@@ -526,6 +532,16 @@ ConfigurationPersistenceService {
 		return ImmutableList.copyOf(names);
 
 	}
+
+    @Override
+    public void validateDefaultTimeout (Integer defaultTimeout) throws IllegalArgumentException {
+        if (defaultTimeout < JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MIN ||
+                defaultTimeout > JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MAX) {
+            throw new IllegalArgumentException("Default timeout must be between " +
+                    JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MIN + " and " +
+                    JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MAX + " minutes.");
+        }
+    }
 
 	/*
 	 * (non-Javadoc)
