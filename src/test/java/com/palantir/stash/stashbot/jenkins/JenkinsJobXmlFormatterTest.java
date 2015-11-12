@@ -30,23 +30,23 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.atlassian.stash.nav.NavBuilder;
-import com.atlassian.stash.nav.NavBuilder.BrowseRepoResource;
-import com.atlassian.stash.nav.NavBuilder.Repo;
-import com.atlassian.stash.project.Project;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryCloneLinksRequest;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.util.NamedLink;
-import com.atlassian.stash.util.SimpleNamedLink;
+import com.atlassian.bitbucket.nav.NavBuilder;
+import com.atlassian.bitbucket.nav.NavBuilder.BrowseRepoResource;
+import com.atlassian.bitbucket.nav.NavBuilder.Repo;
+import com.atlassian.bitbucket.project.Project;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryCloneLinksRequest;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.util.NamedLink;
+import com.atlassian.bitbucket.util.SimpleNamedLink;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.managers.VelocityManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
-import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class JenkinsJobXmlFormatterTest {

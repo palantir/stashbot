@@ -22,17 +22,17 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import com.atlassian.stash.build.BuildStats;
-import com.atlassian.stash.build.BuildStatusService;
-import com.atlassian.stash.commit.Commit;
-import com.atlassian.stash.commit.CommitService;
-import com.atlassian.stash.commit.CommitsBetweenRequest;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestRef;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.scm.pull.MergeRequest;
-import com.atlassian.stash.util.Page;
-import com.atlassian.stash.util.PageRequest;
+import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.build.BuildSummary;
+import com.atlassian.bitbucket.commit.Commit;
+import com.atlassian.bitbucket.commit.CommitService;
+import com.atlassian.bitbucket.commit.CommitsBetweenRequest;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestRef;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.scm.pull.MergeRequest;
+import com.atlassian.bitbucket.util.Page;
+import com.atlassian.bitbucket.util.PageRequest;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -84,9 +84,9 @@ public class PullRequestBuildSuccessMergeCheckTest {
     @Mock
     private Commit changeB;
     @Mock
-    private BuildStats bsA;
+    private BuildSummary bsA;
     @Mock
-    private BuildStats bsB;
+    private BuildSummary bsB;
 
     private final PluginLoggerFactory lf = new PluginLoggerFactory();
     private List<Commit> changesets;
@@ -133,8 +133,8 @@ public class PullRequestBuildSuccessMergeCheckTest {
         Mockito.when(mockPage.getIsLastPage()).thenReturn(true);
         Mockito.when(changeA.getId()).thenReturn(SHA_A);
         Mockito.when(changeB.getId()).thenReturn(SHA_B);
-        Mockito.when(bss.getStats(SHA_A)).thenReturn(bsA);
-        Mockito.when(bss.getStats(SHA_B)).thenReturn(bsB);
+        Mockito.when(bss.getSummary(SHA_A)).thenReturn(bsA);
+        Mockito.when(bss.getSummary(SHA_B)).thenReturn(bsB);
 
         Mockito.when(bsA.getSuccessfulCount()).thenReturn(1);
         Mockito.when(bsB.getSuccessfulCount()).thenReturn(1);

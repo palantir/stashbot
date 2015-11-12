@@ -13,9 +13,9 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.util;
 
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.util.Operation;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.util.Operation;
 
 public class RepoIdFetcherOperation implements Operation<Void, Exception> {
 

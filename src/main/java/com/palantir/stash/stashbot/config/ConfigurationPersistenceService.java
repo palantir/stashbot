@@ -18,8 +18,8 @@ import java.sql.SQLException;
 import javax.servlet.http.HttpServletRequest;
 
 import com.atlassian.activeobjects.tx.Transactional;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.repository.Repository;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.jobtemplate.JobType;

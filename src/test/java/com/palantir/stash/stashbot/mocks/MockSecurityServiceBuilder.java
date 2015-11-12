@@ -4,10 +4,10 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.atlassian.stash.user.EscalatedSecurityContext;
-import com.atlassian.stash.user.SecurityService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.util.Operation;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.EscalatedSecurityContext;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.util.Operation;
 
 public class MockSecurityServiceBuilder {
 
@@ -31,7 +31,7 @@ public class MockSecurityServiceBuilder {
         };
         Mockito.when(esc.call(Mockito.<Operation<Void, Throwable>> any())).thenAnswer(justDoIt);
 
-        Mockito.when(ss.impersonating(Mockito.any(StashUser.class), Mockito.anyString())).thenReturn(esc);
+        Mockito.when(ss.impersonating(Mockito.any(ApplicationUser.class), Mockito.anyString())).thenReturn(esc);
         Mockito.when(ss.anonymously(Mockito.anyString())).thenReturn(esc);
     }
 

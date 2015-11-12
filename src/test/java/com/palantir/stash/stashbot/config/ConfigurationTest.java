@@ -36,14 +36,14 @@ import org.mockito.MockitoAnnotations;
 
 import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.test.TestActiveObjects;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestRef;
+import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.event.api.EventPublisher;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestRef;
-import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildTimeoutSettings;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -89,8 +89,8 @@ public class ConfigurationTest {
         Mockito.when(pr.getFromRef()).thenReturn(fromRef);
         Mockito.when(pr.getId()).thenReturn(PR_ID);
         Mockito.when(toRef.getRepository()).thenReturn(repo);
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA);
-        Mockito.when(fromRef.getLatestChangeset()).thenReturn(FROM_SHA);
+        Mockito.when(toRef.getLatestCommit()).thenReturn(TO_SHA);
+        Mockito.when(fromRef.getLatestCommit()).thenReturn(FROM_SHA);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
         // ensure our runner sets this for us

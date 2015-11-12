@@ -24,10 +24,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -124,7 +124,7 @@ public class BuildTriggerServlet extends HttpServlet {
                 if (pullRequest == null) {
                     throw new IllegalArgumentException(
                         "Unable to find pull request for repo id "
-                            + repo.getId().toString() + " pr id "
+                            + repo.getId() + " pr id "
                             + pullRequestId);
                 }
             } catch (NumberFormatException e) {

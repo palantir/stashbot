@@ -18,14 +18,14 @@ import java.util.Collection;
 
 import org.slf4j.Logger;
 
+import com.atlassian.bitbucket.comment.Comment;
+import com.atlassian.bitbucket.event.pull.PullRequestCommentEvent;
+import com.atlassian.bitbucket.event.pull.PullRequestMergedEvent;
+import com.atlassian.bitbucket.event.pull.PullRequestOpenedEvent;
+import com.atlassian.bitbucket.event.pull.PullRequestRescopedEvent;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.event.api.EventListener;
-import com.atlassian.stash.comment.Comment;
-import com.atlassian.stash.event.pull.PullRequestCommentEvent;
-import com.atlassian.stash.event.pull.PullRequestMergedEvent;
-import com.atlassian.stash.event.pull.PullRequestOpenedEvent;
-import com.atlassian.stash.event.pull.PullRequestRescopedEvent;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
@@ -104,7 +104,7 @@ public class PullRequestListener {
                 return;
             }
             // just trigger a build of the new commit since the other hook doesn't catch merged PRs.
-            String mergeSha1 = event.getChangeset().getId();
+            String mergeSha1 = event.getCommit().getId();
             String targetBranch = pr.getToRef().getId();
             boolean publishEnabled = cpm.getJobTypeStatusMapping(rc, JobType.PUBLISH);
             boolean verifyEnabled = cpm.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT);
@@ -175,7 +175,7 @@ public class PullRequestListener {
                         // build not started, so don't consider this PRM
                         continue;
                     }
-                    if (cur.getFromSha().equals(pr.getFromRef().getLatestChangeset())) {
+                    if (cur.getFromSha().equals(pr.getFromRef().getLatestCommit())) {
                         // we found a PRM for which buildstarted = true and fromSha matches, so return
                         return;
                     }

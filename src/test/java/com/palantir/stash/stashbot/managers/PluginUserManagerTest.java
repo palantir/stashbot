@@ -24,12 +24,12 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.ssh.api.SshKeyService;
-import com.atlassian.stash.user.PermissionAdminService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.user.UserAdminService;
-import com.atlassian.stash.user.UserService;
+import com.atlassian.bitbucket.permission.PermissionAdminService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.ssh.SshKeyService;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.UserAdminService;
+import com.atlassian.bitbucket.user.UserService;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
@@ -55,7 +55,7 @@ public class PluginUserManagerTest {
     @Mock
     private Repository repo;
     @Mock
-    private StashUser stashUser;
+    private ApplicationUser stashUser;
     @Mock
     private JenkinsServerConfiguration jsc;
 
@@ -82,12 +82,12 @@ public class PluginUserManagerTest {
         pum = new PluginUserManager(uas, pas, us, sks, cps, ku, plf);
     }
 
-    private class GetUserByName implements Answer<StashUser> {
+    private class GetUserByName implements Answer<ApplicationUser> {
 
         private boolean isCreated = false;
 
         @Override
-        public StashUser answer(InvocationOnMock invocation) throws Throwable {
+        public ApplicationUser answer(InvocationOnMock invocation) throws Throwable {
             if (isCreated) {
                 return stashUser;
             }

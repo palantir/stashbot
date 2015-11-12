@@ -59,20 +59,20 @@
         <url-pattern>/stashbot/build-trigger/*</url-pattern>
     </servlet>
 
-    <stash-resource key="stashbotConfigurationResources" name="Stashbot Configuration Panel Resources">
+    <client-resource key="stashbotConfigurationResources" name="Stashbot Configuration Panel Resources">
         <directory location="/static/">
           <exclude>/**/*-min.*</exclude>
         </directory>
         <context>plugin.page.stashbot</context>
-        <dependency>com.atlassian.stash.stash-web-plugin:global</dependency>
-    </stash-resource>
+        <dependency>com.atlassian.bitbucket.server.bitbucket-web:server-soy-templates</dependency>
+    </client-resource>
 
-    <web-item key="repository-configuration-admin" name="Stashbot Repository Admin Panel" weight="20" section="stash.repository.settings.panel">
+    <web-item key="repository-configuration-admin" name="Stashbot Repository Admin Panel" weight="20" section="bitbucket.repository.settings.panel">
         <conditions type="OR">
-            <condition class="com.atlassian.stash.web.conditions.HasRepositoryPermissionCondition">
+            <condition class="com.atlassian.bitbucket.web.conditions.HasRepositoryPermissionCondition">
                 <param name="permission">REPO_ADMIN</param>
             </condition>
-            <condition class="com.atlassian.stash.web.conditions.HasGlobalPermissionCondition">
+            <condition class="com.atlassian.bitbucket.web.conditions.HasGlobalPermissionCondition">
                 <param name="permission">SYS_ADMIN</param>
             </condition>
         </conditions>
@@ -81,8 +81,8 @@
         <link>/plugins/servlet/stashbot/repo-admin/${repository.project.key}/${repository.slug}</link>
     </web-item>
 
-    <web-item key="jenkins-configuration-admin" name="Stashbot Jenkins Admin Panel" weight="20" section="atl.admin/admin-settings-section" application="stash">
-        <condition class="com.atlassian.stash.web.conditions.HasGlobalPermissionCondition">
+    <web-item key="jenkins-configuration-admin" name="Stashbot Jenkins Admin Panel" weight="20" section="atl.admin/admin-settings-section" application="bitbucket">
+        <condition class="com.atlassian.bitbucket.web.conditions.HasGlobalPermissionCondition">
             <param name="permission">SYS_ADMIN</param>
         </condition>
         <label key="plugin.page.repo.ci.info.tab.label">Stashbot Jenkins Admin</label>
@@ -91,7 +91,7 @@
     </web-item>
 
 
-    <web-section key="build-action-section"  name="Section for displaying build actions" weight="250" location="stash.commits.extras">
+    <web-section key="build-action-section"  name="Section for displaying build actions" weight="250" location="bitbucket.commits.extras">
         <label key="build-action-section-label">Build Actions</label>
         <condition class="com.palantir.stash.stashbot.webpanel.IsCiEnabledForRepoCondition"/>
     </web-section>
@@ -104,41 +104,41 @@
     <!-- tried to write this as a client-web-panel, but that was annoying as crap, so this janky solution was easier.  Forgive me. -->
     <web-resource key="pullRequestTriggerResources" name="Pull Request Trigger Link Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
-        <dependency>stash.web.resources:jquery</dependency>
+        <dependency>bitbucket.web.resources:jquery</dependency>
         <resource type="download" name="pr-trigger.js" location="js/pr-trigger.js"/>
-        <context>stash.page.pullRequest.view</context>
+        <context>bitbucket.page.pullRequest.view</context>
     </web-resource>
 
     <!-- import from the product container -->
     <component-import key="activeObjects" interface="com.atlassian.activeobjects.external.ActiveObjects" />
-    <component-import key="applicationPropertiesService" interface="com.atlassian.stash.server.ApplicationPropertiesService"/>
-    <component-import key="buildStatusService" interface="com.atlassian.stash.build.BuildStatusService"/>
-    <component-import key="commitService" interface="com.atlassian.stash.commit.CommitService"/>
-    <component-import key="gitCommandBuilderFactory" interface="com.atlassian.stash.scm.git.GitCommandBuilderFactory"/>
+    <component-import key="applicationPropertiesService" interface="com.atlassian.bitbucket.server.ApplicationPropertiesService"/>
+    <component-import key="buildStatusService" interface="com.atlassian.bitbucket.build.BuildStatusService"/>
+    <component-import key="commitService" interface="com.atlassian.bitbucket.commit.CommitService"/>
+    <component-import key="gitCommandBuilderFactory" interface="com.atlassian.bitbucket.scm.git.command.GitCommandBuilderFactory"/>
     <component-import key="loginUriProvider" interface="com.atlassian.sal.api.auth.LoginUriProvider"/>
-    <component-import key="navBuilder" interface="com.atlassian.stash.nav.NavBuilder" />
+    <component-import key="navBuilder" interface="com.atlassian.bitbucket.nav.NavBuilder" />
     <component-import key="pageBuilderService" interface="com.atlassian.webresource.api.assembler.PageBuilderService"/>
-    <component-import key="permissionAdminService" interface="com.atlassian.stash.user.PermissionAdminService"/>
-    <component-import key="projectService" interface="com.atlassian.stash.project.ProjectService"/>
-    <component-import key="pullRequestService" interface="com.atlassian.stash.pull.PullRequestService"/>
-    <component-import key="repositoryHookService" interface="com.atlassian.stash.hook.repository.RepositoryHookService"/>
-    <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
-    <component-import key="securityService" interface="com.atlassian.stash.user.SecurityService"/>
+    <component-import key="permissionAdminService" interface="com.atlassian.bitbucket.permission.PermissionAdminService"/>
+    <component-import key="projectService" interface="com.atlassian.bitbucket.project.ProjectService"/>
+    <component-import key="pullRequestService" interface="com.atlassian.bitbucket.pull.PullRequestService"/>
+    <component-import key="repositoryHookService" interface="com.atlassian.bitbucket.hook.repository.RepositoryHookService"/>
+    <component-import key="repositoryService" interface="com.atlassian.bitbucket.repository.RepositoryService"/>
+    <component-import key="securityService" interface="com.atlassian.bitbucket.user.SecurityService"/>
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
-    <component-import key="sshKeyService" interface="com.atlassian.stash.ssh.api.SshKeyService"/>
-    <component-import key="userAdminService" interface="com.atlassian.stash.user.UserAdminService"/>
+    <component-import key="sshKeyService" interface="com.atlassian.bitbucket.ssh.SshKeyService"/>
+    <component-import key="userAdminService" interface="com.atlassian.bitbucket.user.UserAdminService"/>
     <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager"/>
-    <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>
+    <component-import key="userService" interface="com.atlassian.bitbucket.user.UserService"/>
 
     <!--
-    com.atlassian.stash.web.conditions.HasGlobalPermissionCondition
-    com.atlassian.stash.web.conditions.HasRepositoryPermissionCondition
+    com.atlassian.bitbucket.web.conditions.HasGlobalPermissionCondition
+    com.atlassian.bitbucket.web.conditions.HasRepositoryPermissionCondition
 
     These two classes are included as components automatically because they are used in the XML above
     However they depend upon PermissionService which is not included automatically as a transitive dependency, so we need this:
     -->
-    <component-import key="permissionService" interface="com.atlassian.stash.user.PermissionService"/>
-    <component-import key="permissionValidationService" interface="com.atlassian.stash.user.PermissionValidationService"/>
+    <component-import key="permissionService" interface="com.atlassian.bitbucket.permission.PermissionService"/>
+    <component-import key="permissionValidationService" interface="com.atlassian.bitbucket.permission.PermissionValidationService"/>
     <component-import key="eventPublisher" interface="com.atlassian.event.api.EventPublisher"/>
 
     <component key="commandOutputHandlerFactory" class="com.palantir.stash.stashbot.outputhandler.CommandOutputHandlerFactory" />

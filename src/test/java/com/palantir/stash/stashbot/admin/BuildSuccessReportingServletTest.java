@@ -32,27 +32,28 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.atlassian.stash.build.BuildStatus;
-import com.atlassian.stash.build.BuildStatus.State;
-import com.atlassian.stash.build.BuildStatusService;
-import com.atlassian.stash.project.Project;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestRef;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.EscalatedSecurityContext;
-import com.atlassian.stash.user.Permission;
-import com.atlassian.stash.user.SecurityService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.user.UserService;
-import com.atlassian.stash.util.Operation;
+import com.atlassian.bitbucket.build.BuildState;
+import com.atlassian.bitbucket.build.BuildStatusService;
+import com.atlassian.bitbucket.build.BuildStatusSetRequest;
+import com.atlassian.bitbucket.permission.Permission;
+import com.atlassian.bitbucket.project.Project;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestRef;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.EscalatedSecurityContext;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.user.UserService;
+import com.atlassian.bitbucket.util.Operation;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceImpl;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.mocks.MockJobTemplateFactory;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JobTemplate;
 import com.palantir.stash.stashbot.persistence.PullRequestMetadata;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.servlet.BuildSuccessReportingServlet;
@@ -62,9 +63,9 @@ public class BuildSuccessReportingServletTest {
 
     private static final String HEAD = "38356e8abe0e97648dd1007278ecc02c3bf3d2cb";
     private static final String MERGE_HEAD = "cac9954e06013073c1bf9e17b2c1c919095817dc";
-    private static final State SUCCESSFUL = State.SUCCESSFUL;
-    private static final State INPROGRESS = State.INPROGRESS;
-    private static final State FAILED = State.FAILED;
+    private static final BuildState SUCCESSFUL = BuildState.SUCCESSFUL;
+    private static final BuildState INPROGRESS = BuildState.INPROGRESS;
+    private static final BuildState FAILED = BuildState.FAILED;
     private static final long BUILD_NUMBER = 12345L;
     private static final int REPO_ID = 1;
     private static final long PULL_REQUEST_ID = 1234L;
@@ -143,8 +144,9 @@ public class BuildSuccessReportingServletTest {
                 Mockito.any(JobType.class), Mockito.anyString(),
                 Mockito.any(PullRequest.class))).thenReturn(
             ABSOLUTE_URL);
-
-        Mockito.when(ss.impersonating(Mockito.any(StashUser.class), Mockito.anyString())).thenReturn(esc);
+        Mockito.when(ub.getJenkinsBuildUrl(Mockito.any(Repository.class), Mockito.any(JobTemplate.class), Mockito.anyLong())).thenReturn(ABSOLUTE_URL);
+        
+        Mockito.when(ss.impersonating(Mockito.any(ApplicationUser.class), Mockito.anyString())).thenReturn(esc);
         Mockito.when(ss.withPermission(Mockito.any(Permission.class), Mockito.anyString())).thenReturn(esc);
 
         jtf = new MockJobTemplateFactory(jtm);
@@ -178,20 +180,20 @@ public class BuildSuccessReportingServletTest {
 
         bsrs.doGet(req, res);
 
-        ArgumentCaptor<BuildStatus> buildStatusCaptor = ArgumentCaptor
-            .forClass(BuildStatus.class);
+        ArgumentCaptor<BuildStatusSetRequest> buildStatusCaptor = ArgumentCaptor
+            .forClass(BuildStatusSetRequest.class);
 
-        Mockito.verify(bss).add(Mockito.eq(HEAD), buildStatusCaptor.capture());
+        Mockito.verify(bss).set(buildStatusCaptor.capture());
         Mockito.verify(res).setStatus(200);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Status Updated"));
 
-        BuildStatus bs = buildStatusCaptor.getValue();
-        Assert.assertEquals(bs.getState(), SUCCESSFUL);
-        Assert.assertTrue(bs.getKey()
+        BuildStatusSetRequest bssr = buildStatusCaptor.getValue();
+        Assert.assertEquals(bssr.getState(), SUCCESSFUL);
+        Assert.assertTrue(bssr.getKey()
             .contains(JobType.VERIFY_COMMIT.toString()));
-        Assert.assertTrue(bs.getName().contains(
+        Assert.assertTrue(bssr.getName().contains(
             JobType.VERIFY_COMMIT.toString()));
     }
 
@@ -203,20 +205,20 @@ public class BuildSuccessReportingServletTest {
 
         bsrs.doGet(req, res);
 
-        ArgumentCaptor<BuildStatus> buildStatusCaptor = ArgumentCaptor
-            .forClass(BuildStatus.class);
+        ArgumentCaptor<BuildStatusSetRequest> buildStatusCaptor = ArgumentCaptor
+            .forClass(BuildStatusSetRequest.class);
 
-        Mockito.verify(bss).add(Mockito.eq(HEAD), buildStatusCaptor.capture());
+        Mockito.verify(bss).set(buildStatusCaptor.capture());
         Mockito.verify(res).setStatus(200);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Status Updated"));
 
-        BuildStatus bs = buildStatusCaptor.getValue();
-        Assert.assertEquals(bs.getState(), INPROGRESS);
-        Assert.assertTrue(bs.getKey()
+        BuildStatusSetRequest bssr = buildStatusCaptor.getValue();
+        Assert.assertEquals(bssr.getState(), INPROGRESS);
+        Assert.assertTrue(bssr.getKey()
             .contains(JobType.VERIFY_COMMIT.toString()));
-        Assert.assertTrue(bs.getName().contains(
+        Assert.assertTrue(bssr.getName().contains(
             JobType.VERIFY_COMMIT.toString()));
     }
 
@@ -228,20 +230,20 @@ public class BuildSuccessReportingServletTest {
 
         bsrs.doGet(req, res);
 
-        ArgumentCaptor<BuildStatus> buildStatusCaptor = ArgumentCaptor
-            .forClass(BuildStatus.class);
+        ArgumentCaptor<BuildStatusSetRequest> buildStatusCaptor = ArgumentCaptor
+            .forClass(BuildStatusSetRequest.class);
 
-        Mockito.verify(bss).add(Mockito.eq(HEAD), buildStatusCaptor.capture());
+        Mockito.verify(bss).set(buildStatusCaptor.capture());
         Mockito.verify(res).setStatus(200);
 
         String output = mockWriter.toString();
         Assert.assertTrue(output.contains("Status Updated"));
 
-        BuildStatus bs = buildStatusCaptor.getValue();
-        Assert.assertEquals(bs.getState(), FAILED);
-        Assert.assertTrue(bs.getKey()
+        BuildStatusSetRequest bssr = buildStatusCaptor.getValue();
+        Assert.assertEquals(bssr.getState(), FAILED);
+        Assert.assertTrue(bssr.getKey()
             .contains(JobType.VERIFY_COMMIT.toString()));
-        Assert.assertTrue(bs.getName().contains(
+        Assert.assertTrue(bssr.getName().contains(
             JobType.VERIFY_COMMIT.toString()));
     }
 
@@ -271,7 +273,7 @@ public class BuildSuccessReportingServletTest {
 
     // path info:
     // "/BASE_URL/REPO_ID/TYPE/STATE/BUILD_NUMBER/BUILD_HEAD[/MERGE_HEAD/PULLREQUEST_ID]"
-    private String buildPathInfo(int repoId, JobType jt, State state,
+    private String buildPathInfo(int repoId, JobType jt, BuildState state,
         long buildNumber, String head, String mergeHead, Long pullRequestId) {
         return "/" + Integer.toString(repoId) + "/" + jt.toString() + "/"
             + state.toString() + "/" + Long.toString(buildNumber) + "/"

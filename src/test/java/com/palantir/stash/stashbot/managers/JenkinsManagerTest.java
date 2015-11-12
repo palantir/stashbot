@@ -33,14 +33,14 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.atlassian.bitbucket.project.Project;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
+import com.atlassian.bitbucket.user.ApplicationUser;
+import com.atlassian.bitbucket.user.SecurityService;
+import com.atlassian.bitbucket.user.UserService;
 import com.atlassian.sal.api.user.UserManager;
 import com.atlassian.sal.api.user.UserProfile;
-import com.atlassian.stash.project.Project;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
-import com.atlassian.stash.user.SecurityService;
-import com.atlassian.stash.user.StashUser;
-import com.atlassian.stash.user.UserService;
 import com.google.common.collect.Maps;
 import com.offbytwo.jenkins.JenkinsServer;
 import com.offbytwo.jenkins.model.FolderJob;
@@ -108,7 +108,7 @@ public class JenkinsManagerTest {
     @Mock
     private UserProfile up;
     @Mock
-    private StashUser su;
+    private ApplicationUser su;
 
     private SecurityService ss;
 

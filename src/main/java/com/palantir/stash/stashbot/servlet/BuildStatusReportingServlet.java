@@ -22,21 +22,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import com.atlassian.stash.nav.NavBuilder;
-import com.atlassian.stash.project.Project;
-import com.atlassian.stash.project.ProjectService;
-import com.atlassian.stash.pull.PullRequest;
-import com.atlassian.stash.pull.PullRequestMergeVeto;
-import com.atlassian.stash.pull.PullRequestMergeability;
-import com.atlassian.stash.pull.PullRequestService;
-import com.atlassian.stash.repository.Repository;
-import com.atlassian.stash.repository.RepositoryService;
+import com.atlassian.bitbucket.nav.NavBuilder;
+import com.atlassian.bitbucket.project.Project;
+import com.atlassian.bitbucket.project.ProjectService;
+import com.atlassian.bitbucket.pull.PullRequest;
+import com.atlassian.bitbucket.pull.PullRequestMergeVeto;
+import com.atlassian.bitbucket.pull.PullRequestMergeability;
+import com.atlassian.bitbucket.pull.PullRequestService;
+import com.atlassian.bitbucket.repository.Repository;
+import com.atlassian.bitbucket.repository.RepositoryService;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 
 public class BuildStatusReportingServlet extends HttpServlet {
@@ -131,7 +131,7 @@ public class BuildStatusReportingServlet extends HttpServlet {
             if (pullRequest == null) {
                 throw new IllegalArgumentException(
                     "Unable to find pull request for repo id "
-                        + repo.getId().toString() + " pr id "
+                        + repo.getId() + " pr id "
                         + pullRequestId);
             }
 

@@ -23,7 +23,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.util.Assert;
 
 import com.offbytwo.jenkins.JenkinsServer;
-import com.palantir.stash.stashbot.managers.JenkinsClientManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 
