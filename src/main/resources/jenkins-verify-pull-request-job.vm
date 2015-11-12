@@ -164,6 +164,17 @@ set -x</command>
           <RunIfJobSuccessful>false</RunIfJobSuccessful>
           <script>$esc.xml($failedCommand)</script>
         </hudson.plugins.postbuildtask.TaskProperties>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>Build timed out \(after $buildTimeout minutes\)</logText>
+              <operator>AND</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>$esc.xml($failedCommand)</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
       </tasks>
     </hudson.plugins.postbuildtask.PostbuildTask>
 #if ($isJunit)
