@@ -52,7 +52,7 @@
       <hudson.plugins.git.UserRemoteConfig>
         <url>$esc.xml($repositoryUrl)</url>
         <name>origin</name>
-        <refspec></refspec>
+        <refspec>+refs/pull-requests/*:refs/remotes/origin/pull-requests/* +refs/heads/*:refs/remotes/origin/*</refspec>
 #if ( $credentialUUID )
         <credentialsId>$credentialUUID</credentialsId>
 #end
