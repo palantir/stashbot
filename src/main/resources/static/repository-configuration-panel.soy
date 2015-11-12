@@ -32,7 +32,6 @@
  * @param verifyPREnabled
  * @param publishEnabled
  * @param buildTimeout
- * @param buildTimeoutDefault
  * @param buildTimeoutMin
  * @param buildTimeoutMax
  *
@@ -144,7 +143,7 @@
           {call aui.form.textField}
             {param id: 'buildTimeout' /}
             {param labelContent: stash_i18n('stash.web.stash.buildTimeout.label', 'Build Timeout (minutes)') /}
-            {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default (' + $buildTimeoutDefault + ' minutes).  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
+            {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default.  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
             {param value: $buildTimeout /}
           {/call}
 
