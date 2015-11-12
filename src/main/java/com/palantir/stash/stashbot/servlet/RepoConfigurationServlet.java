@@ -110,6 +110,11 @@ public class RepoConfigurationServlet extends HttpServlet {
             throw new ServletException(e1);
         }
 
+        String error = req.getParameter("error");
+        if (error == null) {
+            error = new String();
+        }
+
         res.setContentType("text/html;charset=UTF-8");
 
         try {
@@ -134,6 +139,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     "plugin.page.stashbot.repositoryConfigurationPanel",
                     ImmutableMap
                         .<String, Object> builder()
+                        .put("error", error)
                         .put("repository", rep)
                         .put("ciEnabled", rc.getCiEnabled())
                         .put("publishBranchRegex", rc.getPublishBranchRegex())
@@ -234,7 +240,11 @@ public class RepoConfigurationServlet extends HttpServlet {
 
             }
 
-            configurationPersistanceManager.setRepositoryConfigurationForRepositoryFromRequest(rep, req);
+            try {
+                configurationPersistanceManager.setRepositoryConfigurationForRepositoryFromRequest(rep, req);
+            } catch (IllegalArgumentException e) { // also catches NumberFormatException
+                res.sendRedirect(req.getRequestURL().toString() + "?error=" + e.getMessage());
+            }
 
             RepositoryConfiguration rc = configurationPersistanceManager.getRepositoryConfigurationForRepository(rep);
             if (rc.getCiEnabled()) {

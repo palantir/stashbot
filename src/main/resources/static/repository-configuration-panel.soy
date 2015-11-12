@@ -1,6 +1,7 @@
 {namespace plugin.page.stashbot}
 
 /**
+ * @param error
  * @param repository
  * @param ciEnabled
  * @param publishBranchRegex
@@ -55,6 +56,14 @@
         {/call}
     {/param}
 {/call}
+{if $error}
+	{call widget.aui.message.error}
+		{param title: 'An error occured in saving config.' /}
+		{param content}
+			{$error}
+		{/param}
+	{/call}
+{/if}
 {call aui.group.group}
     {param content}
       {call aui.form.form}
