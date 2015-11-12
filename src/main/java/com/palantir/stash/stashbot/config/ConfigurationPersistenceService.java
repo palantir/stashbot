@@ -86,7 +86,7 @@ public interface ConfigurationPersistenceService {
 			boolean isJunitEnabled, String junitPath, boolean artifactsEnabled,
 			String artifactsPath, Integer maxVerifyChain,
 			EmailSettings emailSettings, boolean strictVerifyMode,
-			Boolean preserveJenkinsJobConfig) throws SQLException,
+			Boolean preserveJenkinsJobConfig, Integer buildTimeout) throws SQLException,
 			IllegalArgumentException;
 
 	public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
@@ -96,6 +96,9 @@ public interface ConfigurationPersistenceService {
 			throws SQLException;
 
 	public abstract void validateDefaultTimeout (Integer defaultTimeout)
+	        throws IllegalArgumentException;
+
+	public abstract void validateBuildTimeout (Integer buildTimeout)
 	        throws IllegalArgumentException;
 
 	public abstract void validateName(String name)

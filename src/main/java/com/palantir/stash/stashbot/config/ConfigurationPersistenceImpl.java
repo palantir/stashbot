@@ -271,7 +271,7 @@ ConfigurationPersistenceService {
 				verifyBranchRegex, verifyBuildCommand, false, "N/A",
 				publishBranchRegex, publishBuildCommand, false, "N/A",
 				prebuildCommand, null, rebuildOnUpdate, false, "N/A",
-				rebuildOnUpdate, null, null, new EmailSettings(), false, false);
+				rebuildOnUpdate, null, null, new EmailSettings(), false, false, -1);
 	}
 
 	/*
@@ -317,13 +317,20 @@ ConfigurationPersistenceService {
 
 		EmailSettings emailSettings = getEmailSettings(req);
 
+		String buildTimeoutStr = req.getParameter("buildTimeout");
+		Integer buildTimeout = null;
+		if (buildTimeoutStr != null && !buildTimeoutStr.trim().isEmpty()) {
+		    buildTimeout = Integer.parseInt(buildTimeoutStr);
+		    validateBuildTimeout(buildTimeout);
+		}
+
 		setRepositoryConfigurationForRepository(repo, ciEnabled,
 				verifyBranchRegex, verifyBuildCommand, isVerifyPinned,
 				verifyLabel, publishBranchRegex, publishBuildCommand,
 				isPublishPinned, publishLabel, prebuildCommand,
 				jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath,
 				artifactsEnabled, artifactsPath, maxVerifyChain, emailSettings,
-				strictVerifyMode, preserveJenkinsJobConfig);
+				strictVerifyMode, preserveJenkinsJobConfig, buildTimeout);
 		RepositoryConfiguration rc = getRepositoryConfigurationForRepository(repo);
 		setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT,
 				getBoolean(req, "verificationEnabled"));
@@ -404,7 +411,7 @@ ConfigurationPersistenceService {
 			boolean isJunitEnabled, String junitPath, boolean artifactsEnabled,
 			String artifactsPath, Integer maxVerifyChain,
 			EmailSettings emailSettings, boolean strictVerifyMode,
-			Boolean preserveJenkinsJobConfig) throws SQLException,
+			Boolean preserveJenkinsJobConfig, Integer buildTimeout) throws SQLException,
 			IllegalArgumentException {
 		if (jenkinsServerName == null) {
 			jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -435,6 +442,7 @@ ConfigurationPersistenceService {
 					new DBParam("ARTIFACTS_ENABLED", artifactsEnabled),
 					new DBParam("ARTIFACTS_PATH", artifactsPath),
 					new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
+					new DBParam("BUILD_TIMEOUT", buildTimeout),
 					new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings
 							.getEmailNotificationsEnabled()),
 							new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings
@@ -489,6 +497,7 @@ ConfigurationPersistenceService {
 				.getEmailSendToIndividuals());
 		foundRepo.setStrictVerifyMode(strictVerifyMode);
 		foundRepo.setPreserveJenkinsJobConfig(preserveJenkinsJobConfig);
+		foundRepo.setBuildTimeout(buildTimeout);
 		foundRepo.save();
 	}
 
@@ -543,6 +552,16 @@ ConfigurationPersistenceService {
         }
     }
 
+    @Override
+    public void validateBuildTimeout (Integer buildTimeout) throws IllegalArgumentException {
+        if ( (buildTimeout < JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MIN && buildTimeout != -1)
+                || buildTimeout > JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MAX) {
+            throw new IllegalArgumentException("Build timeout must be between " +
+                JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MIN + " and " +
+                JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MAX + " minutes. Or set to -1 for default (" +
+                JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_DEFAULT + " minutes).");
+        }
+    }
 	/*
 	 * (non-Javadoc)
 	 *
