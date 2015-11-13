@@ -16,10 +16,20 @@
 </head>
 <body>
 {if $error}
-  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>ERROR:</b> {$error}</div></div>
+	{call widget.aui.message.error}
+		{param title: 'ERROR' /}
+		{param content}
+			{$error}
+		{/param}
+	{/call}
 {/if}
 {if $notice}
-  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>NOTICE:</b> {$notice}</div></div>
+    {call widget.aui.message.warning}
+		{param title: 'NOTICE' /}
+		{param content}
+			{$notice}
+		{/param}
+    {/call}
 {/if}
 
 {call aui.group.group}
