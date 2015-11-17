@@ -50,4 +50,5 @@ public class JenkinsServerConfigurationImpl {
 	    password = password.replaceAll("\\$repo", r.getSlug());
 	    return password;
 	}
+
 }

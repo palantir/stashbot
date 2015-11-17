@@ -16,10 +16,20 @@
 </head>
 <body>
 {if $error}
-  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>ERROR:</b> {$error}</div></div>
+	{call widget.aui.message.error}
+		{param title: 'ERROR' /}
+		{param content}
+			{$error}
+		{/param}
+	{/call}
 {/if}
 {if $notice}
-  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>NOTICE:</b> {$notice}</div></div>
+    {call widget.aui.message.warning}
+		{param title: 'NOTICE' /}
+		{param content}
+			{$notice}
+		{/param}
+    {/call}
 {/if}
 
 {call aui.group.group}
@@ -99,6 +109,12 @@
               {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
               {param value: ($jenkinsConfig.maxVerifyChain == 0 ? '0' : $jenkinsConfig.maxVerifyChain) /}
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
+            {/call}
+            {call aui.form.textField}
+              {param id: 'defaultTimeout' /}
+              {param labelContent: stash_i18n('stash.web.stash.defaultTimeout.label', 'Default Build Timeout') /}
+              {param value: $jenkinsConfig.defaultTimeout /}
+              {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
             {/call}
             {call aui.form.textField}
               {param id: 'prefixTemplate' /}
@@ -190,9 +206,15 @@
               {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
             {/call}
             {call aui.form.textField}
+              {param id: 'defaultTimeout' /}
+              {param labelContent: stash_i18n('stash.web.stash.defaultTimeout.label', 'Default Build Timeout') /}
+              {param value: '240' /}
+              {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
+            {/call}
+            {call aui.form.textField}
               {param id: 'prefixTemplate' /}
               {param labelContent: stash_i18n('stash.web.stash.prefixTemplate.label', 'Template used to put jobs in separate folders in jenkins') /}
-              {param value: '' /}
+              {param value: '/' /}
               {param descriptionText: stash_i18n('stash.web.stash.prefixTemplate.description', 'Template used to put jobs in separate folders in jenkins.  Valid variables are $project and $repo') /}
             {/call}
             {call aui.form.textField}

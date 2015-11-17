@@ -181,4 +181,10 @@ public interface RepositoryConfiguration extends Entity {
 
     public void setPreserveJenkinsJobConfig(Boolean preserveJenkinsJobConfig);
 
+
+    @NotNull
+    @Default("-1")
+    public Integer getBuildTimeout();
+
+    public void setBuildTimeout(Integer buildTimeout);
 }

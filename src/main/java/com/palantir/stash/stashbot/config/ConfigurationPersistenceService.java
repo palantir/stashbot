@@ -59,7 +59,7 @@ public interface ConfigurationPersistenceService {
 	public abstract void setJenkinsServerConfiguration(String name, String url,
 			String username, String password,
 			AuthenticationMode authenticationMode, String stashUsername,
-			String stashPassword, Integer maxVerifyChain,
+			String stashPassword, Integer maxVerifyChain, Integer defaultTimeout,
         String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException;
 
 	public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
@@ -86,7 +86,7 @@ public interface ConfigurationPersistenceService {
 			boolean isJunitEnabled, String junitPath, boolean artifactsEnabled,
 			String artifactsPath, Integer maxVerifyChain,
 			EmailSettings emailSettings, boolean strictVerifyMode,
-			Boolean preserveJenkinsJobConfig) throws SQLException,
+			Boolean preserveJenkinsJobConfig, Integer buildTimeout) throws SQLException,
 			IllegalArgumentException;
 
 	public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
@@ -94,6 +94,12 @@ public interface ConfigurationPersistenceService {
 
 	public abstract ImmutableCollection<String> getAllJenkinsServerNames()
 			throws SQLException;
+
+	public abstract void validateDefaultTimeout (Integer defaultTimeout)
+	        throws IllegalArgumentException;
+
+	public abstract void validateBuildTimeout (Integer buildTimeout)
+	        throws IllegalArgumentException;
 
 	public abstract void validateName(String name)
 			throws IllegalArgumentException;

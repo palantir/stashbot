@@ -1,6 +1,7 @@
 {namespace plugin.page.stashbot}
 
 /**
+ * @param error
  * @param repository
  * @param ciEnabled
  * @param publishBranchRegex
@@ -31,6 +32,9 @@
  * @param verificationEnabled
  * @param verifyPREnabled
  * @param publishEnabled
+ * @param buildTimeout
+ * @param buildTimeoutMin
+ * @param buildTimeoutMax
  *
  **/
 {template .repositoryConfigurationPanel}
@@ -40,7 +44,7 @@
     <meta name="projectKey" content="{$repository.project.key}">
     <meta name="repositorySlug" content="{$repository.slug}">
     <meta name="activeTab" content="repository-settings-git-ops-panel">
-    <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot settings for {0} / {1}', $repository.project.name, $repository.name)}}</title>
+    <title>{{stash_i18n('stash.web.repository.git-ops.title', 'Stashbot settings')}}</title>
 </head>
 <body>
 {call aui.group.group}
@@ -52,6 +56,14 @@
         {/call}
     {/param}
 {/call}
+{if $error}
+	{call widget.aui.message.error}
+		{param title: 'An error occured in saving config.' /}
+		{param content}
+			{$error}
+		{/param}
+	{/call}
+{/if}
 {call aui.group.group}
     {param content}
       {call aui.form.form}
@@ -136,6 +148,15 @@
 
           <h3>Jenkins Settings</h3>
           <p>Modify what commands get run for builds, if there are tests, who gets notified, etc.</p>
+
+          {call aui.form.textField}
+            {param id: 'buildTimeout' /}
+            {param labelContent: stash_i18n('stash.web.stash.buildTimeout.label', 'Build Timeout (minutes)') /}
+            {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default.  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
+            {param value: $buildTimeout /}
+          {/call}
+
+          <h4>&nbsp;</h4>
 
           {call aui.form.textField}
             {param id: 'prebuildCommand' /}
