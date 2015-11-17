@@ -24,8 +24,11 @@ import com.atlassian.bitbucket.build.BuildStatusService;
 import com.atlassian.bitbucket.build.BuildStatusSetRequest;
 import com.atlassian.bitbucket.repository.Repository;
 import com.atlassian.bitbucket.util.Operation;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
+import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
 
 public class BuildStatusAddOperation implements Operation<Void, Exception> {
@@ -33,26 +36,37 @@ public class BuildStatusAddOperation implements Operation<Void, Exception> {
     private final StashbotUrlBuilder sub;
     private final BuildStatusService bss;
     private final BuildStatusSetRequest.Builder b;
+    private final ConfigurationPersistenceService cps;
     private final Logger log;
 
-    public BuildStatusAddOperation(StashbotUrlBuilder sub, BuildStatusService bss, PluginLoggerFactory plf, String buildHead) {
-    	this.sub = sub;
+    public BuildStatusAddOperation(StashbotUrlBuilder sub, BuildStatusService bss, ConfigurationPersistenceService cps,
+        PluginLoggerFactory plf, String buildHead) {
+        this.sub = sub;
         this.bss = bss;
-        this.b = new BuildStatusSetRequest.Builder(buildHead);
+        this.cps = cps;
         this.log = plf.getLoggerForThis(this);
+        this.b = new BuildStatusSetRequest.Builder(buildHead);
     }
 
     public void setBuildStatus(Repository repo, JobTemplate jt, BuildState bs, long buildNumber) throws SQLException {
         Date now = new Date(java.lang.System.currentTimeMillis());
         DateFormat df = DateFormat.getDateTimeInstance();
 
+        RepositoryConfiguration rc = cps.getRepositoryConfigurationForRepository(repo);
+        JenkinsServerConfiguration jsc = cps.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+
         // key should be the jenkins job name
-        String key = jt.getBuildNameFor(repo);
+        String key;
+        if (jsc.getFolderSupportEnabled()) {
+            key = jsc.getFolderPrefix() + "/" + jt.getPathFor(repo) + "/" + jt.getBuildNameFor(repo);
+        } else {
+            key = jt.getBuildNameFor(repo);
+        }
         String name = key + " (build " + Long.toString(buildNumber) + ")";
         String description = "Build " + Long.toString(buildNumber) + " "
             + bs.toString() + " at " + df.format(now);
         String url = sub.getJenkinsBuildUrl(repo, jt, buildNumber);
-        
+
         b.dateAdded(now);
         b.key(key);
         b.name(name);
