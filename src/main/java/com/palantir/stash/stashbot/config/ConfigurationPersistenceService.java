@@ -60,6 +60,7 @@ public interface ConfigurationPersistenceService {
 			String username, String password,
 			AuthenticationMode authenticationMode, String stashUsername,
 			String stashPassword, Integer maxVerifyChain, Integer defaultTimeout,
+			GlobalBuildCommandSettings globalBuildCommands,
         String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException;
 
 	public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
@@ -136,6 +137,27 @@ public interface ConfigurationPersistenceService {
 
 	public abstract void setJobTypeStatusMapping(RepositoryConfiguration rc,
 			JobType jt, Boolean isEnabled);
+
+	/*
+	 * A class to contain all our build
+	 * commands at the Global or Jenkins level.
+	 */
+	public static class GlobalBuildCommandSettings {
+	    private final String prebuild;
+
+	    public GlobalBuildCommandSettings() {
+	        this("/bin/true");
+	    }
+
+	    public GlobalBuildCommandSettings(String prebuild) {
+	        this.prebuild = prebuild;
+	    }
+
+	    public String getPrebuild() {
+	        return this.prebuild;
+	    }
+	}
+
 
 	public static class EmailSettings {
 

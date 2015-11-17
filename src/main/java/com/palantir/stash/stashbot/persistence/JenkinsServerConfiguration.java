@@ -21,6 +21,7 @@ import net.java.ao.Preload;
 import net.java.ao.schema.Default;
 import net.java.ao.schema.Ignore;
 import net.java.ao.schema.NotNull;
+import net.java.ao.schema.StringLength;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
@@ -207,6 +208,15 @@ public interface JenkinsServerConfiguration extends Entity {
 	@Default("240") // Four Hours in minutes
 	public Integer getDefaultTimeout();
 	public void setDefaultTimeout(Integer defaultMinutes);
+
+
+	// Default are not allowed for TEXT (or LONGVARCHAR) columns. We set
+	// the default in JenkinsServerConfiguration.getJenkinsServerConfiguration and
+	// in the soy template for jenkins configs.
+	@StringLength(StringLength.UNLIMITED)
+	public String getGlobalPrebuildCommand();
+	public void setGlobalPrebuildCommand(String command);
+
 
 	// For security - allow a jenkins server config to be locked to
 	// non-system-admins
