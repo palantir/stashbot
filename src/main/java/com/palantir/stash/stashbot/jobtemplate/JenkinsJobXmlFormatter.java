@@ -47,6 +47,11 @@ public class JenkinsJobXmlFormatter {
     private static final String PREBUILD_COMMAND_POSTFIX =
         "|| (echo \"PREBUILD FAILURE1 with status $?\" ; /bin/false) && echo \"PREBUILD SUCCESS\"";
 
+    private static final String GLOBAL_PREBUILD_COMMAND_PREFIX = "{ ";
+
+    private static final String GLOBAL_PREBUILD_COMMAND_POSTFIX =
+        "\n } || (echo \"GLOBALPREBUILD FAILURE1 with status $?\" ; /bin/false) && echo \"GLOBALPREBUILD SUCCESS\"";
+
     private final VelocityManager velocityManager;
     private final ConfigurationPersistenceService cpm;
     private final StashbotUrlBuilder sub;
@@ -123,6 +128,8 @@ public class JenkinsJobXmlFormatter {
         vc.put("cleanRepositoryUrl", cleanRepositoryUrl);
 
         vc.put("prebuildCommand", prebuildCommand(rc.getPrebuildCommand()));
+
+        vc.put("globalPrebuildCommand", globalPrebuildCommand(jsc.getGlobalPrebuildCommand()));
 
         // Put build command depending on build type
         // TODO: figure out build command some other way?
@@ -275,6 +282,10 @@ public class JenkinsJobXmlFormatter {
 
     private String prebuildCommand(String command) {
         return command + " " + PREBUILD_COMMAND_POSTFIX;
+    }
+
+    private String globalPrebuildCommand(String command) {
+        return GLOBAL_PREBUILD_COMMAND_PREFIX + " " + command + " " + GLOBAL_PREBUILD_COMMAND_POSTFIX;
     }
 
 }
