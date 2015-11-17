@@ -44,7 +44,7 @@ public class BuildStatusAddOperation implements Operation<Void, Exception> {
 
     public void setBuildStatus(Repository repo, JobTemplate jt, BuildState bs, long buildNumber) throws SQLException {
         Date now = new Date(java.lang.System.currentTimeMillis());
-        DateFormat df = DateFormat.getDateInstance();
+        DateFormat df = DateFormat.getDateTimeInstance();
 
         // key should be the jenkins job name
         String key = jt.getBuildNameFor(repo);
