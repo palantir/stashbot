@@ -19,6 +19,7 @@ import net.java.ao.Implementation;
 import net.java.ao.Mutator;
 import net.java.ao.Preload;
 import net.java.ao.schema.Default;
+import net.java.ao.schema.Ignore;
 import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
@@ -142,13 +143,6 @@ public interface JenkinsServerConfiguration extends Entity {
 
     public void setAuthenticationModeStr(String authMode);
 
-    /////
-    // These are implemented in JenkinsServerConfigurationImpl - so the user can use enums
-    /////
-    public AuthenticationMode getAuthenticationMode();
-
-    public void setAuthenticationMode(AuthenticationMode authMode);
-
     @NotNull
     @Default("empty")
     public String getStashUsername();
@@ -203,9 +197,29 @@ public interface JenkinsServerConfiguration extends Entity {
     @Mutator("USE_SUBFOLDERS")
     public void setUseSubFolders(Boolean useSubFolders);
 
+    @NotNull
+    @Default("/")
     @Accessor("FOLDER_PREFIX")
-    public String getFolderPrefix();
+    public String getFolderPrefixRaw();
 
     @Mutator("FOLDER_PREFIX")
+    public void setFolderPrefixRaw(String folderPrefix);
+
+    /////
+    // These are implemented in JenkinsServerConfigurationImpl - so the user can use enums
+    /////
+    @Ignore
+    public AuthenticationMode getAuthenticationMode();
+
+    @Ignore
+    public void setAuthenticationMode(AuthenticationMode authMode);
+
+    /////
+    // These are implemented in JenkinsServerConfigurationImpl - to make AO's insane inability to store empty strings transparent
+    /////
+    @Ignore
+    public String getFolderPrefix();
+
+    @Ignore
     public void setFolderPrefix(String folderPrefix);
 }

@@ -125,8 +125,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         String subfoldersEnabledStr = req.getParameter("subfoldersEnabled");
         Boolean subfoldersEnabled = (subfoldersEnabledStr != null && subfoldersEnabledStr.equals("on"));
         String folderPrefix = req.getParameter("folderPrefix");
-        if (folderPrefix != null && folderPrefix.isEmpty()) {
-            folderPrefix = null;
+        if (folderPrefix == null || folderPrefix.isEmpty()) {
+            folderPrefix = "/";
         }
 
         setJenkinsServerConfiguration(name, url, username, password, am, stashUsername, stashPassword, maxVerifyChain,
@@ -163,7 +163,7 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
 
         if (configs.length == 0) {
             log.info("Creating jenkins configuration: " + name);
-            ao.create(JenkinsServerConfiguration.class,
+            JenkinsServerConfiguration newJSC = ao.create(JenkinsServerConfiguration.class,
                 new DBParam("NAME", name),
                 new DBParam("URL", url),
                 new DBParam("USERNAME", username),
@@ -173,9 +173,11 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 new DBParam("MAX_VERIFY_CHAIN", maxVerifyChain),
                 new DBParam("LOCKED", isLocked),
                 new DBParam("FOLDER_SUPPORT", foldersEnabled),
-                new DBParam("USE_SUBFOLDERS", subfoldersEnabled),
-                new DBParam("FOLDER_PREFIX", folderPrefix)
+                new DBParam("USE_SUBFOLDERS", subfoldersEnabled)
                 );
+            // use custom impl to set folder prefix
+            newJSC.setFolderPrefix(folderPrefix);
+            newJSC.save();
             return;
         }
         // already exists, so update it
@@ -230,7 +232,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
         setRepositoryConfigurationForRepository(repo, isCiEnabled,
             verifyBranchRegex, verifyBuildCommand, false,
             "N/A", publishBranchRegex, publishBuildCommand, false, "N/A", prebuildCommand, null, rebuildOnUpdate,
-            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false, false, false, new BuildTimeoutSettings());
+            false, "N/A", rebuildOnUpdate, null, null, new EmailSettings(), false, false, false, false,
+            new BuildTimeoutSettings());
     }
 
     /* (non-Javadoc)
@@ -342,7 +345,8 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
             String jenkinsServerName, boolean rebuildOnUpdate, boolean isJunitEnabled, String junitPath,
             boolean artifactsEnabled, String artifactsPath, Integer maxVerifyChain, EmailSettings emailSettings,
             boolean strictVerifyMode, Boolean preserveJenkinsJobConfig,
-            boolean timestampJobOutputEnabled, boolean ansiColorJobOutputEnabled, BuildTimeoutSettings buildTimeoutSettings)
+            boolean timestampJobOutputEnabled, boolean ansiColorJobOutputEnabled,
+            BuildTimeoutSettings buildTimeoutSettings)
             throws SQLException, IllegalArgumentException {
         if (jenkinsServerName == null) {
             jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;

@@ -17,6 +17,7 @@ import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.Authen
 
 public class JenkinsServerConfigurationImpl {
 
+    private static final String EMPTY_PREFIX = "/";
     private final JenkinsServerConfiguration jsc;
 
     public JenkinsServerConfigurationImpl(JenkinsServerConfiguration jsc) {
@@ -29,5 +30,20 @@ public class JenkinsServerConfigurationImpl {
 
     public void setAuthenticationMode(AuthenticationMode authMode) {
         jsc.setAuthenticationModeStr(authMode.getMode());
+    }
+
+    public String getFolderPrefix() {
+        if (jsc.getFolderPrefixRaw().equals(EMPTY_PREFIX)) {
+            return "";
+        }
+        return jsc.getFolderPrefixRaw();
+    }
+
+    public void setFolderPrefix(String folderPrefix) {
+        if (folderPrefix == null || folderPrefix.isEmpty()) {
+            jsc.setFolderPrefixRaw(EMPTY_PREFIX);
+            return;
+        }
+        jsc.setFolderPrefixRaw(folderPrefix);
     }
 }

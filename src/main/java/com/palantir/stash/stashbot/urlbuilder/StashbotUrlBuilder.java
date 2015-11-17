@@ -17,6 +17,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.atlassian.bitbucket.nav.NavBuilder;
 import com.atlassian.bitbucket.pull.PullRequest;
 import com.atlassian.bitbucket.repository.Repository;
@@ -35,7 +37,7 @@ public class StashbotUrlBuilder {
     private final RepositoryService rs;
 
     public StashbotUrlBuilder(ConfigurationPersistenceService cps, NavBuilder nb, RepositoryService rs) {
-    	this.cps = cps;
+        this.cps = cps;
         this.nb = nb;
         this.rs = rs;
     }
@@ -108,16 +110,35 @@ public class StashbotUrlBuilder {
             return str;
         }
     }
-    
+
+    /* NOTE: elsewhere in JenkinsManager, we generate this URL (when folders are enabled) by fetching the entire folder chain from jenkins.
+     * But in places where we are generating the links only, we don't want to have several server round-trips so we will instead assume it
+     * exists and just create the URL.
+     */
     public String getJenkinsJobUrl(Repository repo, JobTemplate jt) throws SQLException {
         RepositoryConfiguration rc = cps.getRepositoryConfigurationForRepository(repo);
         JenkinsServerConfiguration jsc = cps.getJenkinsServerConfiguration(rc.getJenkinsServerName());
-        // XXX this is broken with folders, I think
-        String key = jt.getBuildNameFor(repo);
-        String url = jsc.getUrl() + "/job/" + key;
+        String baseUrl = jsc.getUrl();
+        String prefix = "";
+        if (jsc.getFolderSupportEnabled()) {
+            prefix = prefix + jsc.getFolderPrefix();
+        }
+        if (jsc.getUseSubFolders()) {
+            if (!prefix.isEmpty()) {
+                prefix = prefix + "/" + jt.getPathFor(repo);
+            } else {
+                prefix = jt.getPathFor(repo);
+            }
+        }
+        String url = baseUrl;
+        if (!prefix.isEmpty()) {
+            url = url + "/job/" + StringUtils.join(prefix.split("/"), "/job/");
+        }
+        url = url + "/job/" + jt.getBuildNameFor(repo);
         return url;
     }
+
     public String getJenkinsBuildUrl(Repository repo, JobTemplate jt, long buildNumber) throws SQLException {
-    	return getJenkinsJobUrl(repo, jt) + "/" + Long.toString(buildNumber);
+        return getJenkinsJobUrl(repo, jt) + "/" + Long.toString(buildNumber);
     }
 }
