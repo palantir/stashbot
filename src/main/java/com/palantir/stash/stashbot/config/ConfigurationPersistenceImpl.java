@@ -211,10 +211,10 @@ public class ConfigurationPersistenceImpl implements ConfigurationPersistenceSer
                 RepositoryConfiguration.class,
                 new DBParam("REPO_ID", repo.getId()));
             rc.save();
-            // default the 3 base job types to enabled
-            setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, true);
-            setJobTypeStatusMapping(rc, JobType.VERIFY_PR, true);
-            setJobTypeStatusMapping(rc, JobType.PUBLISH, true);
+            // default the 3 base job types to disabled
+            setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT, false);
+            setJobTypeStatusMapping(rc, JobType.VERIFY_PR, false);
+            setJobTypeStatusMapping(rc, JobType.PUBLISH, false);
             return rc;
         }
         return repos[0];
