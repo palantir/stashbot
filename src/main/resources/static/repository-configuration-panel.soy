@@ -81,12 +81,11 @@
 
 
 
-          
+<h3>Publishing</h3>
 {call aui.group.group}
   {param content}
     {call aui.group.item}
       {param content}
-        <h3>Publishing</h3>
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.enable-publish.button.description', 'Publishes') /}
             {param fields: [[
@@ -97,7 +96,7 @@
           {/call}
           {call aui.form.textField}
             {param id: 'publishBranchRegex' /}
-            {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Regex') /}
+            {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Trigger Regex') /}
             {param value: $publishBranchRegex /}
             {param fieldWidth: 'long' /}
             {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', 'Branches that match this regex will have a publish build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
@@ -105,7 +104,8 @@
           {/call}
           {call aui.form.textField}
             {param id: 'publishBuildCommand' /}
-            {param labelContent: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command to run') /}
+            {param labelContent: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command') /}
+            {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'The command that will be run during a publish build.  For example: ./scripts/publish.sh') /}
             {param value: $publishBuildCommand /}
             {param fieldWidth: 'long' /}
           {/call}
@@ -143,10 +143,11 @@
 {/call}
 
 
+<h3>Verifications</h3>
 {call aui.group.group}
   {param content}
 
-        <h3>Verifications</h3>
+        
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.enable-verification.button.description', 'Commit Verifies') /}
             {param fields: [[
@@ -165,14 +166,15 @@
           {/call}
           {call aui.form.textField}
             {param id: 'verifyBranchRegex' /}
-            {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Regex') /}
+            {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Trigger Regex') /}
             {param value: $verifyBranchRegex /}
             {param fieldWidth: 'long' /}
             {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Branches that match this regex will have a verify build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
           {/call}
           {call aui.form.textField}
             {param id: 'verifyBuildCommand' /}
-            {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command to run') /}
+            {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command') /}
+            {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'The command that will be run during a verification or verify_pr build.  For example: ./scripts/verify.sh') /}
             {param value: $verifyBuildCommand /}
             {param fieldWidth: 'long' /}
           {/call}
