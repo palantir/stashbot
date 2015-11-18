@@ -203,9 +203,10 @@ public class BuildSuccessReportingServlet extends HttpServlet {
             }
 
             if (mergeHead == null) {
-                BuildStatusAddOperation bssAdder = new BuildStatusAddOperation(ub, buildStatusService, plf, buildHead);
+                BuildStatusAddOperation bssAdder =
+                    new BuildStatusAddOperation(ub, buildStatusService, configurationPersistanceManager, plf, buildHead);
                 bssAdder.setBuildStatus(repo, jt, state, buildNumber);
-                
+
                 // Yeah, I know what you are thinking... "Admin permission?  To add a build status?"
                 // I tried REPO_WRITE and REPO_ADMIN and neither was enough, but this worked!
                 ss.withPermission(Permission.SYS_ADMIN, "BUILD SUCCESS REPORT").call(bssAdder);
