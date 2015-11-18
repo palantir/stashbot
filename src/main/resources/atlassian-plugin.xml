@@ -13,6 +13,10 @@
     <!-- add our web resources -->
     <web-resource key="stashbot-resources" name="Stashbot Web Resources">
         <dependency>com.atlassian.auiplugin:ajs</dependency>
+        <dependency>com.atlassian.auiplugin:aui-experimental-expander</dependency>
+        <dependency>com.atlassian.auiplugin:aui-experimental-iconfont</dependency>
+        <dependency>com.atlassian.auiplugin:aui-experimental-tooltips</dependency>
+        <dependency>com.atlassian.auiplugin:aui-form-notification</dependency>
 
         <resource type="download" name="stashbot.css" location="/css/stashbot.css"/>
         <resource type="download" name="stashbot.js" location="/js/stashbot.js"/>
