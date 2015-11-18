@@ -227,39 +227,11 @@
   {/param}
 {/call}
 
-<h3>Jenkins</h3>
+<h3>Artifacts</h3>
 {call aui.group.group}
   {param content}
-  {/param}
-{/call}
-
-    {call aui.group.group}
-      {param content}
-          {call aui.form.selectField}
-            {param id: 'jenkinsServerName' /}
-            {param labelContent: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server') /}
-            {param options: $jenkinsServersData /}
-            {param value: $jenkinsServerName /}
-          {/call}
-      {/param}
-    {/call}
-
-    <h4>&nbsp;</h4>
-
-    {call aui.group.group}
-      {param content}
-          {call aui.form.textField}
-            {param id: 'buildTimeout' /}
-            {param labelContent: stash_i18n('stash.web.stash.buildTimeout.label', 'Build Timeout (minutes)') /}
-            {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default.  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
-            {param value: $buildTimeout /}
-          {/call}
-      {/param}
-    {/call}
-
-    <h4>&nbsp;</h4>
-
-{call aui.group.group}
+  
+  {call aui.group.item}
   {param content}
           {call aui.form.checkboxField}
             {param legendContent: stash_i18n('stash.web.stash.junit-enabled.button.description', 'Junit Test Results') /}
@@ -276,48 +248,10 @@
             {param descriptionText: stash_i18n('stash.web.stash.junitPath.description', 'Path to use for junit results (e.g. build/test-results/*.xml)') /}
           {/call}
   {/param}
-{/call}
+  {/call}
+  
 
-{call aui.expander.trigger}
-  {param id: 'advanced-expand-jenkins'/}
-  {param contentId: 'advanced-expand-jenkins-content'/}
-  {param tag: 'a'/}
-  {param content: 'Advanced Jenkins'/}
-  {param replaceText: 'Hide Advanced'/}
-{/call}
-{call aui.expander.content}
-  {param id: 'advanced-expand-jenkins-content'/}
-  {param content}
-
-        {call aui.group.group}
-          {param content}
-            {call aui.form.textField}
-              {param id: 'prebuildCommand' /}
-              {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Command to run before all builds (and for PR verifies, before the merge)') /}
-              {param value: $prebuildCommand /}
-            {/call}
-          {/param}
-        {/call}
-
-        <h4>&nbsp;</h4>
-
-        {call aui.group.group}
-          {param content}
-            {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.label', 'Preserve Jenkins Job Config') /}
-              {param descriptionText: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.description', 'See below for details.') /}
-              {param fields: [[
-                'id': 'isPreserveJenkinsJobConfig',
-                'labelText': stash_i18n('stash.web.stash.preserveJenkinsJobConfig.button.label', 'Enabled'),
-                'isChecked': $isPreserveJenkinsJobConfig
-              ]] /}
-            {/call}
-          {/param}
-        {/call}
-
-        <h4>&nbsp;</h4>
-
-        {call aui.group.group}
+        {call aui.group.item}
           {param content}
             {call aui.form.checkboxField}
               {param legendContent: stash_i18n('stash.web.stash.artifacts-enabled.button.description', 'Artifact Archival') /}
@@ -336,7 +270,96 @@
           {/param}
         {/call}
 
-        <h4>&nbsp;</h4>
+  {/param}
+{/call}
+
+<h3>Advanced</h3>
+
+
+
+{call aui.expander.trigger}
+  {param id: 'advanced-expand-jenkins'/}
+  {param contentId: 'advanced-expand-jenkins-content'/}
+  {param tag: 'a'/}
+  {param content: 'Show Advanced'/}
+  {param replaceText: 'Hide Advanced'/}
+{/call}
+{call aui.expander.content}
+  {param id: 'advanced-expand-jenkins-content'/}
+  {param content}
+  
+    {call aui.group.group}
+      {param content}
+
+    {call aui.group.item}
+      {param content}
+          {call aui.form.selectField}
+            {param id: 'jenkinsServerName' /}
+            {param labelContent: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server') /}
+            {param options: $jenkinsServersData /}
+            {param value: $jenkinsServerName /}
+          {/call}
+      {/param}
+    {/call}
+
+    {call aui.group.item}
+      {param content}
+          {call aui.form.textField}
+            {param id: 'buildTimeout' /}
+            {param labelContent: stash_i18n('stash.web.stash.buildTimeout.label', 'Build Timeout (minutes)') /}
+            {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default.  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
+            {param value: $buildTimeout /}
+            {param fieldWidth: 'short' /}
+          {/call}
+      {/param}
+    {/call}
+    
+    {/param}
+    {/call}
+
+{call aui.group.group}
+  {param content}
+  <h4>&nbsp;</h4>
+  {/param}
+{/call}
+
+        {call aui.group.group}
+          {param content}
+
+        {call aui.group.item}
+          {param content}
+            {call aui.form.textField}
+              {param id: 'prebuildCommand' /}
+              {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before all builds (and for PR verifies, before the merge)') /}
+              {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Pre Build Command') /}
+              {param value: $prebuildCommand /}
+            {/call}
+          {/param}
+        {/call}
+
+
+        {call aui.group.item}
+          {param content}
+            {call aui.form.checkboxField}
+              {param legendContent: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.label', 'Preserve Jenkins Job Config') /}
+              {param descriptionText: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.description', 'See below for details.') /}
+              {param fields: [[
+                'id': 'isPreserveJenkinsJobConfig',
+                'labelText': stash_i18n('stash.web.stash.preserveJenkinsJobConfig.button.label', 'Enabled'),
+                'isChecked': $isPreserveJenkinsJobConfig
+              ]] /}
+            {/call}
+          {/param}
+        {/call}
+        
+        {/param}
+        {/call}
+
+{call aui.group.group}
+  {param content}
+  <h4>&nbsp;</h4>
+  {/param}
+{/call}
 
         {call aui.group.group}
           {param content}
