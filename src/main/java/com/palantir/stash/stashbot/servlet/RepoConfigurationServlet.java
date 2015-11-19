@@ -212,6 +212,13 @@ public class RepoConfigurationServlet extends HttpServlet {
             try {
                 RepositoryConfiguration rc =
                     configurationPersistanceManager.getRepositoryConfigurationForRepository(rep);
+
+                // if no jenkinsServerName is provided, assume it is unchanged and fill in the old value
+                // When the javascript disabled the field, this can cause the parameter to be left out, leaving a null value.
+                if (jenkinsServerName == null) {
+                    jenkinsServerName = rc.getJenkinsServerName();
+                }
+
                 JenkinsServerConfiguration oldConfig =
                     configurationPersistanceManager.getJenkinsServerConfiguration(rc.getJenkinsServerName());
                 JenkinsServerConfiguration newConfig =
