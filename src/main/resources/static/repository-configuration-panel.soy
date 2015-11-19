@@ -57,433 +57,420 @@
     {/param}
 {/call}
 {if $error}
-	{call widget.aui.message.error}
-		{param title: 'An error occured in saving config.' /}
-		{param content}
-			{$error}
-		{/param}
-	{/call}
+    {call widget.aui.message.error}
+        {param title: 'An error occured in saving config.' /}
+        {param content}
+            {$error}
+        {/param}
+    {/call}
 {/if}
 {call aui.form.form}
-  {param action: '' /}
-  {param content}      
+    {param action: '' /}
+    {param content}
 
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Stashbot') /}
-            {param fields: [[
-              'id': 'ciEnabled',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': $ciEnabled
-              ]] /}
-          {/call}
-
-
-
-
-
-<h3>Publishing</h3>
-{call aui.group.group}
-  {param content}
-    {call aui.group.item}
-      {param content}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.enable-publish.button.description', 'Publishes') /}
-            {param fields: [[
-              'id': 'publishEnabled',
-              'labelText': stash_i18n('stash.web.stash.enable-verification.button.label', 'Enabled'),
-              'isChecked': $publishEnabled
-              ]] /}
-          {/call}
-          {call aui.form.textField}
-            {param id: 'publishBranchRegex' /}
-            {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Trigger Regex') /}
-            {param value: $publishBranchRegex /}
-            {param fieldWidth: 'long' /}
-            {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', 'Branches that match this regex will have a publish build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
-            {param extraAttributes: 'data-aui-notification-field data-aui-notification-info="Branches that match this regex will have a publish build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master"."' /}
-          {/call}
-          {call aui.form.textField}
-            {param id: 'publishBuildCommand' /}
-            {param labelContent: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command') /}
-            {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'The command that will be run during a publish build.  For example: ./scripts/publish.sh') /}
-            {param value: $publishBuildCommand /}
-            {param fieldWidth: 'long' /}
-          {/call}
-          {call aui.expander.trigger}
-            {param id: 'advanced-expand-publish'/}
-            {param contentId: 'advanced-expand-publish-content'/}
-            {param tag: 'a'/}
-            {param content: 'Advanced Publishing'/}
-            {param replaceText: 'Hide Advanced'/}
-          {/call}
-          {call aui.expander.content}
-            {param id: 'advanced-expand-publish-content'/}
+        {call aui.group.group}
             {param content}
-              {call aui.form.checkboxField}
-                {param legendContent: stash_i18n('stash.web.stash.publish-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
-                {param fields: [[
-                  'id': 'isPublishPinned',
-                  'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-                  'isChecked': $isPublishPinned
-                  ]] /}
-              {/call}
-              {call aui.form.textField}
-                {param id: 'publishLabel' /}
-                {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
-                {param value: $publishLabel /}
-                {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
-              {/call}
+                {call aui.form.checkboxField}
+                    {param legendContent: stash_i18n('stash.web.stash.enable-ci-radio.button.description', 'Stashbot') /}
+                    {param fields: [[
+                      'id': 'ciEnabled',
+                      'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                      'isChecked': $ciEnabled
+                      ]] /}
+                {/call}
             {/param}
-          {/call}
-          
-          
-      {/param}
-    {/call}
-  {/param}
-{/call}
+        {/call} /* Top group end */
 
-
-<h3>Verifications</h3>
-{call aui.group.group}
-  {param content}
-
-        
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.enable-verification.button.description', 'Commit Verifies') /}
-            {param fields: [[
-              'id': 'verificationEnabled',
-              'labelText': stash_i18n('stash.web.stash.enable-verification.button.label', 'Enabled'),
-              'isChecked': $verificationEnabled
-              ]] /}
-          {/call}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.enable-verify-pr.button.description', 'PR Verifies') /}
-            {param fields: [[
-              'id': 'verifyPREnabled',
-              'labelText': stash_i18n('stash.web.stash.enable-verify-pr.button.label', 'Enabled'),
-              'isChecked': $verifyPREnabled
-              ]] /}
-          {/call}
-          {call aui.form.textField}
-            {param id: 'verifyBranchRegex' /}
-            {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Trigger Regex') /}
-            {param value: $verifyBranchRegex /}
-            {param fieldWidth: 'long' /}
-            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Branches that match this regex will have a verify build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
-          {/call}
-          {call aui.form.textField}
-            {param id: 'verifyBuildCommand' /}
-            {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command') /}
-            {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'The command that will be run during a verification or verify_pr build.  For example: ./scripts/verify.sh') /}
-            {param value: $verifyBuildCommand /}
-            {param fieldWidth: 'long' /}
-          {/call}
-          {call aui.expander.trigger}
-            {param id: 'advanced-expand-verify'/}
-            {param contentId: 'advanced-expand-verify-content'/}
-            {param tag: 'a'/}
-            {param content: 'Advanced Verification'/}
-            {param replaceText: 'Hide Advanced'/}
-          {/call}
-          {call aui.expander.content}
-            {param id: 'advanced-expand-verify-content'/}
+        <h3>Publishing</h3>
+        {call aui.group.group}
             {param content}
-              {call aui.form.checkboxField}
-                {param legendContent: stash_i18n('stash.web.stash.verify-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
-                {param fields: [[
-                  'id': 'isVerifyPinned',
-                  'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-                  'isChecked': $isVerifyPinned
-                  ]] /}
-              {/call}
-              {call aui.form.textField}
-                {param id: 'verifyLabel' /}
-                {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
-                {param value: $verifyLabel /}
-                {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
-              {/call}
-              {call aui.form.textField}
-                {param id: 'maxVerifyChain' /}
-                {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
-                {param value: $maxVerifyChain /}
-              {/call}
-              {call aui.form.checkboxField}
-                {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild PR on target change') /}
-                {param fields: [[
-                  'id': 'rebuildOnUpdate',
-                  'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-                  'isChecked': $rebuildOnUpdate
-                  ]] /}
-              {/call}
-              {call aui.form.checkboxField}
-                {param legendContent: stash_i18n('stash.web.stash.strict-verify-mode.button.description', 'Strict Verify Mode') /}
-                {param fields: [[
-                  'id': 'isStrictVerifyMode',
-                  'labelText': stash_i18n('stash.web.stash.strict-verify-mode.button.label', 'Enabled'),
-                  'isChecked': $isStrictVerifyMode
-                  ]] /}
-              {/call}
+                {call aui.form.checkboxField}
+                    {param legendContent: stash_i18n('stash.web.stash.enable-publish.button.description', 'Publishes') /}
+                    {param fields: [[
+                      'id': 'publishEnabled',
+                      'labelText': stash_i18n('stash.web.stash.enable-verification.button.label', 'Enabled'),
+                      'isChecked': $publishEnabled
+                      ]] /}
+                {/call}
+                {call aui.form.textField}
+                    {param id: 'publishBranchRegex' /}
+                    {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Trigger Regex') /}
+                    {param value: $publishBranchRegex /}
+                    {param fieldWidth: 'long' /}
+                    {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', 'Branches that match this regex will have a publish build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
+                    {param extraAttributes: 'data-aui-notification-field data-aui-notification-info="Branches that match this regex will have a publish build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master"."' /}
+                {/call}
+                {call aui.form.textField}
+                    {param id: 'publishBuildCommand' /}
+                    {param labelContent: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command') /}
+                    {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'The command that will be run during a publish build.  For example: ./scripts/publish.sh') /}
+                    {param value: $publishBuildCommand /}
+                    {param fieldWidth: 'long' /}
+                {/call}
+                {call aui.expander.trigger}
+                    {param id: 'advanced-expand-publish'/}
+                    {param contentId: 'advanced-expand-publish-content'/}
+                    {param tag: 'a'/}
+                    {param content: 'Advanced Publishing'/}
+                    {param replaceText: 'Hide Advanced'/}
+                {/call}
+                {call aui.expander.content}
+                    {param id: 'advanced-expand-publish-content'/}
+                    {param content}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.publish-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
+                            {param fields: [[
+                              'id': 'isPublishPinned',
+                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                              'isChecked': $isPublishPinned
+                              ]] /}
+                        {/call}
+                        {call aui.form.textField}
+                            {param id: 'publishLabel' /}
+                            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
+                            {param value: $publishLabel /}
+                            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
+                        {/call}
+                    {/param}
+                {/call}
+          {/param}
+        {/call} /* Publishing group End */
+
+
+        <h3>Verifications</h3>
+        {call aui.group.group}
+            {param content}
+                {call aui.form.checkboxField}
+                    {param legendContent: stash_i18n('stash.web.stash.enable-verification.button.description', 'Commit Verifies') /}
+                    {param fields: [[
+                      'id': 'verificationEnabled',
+                      'labelText': stash_i18n('stash.web.stash.enable-verification.button.label', 'Enabled'),
+                      'isChecked': $verificationEnabled
+                      ]] /}
+                {/call}
+                {call aui.form.checkboxField}
+                    {param legendContent: stash_i18n('stash.web.stash.enable-verify-pr.button.description', 'PR Verifies') /}
+                    {param fields: [[
+                      'id': 'verifyPREnabled',
+                      'labelText': stash_i18n('stash.web.stash.enable-verify-pr.button.label', 'Enabled'),
+                      'isChecked': $verifyPREnabled
+                      ]] /}
+                {/call}
+                {call aui.form.textField}
+                    {param id: 'verifyBranchRegex' /}
+                    {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Trigger Regex') /}
+                    {param value: $verifyBranchRegex /}
+                    {param fieldWidth: 'long' /}
+                    {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Branches that match this regex will have a verify build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
+                {/call}
+                {call aui.form.textField}
+                    {param id: 'verifyBuildCommand' /}
+                    {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command') /}
+                    {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'The command that will be run during a verification or verify_pr build.  For example: ./scripts/verify.sh') /}
+                    {param value: $verifyBuildCommand /}
+                    {param fieldWidth: 'long' /}
+                {/call}
+                {call aui.expander.trigger}
+                    {param id: 'advanced-expand-verify'/}
+                    {param contentId: 'advanced-expand-verify-content'/}
+                    {param tag: 'a'/}
+                    {param content: 'Advanced Verification'/}
+                    {param replaceText: 'Hide Advanced'/}
+                {/call}
+                {call aui.expander.content}
+                    {param id: 'advanced-expand-verify-content'/}
+                    {param content}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.verify-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
+                            {param fields: [[
+                              'id': 'isVerifyPinned',
+                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                              'isChecked': $isVerifyPinned
+                              ]] /}
+                        {/call}
+                        {call aui.form.textField}
+                            {param id: 'verifyLabel' /}
+                            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
+                            {param value: $verifyLabel /}
+                            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
+                        {/call}
+                        {call aui.form.textField}
+                            {param id: 'maxVerifyChain' /}
+                            {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+                            {param value: $maxVerifyChain /}
+                        {/call}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild PR on target change') /}
+                            {param fields: [[
+                              'id': 'rebuildOnUpdate',
+                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                              'isChecked': $rebuildOnUpdate
+                              ]] /}
+                        {/call}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.strict-verify-mode.button.description', 'Strict Verify Mode') /}
+                            {param fields: [[
+                              'id': 'isStrictVerifyMode',
+                              'labelText': stash_i18n('stash.web.stash.strict-verify-mode.button.label', 'Enabled'),
+                              'isChecked': $isStrictVerifyMode
+                              ]] /}
+                        {/call}
+                    {/param}
+                {/call} /* Expanded Group End */
             {/param}
-          {/call}
+        {/call} /* Verification Group End */
 
-  {/param}
-{/call}
+        <h3>Artifacts</h3>
+        {call aui.group.group}
+            {param content}
 
-<h3>Artifacts</h3>
-{call aui.group.group}
-  {param content}
-  
-  {call aui.group.item}
-  {param content}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.junit-enabled.button.description', 'Junit Test Results') /}
-            {param fields: [[
-              'id': 'isJunit',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': $isJunit
-              ]] /}
-          {/call}
-          {call aui.form.textField}
-            {param id: 'junitPath' /}
-            {param labelContent: stash_i18n('stash.web.stash.junitPath.label', 'Result Location') /}
-            {param value: $junitPath /}
-            {param descriptionText: stash_i18n('stash.web.stash.junitPath.description', 'Path to use for junit results (e.g. build/test-results/*.xml)') /}
-          {/call}
-  {/param}
-  {/call}
-  
+            {call aui.group.item}
+                {param content}
+                    {call aui.form.checkboxField}
+                        {param legendContent: stash_i18n('stash.web.stash.junit-enabled.button.description', 'Junit Test Results') /}
+                        {param fields: [[
+                          'id': 'isJunit',
+                          'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                          'isChecked': $isJunit
+                          ]] /}
+                    {/call}
+                    {call aui.form.textField}
+                        {param id: 'junitPath' /}
+                        {param labelContent: stash_i18n('stash.web.stash.junitPath.label', 'Result Location') /}
+                        {param value: $junitPath /}
+                        {param descriptionContent}
+                          Location of JUnit xml files after a build completes.  This is an <a target=_blank href="http://ant.apache.org/manual/dirtasks.html#patterns">ant-style glob</a>.
+                          For example, Gradle by default will put results at **/build/test-results/TEST-*.xml.  If no xml files are found, the build will fail.  This applies
+                          to verify and publish builds.
+                        {/param}
+                    {/call}
+                {/param}
+            {/call} /* JUnit Item End */
 
-        {call aui.group.item}
+            {call aui.group.item}
+                {param content}
+                    {call aui.form.checkboxField}
+                        {param legendContent: stash_i18n('stash.web.stash.artifacts-enabled.button.description', 'Save Artifacts') /}
+                        {param fields: [[
+                          'id': 'artifactsEnabled',
+                          'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                          'isChecked': $artifactsEnabled
+                          ]] /}
+                    {/call}
+                    {call aui.form.textField}
+                        {param id: 'artifactsPath' /}
+                        {param labelContent: stash_i18n('stash.web.stash.artifactsPath.label', 'Artifact Pattern') /}
+                        {param value: $artifactsPath /}
+                        {param descriptionContent}
+                          Comma-delimited <a target=_blank href="http://ant.apache.org/manual/dirtasks.html#patterns">ant-style globs </a> you wish
+                          Jenkins to save after a build (of any type) completes.  This is useful for picking up logs, coverage reports, etc.
+                        {/param}
+                    {/call}
+                {/param}
+            {/call} /* Artifacting Item End */
+          {/param}
+        {/call}
+
+
+        <h3>Advanced</h3>
+        {call aui.expander.trigger}
+            {param id: 'advanced-expand-jenkins'/}
+            {param contentId: 'advanced-expand-jenkins-content'/}
+            {param tag: 'a'/}
+            {param content: 'Show Advanced'/}
+            {param replaceText: 'Hide Advanced'/}
+        {/call}
+        {call aui.expander.content}
+            {param id: 'advanced-expand-jenkins-content'/}
+            {param content}
+
+                {call aui.group.group}
+                    {param content}
+                        {call aui.group.item}
+                          {param content}
+                              {call aui.form.selectField}
+                                {param id: 'jenkinsServerName' /}
+                                {param labelContent: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server') /}
+                                {param options: $jenkinsServersData /}
+                                {param value: $jenkinsServerName /}
+                              {/call}
+                          {/param}
+                        {/call}
+
+                        {call aui.group.item}
+                            {param content}
+                                {call aui.form.textField}
+                                    {param id: 'buildTimeout' /}
+                                    {param labelContent: stash_i18n('stash.web.stash.buildTimeout.label', 'Build Timeout (minutes)') /}
+                                    {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default.  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
+                                    {param value: $buildTimeout /}
+                                    {param fieldWidth: 'short' /}
+                                {/call}
+                            {/param}
+                        {/call}
+                    {/param}
+                {/call} /* Group End */
+
+                {call aui.group.group}
+                  {param content}
+                  <h4>&nbsp;</h4>
+                  {/param}
+                {/call}
+
+                {call aui.group.group}
+                    {param content}
+
+                        {call aui.group.item}
+                            {param content}
+                                {call aui.form.textField}
+                                    {param id: 'prebuildCommand' /}
+                                    {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before all builds (and for PR verifies, before the merge)') /}
+                                    {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Pre Build Command') /}
+                                    {param value: $prebuildCommand /}
+                                {/call}
+                            {/param}
+                        {/call}
+
+                        {call aui.group.item}
+                            {param content}
+                                {call aui.form.checkboxField}
+                                    {param legendContent: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.label', 'Preserve Jenkins Job Config') /}
+                                    {param descriptionText: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.description', 'Enabling this option stops Stashbot from setting any command, artifact, testing, etc. options for your build.') /}
+                                    {param fields: [[
+                                      'id': 'isPreserveJenkinsJobConfig',
+                                      'labelText': stash_i18n('stash.web.stash.preserveJenkinsJobConfig.button.label', 'Enabled'),
+                                      'isChecked': $isPreserveJenkinsJobConfig
+                                    ]] /}
+                                {/call}
+                            {/param}
+                        {/call}
+                    {/param}
+                {/call} /* Group End */
+
+                {call aui.group.group}
+                    {param content}
+                    <h4>&nbsp;</h4>
+                    {/param}
+                {/call}
+
+                {call aui.group.group}
+                    {param content}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.email-enabled.button.description', 'E-mail notifications') /}
+                            {param fields: [[
+                              'id': 'isEmailNotificationsEnabled',
+                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                              'isChecked': $isEmailNotificationsEnabled
+                              ]] /}
+                        {/call}
+                        {call aui.form.textField}
+                            {param id: 'emailRecipients' /}
+                            {param labelContent: stash_i18n('stash.web.stash.emailRecipients.label', 'E-mail Recipients') /}
+                            {param value: $emailRecipients /}
+                        {/call}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.emailForEveryUnstableBuild.button.description', 'E-mail Options') /}
+                            {param fields: [[
+                              'id': 'isEmailForEveryUnstableBuild',
+                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send e-mail for every unstable build'),
+                              'isChecked': $isEmailForEveryUnstableBuild
+                              ]] /}
+                        {/call}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.emailSendToIndividuals.button.description', '') /}
+                            {param fields: [[
+                              'id': 'isEmailSendToIndividuals',
+                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send separate e-mails to individuals who broke the build'),
+                              'isChecked': $isEmailSendToIndividuals
+                              ]] /}
+                        {/call}
+                        {call aui.form.checkboxField}
+                            {param legendContent: stash_i18n('stash.web.stash.emailPerModuleEmail.button.description', '') /}
+                            {param fields: [[
+                              'id': 'isEmailPerModuleEmail',
+                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send e-mail for each failed module'),
+                              'isChecked': $isEmailPerModuleEmail
+                              ]] /}
+                        {/call}
+                    {/param}
+                {/call} /* Group End */
+            {/param}
+        {/call}
+
+
+        <h3>&nbsp;</h3>
+        {call aui.form.buttons}
           {param content}
-            {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.artifacts-enabled.button.description', 'Artifact Archival') /}
-              {param fields: [[
-                'id': 'artifactsEnabled',
-                'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-                'isChecked': $artifactsEnabled
-                ]] /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'artifactsPath' /}
-              {param labelContent: stash_i18n('stash.web.stash.artifactsPath.label', 'Artifact Location') /}
-              {param value: $artifactsPath /}
-              {param descriptionText: stash_i18n('stash.web.stash.artifactsPath.description', 'Path to use for artifacts (e.g. **/*.log)') /}
+           {call aui.form.submit}
+              {param id: 'submit' /}
+              {param text: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
+              {param type: 'submit' /}
             {/call}
           {/param}
         {/call}
 
-  {/param}
-{/call}
-
-<h3>Advanced</h3>
-
-
-
-{call aui.expander.trigger}
-  {param id: 'advanced-expand-jenkins'/}
-  {param contentId: 'advanced-expand-jenkins-content'/}
-  {param tag: 'a'/}
-  {param content: 'Show Advanced'/}
-  {param replaceText: 'Hide Advanced'/}
-{/call}
-{call aui.expander.content}
-  {param id: 'advanced-expand-jenkins-content'/}
-  {param content}
-  
-    {call aui.group.group}
-      {param content}
-
-    {call aui.group.item}
-      {param content}
-          {call aui.form.selectField}
-            {param id: 'jenkinsServerName' /}
-            {param labelContent: stash_i18n('stash.web.stash.jenkinsServerName.label', 'Jenkins Server') /}
-            {param options: $jenkinsServersData /}
-            {param value: $jenkinsServerName /}
-          {/call}
-      {/param}
-    {/call}
-
-    {call aui.group.item}
-      {param content}
-          {call aui.form.textField}
-            {param id: 'buildTimeout' /}
-            {param labelContent: stash_i18n('stash.web.stash.buildTimeout.label', 'Build Timeout (minutes)') /}
-            {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default.  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
-            {param value: $buildTimeout /}
-            {param fieldWidth: 'short' /}
-          {/call}
-      {/param}
-    {/call}
-    
     {/param}
-    {/call}
-
-{call aui.group.group}
-  {param content}
-  <h4>&nbsp;</h4>
-  {/param}
-{/call}
-
-        {call aui.group.group}
-          {param content}
-
-        {call aui.group.item}
-          {param content}
-            {call aui.form.textField}
-              {param id: 'prebuildCommand' /}
-              {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before all builds (and for PR verifies, before the merge)') /}
-              {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Pre Build Command') /}
-              {param value: $prebuildCommand /}
-            {/call}
-          {/param}
-        {/call}
-
-
-        {call aui.group.item}
-          {param content}
-            {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.label', 'Preserve Jenkins Job Config') /}
-              {param descriptionText: stash_i18n('stash.web.stash.preserveJenkinsJobConfig.description', 'See below for details.') /}
-              {param fields: [[
-                'id': 'isPreserveJenkinsJobConfig',
-                'labelText': stash_i18n('stash.web.stash.preserveJenkinsJobConfig.button.label', 'Enabled'),
-                'isChecked': $isPreserveJenkinsJobConfig
-              ]] /}
-            {/call}
-          {/param}
-        {/call}
-        
-        {/param}
-        {/call}
-
-{call aui.group.group}
-  {param content}
-  <h4>&nbsp;</h4>
-  {/param}
-{/call}
-
-        {call aui.group.group}
-          {param content}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.email-enabled.button.description', 'E-mail notifications') /}
-            {param fields: [[
-              'id': 'isEmailNotificationsEnabled',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-              'isChecked': $isEmailNotificationsEnabled
-              ]] /}
-          {/call}
-          {call aui.form.textField}
-            {param id: 'emailRecipients' /}
-            {param labelContent: stash_i18n('stash.web.stash.emailRecipients.label', 'E-mail Recipients') /}
-            {param value: $emailRecipients /}
-          {/call}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.emailForEveryUnstableBuild.button.description', 'E-mail Options') /}
-            {param fields: [[
-              'id': 'isEmailForEveryUnstableBuild',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send e-mail for every unstable build'),
-              'isChecked': $isEmailForEveryUnstableBuild
-              ]] /}
-          {/call}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.emailSendToIndividuals.button.description', '') /}
-            {param fields: [[
-              'id': 'isEmailSendToIndividuals',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send separate e-mails to individuals who broke the build'),
-              'isChecked': $isEmailSendToIndividuals
-              ]] /}
-          {/call}
-          {call aui.form.checkboxField}
-            {param legendContent: stash_i18n('stash.web.stash.emailPerModuleEmail.button.description', '') /}
-            {param fields: [[
-              'id': 'isEmailPerModuleEmail',
-              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Send e-mail for each failed module'),
-              'isChecked': $isEmailPerModuleEmail
-              ]] /}
-          {/call}
-          {/param}
-        {/call}
-
-  {/param}
-{/call}
-
-
-<h3>&nbsp;</h3>
-
-{call aui.form.buttons}
-  {param content}
-   {call aui.form.submit}
-      {param id: 'submit' /}
-      {param text: stash_i18n('stash.web.stash.ci-prefs.submit', 'Save') /}
-      {param type: 'submit' /}
-    {/call}
-  {/param}
-{/call}
-
-
-
-  {/param}
 {/call}
 
 <p style="text-align:right;">
-{call aui.expander.trigger}
-  {param id: 'advanced-expand-documentation'/}
-  {param contentId: 'advanced-expand-documentation-content'/}
-  {param tag: 'a'/}
-  {param content: 'Show Documentation'/}
-  {param replaceText: 'Hide Documentation'/}
-{/call}
+    {call aui.expander.trigger}
+        {param id: 'advanced-expand-documentation'/}
+        {param contentId: 'advanced-expand-documentation-content'/}
+        {param tag: 'a'/}
+        {param content: 'Show Documentation'/}
+        {param replaceText: 'Hide Documentation'/}
+    {/call}
 </p>
 {call aui.expander.content}
-  {param id: 'advanced-expand-documentation-content'/}
-  {param content}
-<div>
-<h3>Regular Expressions:</h3>
-<p>
-Regular expressions are simple Java style regular expressions.  Extra escaping is not required, and the regular expressions are anchored by default so you must add a trailing ".*" if you want prefix matching.
-<br/>
-Examples:
-<pre>refs/heads/master</pre>
-<pre>refs/heads/.*</pre>
-<pre>refs/heads/features/.*-verify</pre>
-</p>
-<h3>Verify Versus Publish:</h3>
-<p>
-When a new change is added to a reference which matches both publish and verify regular expressions, the publish build is triggered first.  A verify build is never done on a sha1 which has already triggered a publish build.  Also, publish builds are always only triggered on the most recent change to a ref, so if a chain of commits are pushed, only the latest is published (though depending on other settings, multiple verify builds could be triggered, see next section).
-</p>
-<h3>Build Pinning</h3>
-<p>
-If your jenkins instance has applied labels to build nodes, you can have verifiy or publish builds pinned to a specific build node label by checking these checkboxes, and entering the desired label.
-</p>
-<h3>Max Verify Chain:</h3>
-<p>
-The max verify chain setting specifies the number of verify builds to trigger due to a single ref update, at most.  For example, if the setting is set to 5, and a reference is updated from pointing to commit A, to pointing to commit B, and commit B has commit A as it's parent's parent's parent's parent, that is a chain of five commits have been pushed each dependent on the next, then 5 verify builds will be triggered, one for each commit.  If the setting was instead set to 3, only the 3 "most recent" commits would be verified, and 2 would be left unbuilt (but verifies could be triggered manually).  If the setting was 0, an unlimited number of builds could be triggered (though still limited by the jenkins configuration setting as well, which puts a cap on it).
-</p>
-<h3>Strict Verify Mode</h3>
-<p>
-In strict mode, stashbot requires that every commit in a pull request has at least one successful build before it can be merged.  This lets you enforce a higher level of verification so that git bisects are reliable.  Another example where you might want to do this is if your build acts upon changed pieces only, and can therefore only guarantee consistency if each commit's parent has also been verified.
+    {param id: 'advanced-expand-documentation-content'/}
+    {param content}
+        <div>
+            <h3>Regular Expressions:</h3>
+            <p>
+                Regular expressions are simple Java style regular expressions.  Extra escaping is not required, and the regular expressions are anchored by default so you must add a trailing ".*" if you want prefix matching.
+                <br/>
+                Examples:
+                <pre>refs/heads/master</pre>
+                <pre>refs/heads/.*</pre>
+                <pre>refs/heads/features/.*-verify</pre>
+            </p>
+            <h3>Verify Versus Publish:</h3>
+            <p>
+                When a new change is added to a reference which matches both publish and verify regular expressions, the publish build is triggered first.  A verify build is never done on a sha1 which has already triggered a publish build.  Also, publish builds are always only triggered on the most recent change to a ref, so if a chain of commits are pushed, only the latest is published (though depending on other settings, multiple verify builds could be triggered, see next section).
+            </p>
+            <h3>Build Pinning</h3>
+            <p>
+                If your jenkins instance has applied labels to build nodes, you can have verifiy or publish builds pinned to a specific build node label by checking these checkboxes, and entering the desired label.
+            </p>
+            <h3>Max Verify Chain:</h3>
+            <p>
+                The max verify chain setting specifies the number of verify builds to trigger due to a single ref update, at most.  For example, if the setting is set to 5, and a reference is updated from pointing to commit A, to pointing to commit B, and commit B has commit A as it's parent's parent's parent's parent, that is a chain of five commits have been pushed each dependent on the next, then 5 verify builds will be triggered, one for each commit.  If the setting was instead set to 3, only the 3 "most recent" commits would be verified, and 2 would be left unbuilt (but verifies could be triggered manually).  If the setting was 0, an unlimited number of builds could be triggered (though still limited by the jenkins configuration setting as well, which puts a cap on it).
+            </p>
+            <h3>Strict Verify Mode</h3>
+            <p>
+                In strict mode, stashbot requires that every commit in a pull request has at least one successful build before it can be merged.  This lets you enforce a higher level of verification so that git bisects are reliable.  Another example where you might want to do this is if your build acts upon changed pieces only, and can therefore only guarantee consistency if each commit's parent has also been verified.
 
-Note that if your verify regex does not match a feature branch, but does match an integration branch, and you push to your feature branch then try to merge into your integration branch, there will be missing verify builds.  Therefore, if you want stashbot to perform these builds and operate in strict mode, you probably want your verify regex to cover all branches to which you directly push.
+                Note that if your verify regex does not match a feature branch, but does match an integration branch, and you push to your feature branch then try to merge into your integration branch, there will be missing verify builds.  Therefore, if you want stashbot to perform these builds and operate in strict mode, you probably want your verify regex to cover all branches to which you directly push.
 
-Strict mode is disabled by default, and when enabled it cannot be overridden with the override flag due to implementation details (but users may still perform the merge locally and directly push it, if they have adequate permissions to do so).
-</p>
-<h3>Recommendations and Best Practices</h3>
-<p>
-If one is releasing using something like <a href="http://nvie.com/posts/a-successful-git-branching-model/">git flow</a>, you will probably want to have a release branch which you tag for publishes.  This is frequently called <i>refs/heads/release</i> or <i>refs/heads/master</i>.  One might then verify <i>refs/heads/.*</i> if one wants verification builds on all branches, or one might prefer to have "free-reign" branches and only perform verification on certain named branches (by doing something like <i>refs/heads/features/.*</i> for verification but allow people to also push to branches called <i>refs/heads/sandbox/.*</i> without verification builds).
-</p>
-<p>
-Note also that the configuration should take into account capacity concerns.  If the jenkins instance has 10 executors, the typical build takes 10 minutes, and 5-10 changes are pushed per hour, one can probably safely build every commit.  If, however, one has 2 executors and each build takes an hour, it will probably result in large latencies if one tries to build all commits, should someone push a chain of 10 commits even once or twice a day.  For details, consult your site-specific documentation (your infrastructure guys have established guidelines, right? =) )
-</p>
-<h3>Preserve Jenkins Job Config</h3>
-<p>
-When you click save, normally, the job is destroyed and recreated.  This option disables that, so editing this page still changes internal state but no longer effects a job (that already exists) at all.  Some featuers will work, some will not, but changes made directly in jenkins will no longer be destroyed.
-</p>
-</div>
-{/param}
+                Strict mode is disabled by default, and when enabled it cannot be overridden with the override flag due to implementation details (but users may still perform the merge locally and directly push it, if they have adequate permissions to do so).
+            </p>
+            <h3>Recommendations and Best Practices</h3>
+            <p>
+                If one is releasing using something like <a href="http://nvie.com/posts/a-successful-git-branching-model/">git flow</a>, you will probably want to have a release branch which you tag for publishes.  This is frequently called <i>refs/heads/release</i> or <i>refs/heads/master</i>.  One might then verify <i>refs/heads/.*</i> if one wants verification builds on all branches, or one might prefer to have "free-reign" branches and only perform verification on certain named branches (by doing something like <i>refs/heads/features/.*</i> for verification but allow people to also push to branches called <i>refs/heads/sandbox/.*</i> without verification builds).
+            </p>
+            <p>
+                Note also that the configuration should take into account capacity concerns.  If the jenkins instance has 10 executors, the typical build takes 10 minutes, and 5-10 changes are pushed per hour, one can probably safely build every commit.  If, however, one has 2 executors and each build takes an hour, it will probably result in large latencies if one tries to build all commits, should someone push a chain of 10 commits even once or twice a day.  For details, consult your site-specific documentation (your infrastructure guys have established guidelines, right? =) )
+            </p>
+            <h3>Preserve Jenkins Job Config</h3>
+            <p>
+                When you click save, normally, the job is destroyed and recreated.  This option disables that, so editing this page still changes internal state but no longer effects a job (that already exists) at all.  Some featuers will work, some will not, but changes made directly in jenkins will no longer be destroyed.
+            </p>
+        </div>
+    {/param}
 {/call}
 
 <p hidden="true" id="isJenkinsServerLocked">{$isLocked}</p>
+
 </body>
 </html>
 {/template}
