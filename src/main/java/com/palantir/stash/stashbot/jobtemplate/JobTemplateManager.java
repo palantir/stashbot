@@ -198,7 +198,7 @@ public class JobTemplateManager {
     /**
      * Turn type string "verification" and a repository config into an
      * applicable job template
-     * 
+     *
      * @param rc
      * @param s
      * @return
