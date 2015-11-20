@@ -1,7 +1,13 @@
 
+require(['aui/form-notification']);
+require(['aui/form-validation']);
 require(['jquery'], function($) {
 	console.debug("Injecting JS to disable dropdown")
 	$(window).load(function() {
+
+		// Activate tooltip on any item with this class
+		AJS.$(".tooltip-stashbot-class").tooltip();
+
 		console.debug("Detecting if jenkins server config is locked or not")
 		locked = $("#isJenkinsServerLocked")
 		if (locked.text() == "locked") {

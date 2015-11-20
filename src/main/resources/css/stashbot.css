@@ -3,3 +3,6 @@ input.palantir-stashbot-disabled, span.palantir-stashbot-disabled {
   color:#999999;
 }
 
+dt {
+  font-family: monospaced;
+}

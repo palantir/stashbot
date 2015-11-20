@@ -64,6 +64,7 @@
         {/param}
     {/call}
 {/if}
+<!--<a href="#" title="TooltipText" class="tooltip-stashbot-class">Hover over me</a> keeping it around for tooltips-->
 {call aui.form.form}
     {param action: '' /}
     {param content}
@@ -97,15 +98,22 @@
                     {param labelContent: stash_i18n('stash.web.stash.publishBranchRegex.label', 'Trigger Regex') /}
                     {param value: $publishBranchRegex /}
                     {param fieldWidth: 'long' /}
-                    {param descriptionText: stash_i18n('stash.web.stash.publishBranchRegex.description', 'Branches that match this regex will have a publish build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
-                    {param extraAttributes: 'data-aui-notification-field data-aui-notification-info="Branches that match this regex will have a publish build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master"."' /}
+                    {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
+                    {param descriptionContent}
+                    Branches that match this regex will have a publish build run on Jenkins. Be aware that this is
+                    the <a href="https://www.git-scm.com/docs/git-check-ref-format/" target=_blank>full git ref</a> -
+                    e.g. "refs/heads/master" or "refs/heads/.*", not just "master".
+                    {/param}
+                    {param infoMessage: 'Examples:<ul><li>refs/heads/master</li><li>refs/heads/.*</li><li>refs/tags/.*</li><li>refs/heads/(master|develop)</li></ul>' /}
                 {/call}
                 {call aui.form.textField}
                     {param id: 'publishBuildCommand' /}
                     {param labelContent: stash_i18n('stash.web.stash.publishBuildCommand.label', 'Command') /}
-                    {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'The command that will be run during a publish build.  For example: ./scripts/publish.sh') /}
+                    {param descriptionText: stash_i18n('stash.web.stash.publishBuildCommand.description', 'The command that will be run during a publish build.') /}
+                    {param infoMessage: 'Examples:<ul><li>./scripts/publish.sh</li><li>ENVVAR=1 ENVVAR=2 ./scripts/publish.sh</li><li>./stashbot/publish.sh</li></ul>' /}
                     {param value: $publishBuildCommand /}
                     {param fieldWidth: 'long' /}
+                    {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
                 {/call}
                 {call aui.expander.trigger}
                     {param id: 'advanced-expand-publish'/}
@@ -161,12 +169,20 @@
                     {param labelContent: stash_i18n('stash.web.stash.verifyBranchRegex.label', 'Trigger Regex') /}
                     {param value: $verifyBranchRegex /}
                     {param fieldWidth: 'long' /}
-                    {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Branches that match this regex will have a verify build run on Jenkins. Be aware that this is the full git ref - e.g. "refs/heads/master" or "refs/heads/.*", not just "master".') /}
+                    {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
+                    {param descriptionContent}
+                    Branches that match this regex will have a verify build run on Jenkins. Be aware that this is
+                    the <a href="https://www.git-scm.com/docs/git-check-ref-format/" target=_blank>full git ref</a> -
+                    e.g. "refs/heads/master" or "refs/heads/.*", not just "master".
+                    {/param}
+                    {param infoMessage: 'Examples:<ul><li>refs/heads/master</li><li>refs/heads/.*</li><li>refs/heads/(master|develop)</li><li>refs/heads/feature/.*</li></ul>' /}
                 {/call}
                 {call aui.form.textField}
                     {param id: 'verifyBuildCommand' /}
                     {param labelContent: stash_i18n('stash.web.stash.verifyBuildCommand.label', 'Command') /}
-                    {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'The command that will be run during a verification or verify_pr build.  For example: ./scripts/verify.sh') /}
+                    {param descriptionText: stash_i18n('stash.web.stash.verifyBuildCommand.description', 'The command that will be run during a verification or verify_pr build.') /}
+                    {param infoMessage: 'Examples:<ul><li>./scripts/verify.sh</li><li>ENVVAR=1 ENVVAR=2 ./scripts/verifytest.sh</li><li>./stashbot/check.sh</li></ul>' /}
+                    {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
                     {param value: $verifyBuildCommand /}
                     {param fieldWidth: 'long' /}
                 {/call}
@@ -193,11 +209,13 @@
                             {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
                             {param value: $verifyLabel /}
                             {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
+                            {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
                         {/call}
                         {call aui.form.textField}
                             {param id: 'maxVerifyChain' /}
                             {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
                             {param value: $maxVerifyChain /}
+                            {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
                         {/call}
                         {call aui.form.checkboxField}
                             {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild PR on target change') /}
@@ -243,6 +261,8 @@
                           For example, Gradle by default will put results at **/build/test-results/TEST-*.xml.  If no xml files are found, the build will fail.  This applies
                           to verify and publish builds.
                         {/param}
+                        {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
+                        {param infoMessage: 'Examples:<ul><li>**/build/test-results/TEST-*.xml</li><li>**/build/test-results/TEST-*.xml,testserver/tests/*.xml</li></ul>' /}
                     {/call}
                 {/param}
             {/call} /* JUnit Item End */
@@ -265,6 +285,8 @@
                           Comma-delimited <a target=_blank href="http://ant.apache.org/manual/dirtasks.html#patterns">ant-style globs </a> you wish
                           Jenkins to save after a build (of any type) completes.  This is useful for picking up logs, coverage reports, etc.
                         {/param}
+                        {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
+                        {param infoMessage: 'Examples:<ul><li>**/logs/*.log</li><li>**/testserver/logs/*.log,npm-debug.log,build/**/*.log</li></ul>' /}
                     {/call}
                 {/param}
             {/call} /* Artifacting Item End */
@@ -305,6 +327,7 @@
                                     {param descriptionText: stash_i18n('stash.web.stash.buildTimeout.description', 'Timeout (in minutes) for all builds.  A value of -1 uses Jenkins-wide default.  Minimum value of ' + $buildTimeoutMin + ' and maximum value of ' + $buildTimeoutMax + '.') /}
                                     {param value: $buildTimeout /}
                                     {param fieldWidth: 'short' /}
+                                    {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
                                 {/call}
                             {/param}
                         {/call}
@@ -327,6 +350,7 @@
                                     {param descriptionText: stash_i18n('stash.web.stash.prebuildCommand.description', 'Command to run before all builds (and for PR verifies, before the merge)') /}
                                     {param labelContent: stash_i18n('stash.web.stash.prebuildCommand.label', 'Pre Build Command') /}
                                     {param value: $prebuildCommand /}
+                                    {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
                                 {/call}
                             {/param}
                         {/call}
@@ -367,6 +391,7 @@
                             {param id: 'emailRecipients' /}
                             {param labelContent: stash_i18n('stash.web.stash.emailRecipients.label', 'E-mail Recipients') /}
                             {param value: $emailRecipients /}
+                            {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
                         {/call}
                         {call aui.form.checkboxField}
                             {param legendContent: stash_i18n('stash.web.stash.emailForEveryUnstableBuild.button.description', 'E-mail Options') /}
@@ -512,7 +537,7 @@
                 to your feature branch then try to merge into your integration branch, there will be missing verify builds. Therefore, if you want
                 stashbot to perform these builds and operate in strict mode, you probably want your verify regex to cover all branches to which you
                 directly push. Strict mode is disabled by default, and when enabled <b>it cannot be overridden with the override flag due to
-                implementation details (but users may still perform the merge locally and directly push it, if they have adequate permissions to do so).<b/>
+                implementation details (but users may still perform the merge locally and directly push it, if they have adequate permissions to do so).</b>
 
                 <h4>Preserve Jenkins Job Config</h4>
                 When you click save, normally, the job is destroyed and recreated. This option disables that, so editing this page still changes internal
