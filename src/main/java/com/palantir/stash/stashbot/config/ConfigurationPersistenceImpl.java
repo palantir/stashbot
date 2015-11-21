@@ -91,8 +91,9 @@ ConfigurationPersistenceService {
 				Query.select().where("NAME = ?", name));
 		if (configs.length == 0) {
 			// just use the defaults
-			return ao.create(JenkinsServerConfiguration.class, new DBParam(
-					"NAME", name));
+			return ao.create(JenkinsServerConfiguration.class,
+			        new DBParam("NAME", name),
+			        new DBParam("GLOBAL_PREBUILD_COMMAND", "/bin/true"));
 		}
 
 		String url = configs[0].getUrl();
@@ -133,9 +134,11 @@ ConfigurationPersistenceService {
 
 		Integer defaultTimeout = Integer.parseInt(req.getParameter("defaultTimeout"));
 
+		GlobalBuildCommandSettings globalBuildCommands = getGlobalBuildCommands(req);
+
 		setJenkinsServerConfiguration(name, url, username, password, am,
             stashUsername, stashPassword, maxVerifyChain, defaultTimeout,
-            prefixTemplate, jobTemplate, isLocked);
+            globalBuildCommands, prefixTemplate, jobTemplate, isLocked);
 	}
 
 	/*
@@ -164,7 +167,8 @@ ConfigurationPersistenceService {
 			throws SQLException {
 		setJenkinsServerConfiguration(name, url, username, password,
 				authenticationMode, stashUsername, stashPassword,
-            maxVerifyChain, JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_DEFAULT, "/", "$project_$repo", false);
+            maxVerifyChain, JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_DEFAULT,
+            new GlobalBuildCommandSettings(), "/", "$project_$repo", false);
 	}
 
 	/*
@@ -182,6 +186,7 @@ ConfigurationPersistenceService {
 			String username, String password,
 			AuthenticationMode authenticationMode, String stashUsername,
 			String stashPassword, Integer maxVerifyChain, Integer defaultTimeout,
+			GlobalBuildCommandSettings globalBuildCommands,
         String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException {
 		if (name == null) {
 			name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -202,6 +207,7 @@ ConfigurationPersistenceService {
 					"STASH_PASSWORD", stashPassword), new DBParam(
 					"MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam(
 					"DEFAULT_TIMEOUT", defaultTimeout), new DBParam(
+					"GLOBAL_PREBUILD_COMMAND", globalBuildCommands.getPrebuild()), new DBParam(
                 "PREFIX_TEMPLATE", prefixTemplate), new DBParam("JOB_TEMPLATE", jobTemplate), new DBParam("LOCKED",
 					isLocked));
 			return;
@@ -217,6 +223,7 @@ ConfigurationPersistenceService {
 		configs[0].setStashPassword(stashPassword);
 		configs[0].setMaxVerifyChain(maxVerifyChain);
 		configs[0].setDefaultTimeout(defaultTimeout);
+		configs[0].setGlobalPrebuildCommand(globalBuildCommands.getPrebuild());
 		configs[0].setPrefixTemplate(prefixTemplate);
         configs[0].setJobTemplate(jobTemplate);
 		configs[0].setLocked(isLocked);
@@ -367,6 +374,14 @@ ConfigurationPersistenceService {
 			return false;
 		}
 		return mappings[0].getIsEnabled();
+	}
+
+	private GlobalBuildCommandSettings getGlobalBuildCommands(HttpServletRequest req) {
+	    String prebuild = req.getParameter("globalPrebuild");
+	    if (prebuild == null || prebuild.trim().isEmpty()) {
+	        prebuild = "/bin/true";
+	    }
+	    return new GlobalBuildCommandSettings(prebuild);
 	}
 
 	private EmailSettings getEmailSettings(HttpServletRequest req) {

@@ -120,6 +120,9 @@
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
+        <command>$esc.xml($globalPrebuildCommand)</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
         <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
         <command>(git reset --hard HEAD &amp;&amp; git clean -fdx) || (echo "SETUP exited with status $? ; FAILURE1" ; /bin/false)</command>
     </hudson.tasks.Shell>

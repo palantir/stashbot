@@ -116,6 +116,12 @@
               {param value: $jenkinsConfig.defaultTimeout /}
               {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
             {/call}
+            {call aui.form.textareaField}
+              {param id: 'globalPrebuild' /}
+              {param labelContent: stash_i18n('stash.web.stash.globalPrebuild.label', 'Global Pre-build Commands') /}
+              {param value: $jenkinsConfig.globalPrebuildCommand /}
+              {param descriptionText: stash_i18n('stash.web.stash.globalPrebuild.description', 'Command or commands to run before all builds.  Useful for cleanup and global prep.') /}
+            {/call}
             {call aui.form.textField}
               {param id: 'prefixTemplate' /}
               {param labelContent: stash_i18n('stash.web.stash.prefixTemplate.label', 'Template used to put jobs in separate folders in jenkins') /}
@@ -210,6 +216,12 @@
               {param labelContent: stash_i18n('stash.web.stash.defaultTimeout.label', 'Default Build Timeout') /}
               {param value: '240' /}
               {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
+            {/call}
+            {call aui.form.textareaField}
+              {param id: 'globalPrebuild' /}
+              {param labelContent: stash_i18n('stash.web.stash.globalPrebuild.label', 'Global Pre-build Commands') /}
+              {param value: '/bin/true' /}
+              {param descriptionText: stash_i18n('stash.web.stash.globalPrebuild.description', 'Command or commands to run before all builds.  Useful for cleanup and global prep.') /}
             {/call}
             {call aui.form.textField}
               {param id: 'prefixTemplate' /}
