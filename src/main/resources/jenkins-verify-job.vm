@@ -95,6 +95,7 @@
       <hudson.plugins.git.UserRemoteConfig>
         <name>origin</name>
         <url>$esc.xml($repositoryUrl)</url>
+        <refspec>+refs/pull-requests/*:refs/remotes/origin/pull-requests/* +refs/heads/*:refs/remotes/origin/*</refspec>
         <credentialsId>$credentialUUID</credentialsId>
       </hudson.plugins.git.UserRemoteConfig>
     </userRemoteConfigs>
