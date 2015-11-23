@@ -155,26 +155,8 @@
         <command>$esc.xml($prebuildCommand)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
-        <!-- So, here we fetch and merge in the mergeHead.  We merge the hash directly instead of the ref name or FETCH_HEAD to avoid race conditions with the server. -->
-#if ( $authVersion != 1 )
-        <command>
-set +x
-echo '$privKey' > __sshkey
-echo '#!/bin/bash
-ssh -i "__sshkey" -o StrictHostKeyChecking=no "$@"
-' > __sshcmd.sh
-chmod 600 __sshkey
-chmod 700 __sshcmd.sh
-
-export GIT_SSH="./__sshcmd.sh"
-
-git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge --no-ff $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)
-set -x</command>
-#else
-        <command>set +x
-git fetch $mergeRefUrl $mergeRef &amp;&amp; git merge --no-ff $mergeHead || /bin/false || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)
-set -x</command>
-#end
+        <!-- So, here we merge in the mergeHead.  We don't need to fetch because the refspec includes refs/pull-requests/** so we already get the refs we need -->
+        <command>git merge --no-ff $mergeHead || (echo "BUILD FAILURE$?" &amp;&amp; /bin/false)</command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>$esc.xml($buildCommand)</command>
