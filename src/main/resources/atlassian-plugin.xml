@@ -18,6 +18,7 @@
         <dependency>com.atlassian.auiplugin:aui-experimental-tooltips</dependency>
         <dependency>com.atlassian.auiplugin:aui-form-notification</dependency>
         <dependency>com.atlassian.auiplugin:aui-form-validation</dependency>
+        <dependency>com.atlassian.auiplugin:dialog2</dependency>
 
         <resource type="download" name="stashbot.css" location="/css/stashbot.css"/>
         <resource type="download" name="stashbot.js" location="/js/stashbot.js"/>

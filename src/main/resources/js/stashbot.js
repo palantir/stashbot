@@ -8,6 +8,16 @@ require(['jquery'], function($) {
 		// Activate tooltip on any item with this class
 		AJS.$(".tooltip-stashbot-class").tooltip();
 
+    AJS.$("#stashbot-howto-button").click(function(e) {
+      e.preventDefault();
+      AJS.dialog2("#stashbot-howto-dialog").show();
+    });
+
+    AJS.$("#stashbot-howto-dialog-close-button").click(function(e) {
+      e.preventDefault();
+      AJS.dialog2("#stashbot-howto-dialog").hide()
+    });
+
 		console.debug("Detecting if jenkins server config is locked or not")
 		locked = $("#isJenkinsServerLocked")
 		if (locked.text() == "locked") {
