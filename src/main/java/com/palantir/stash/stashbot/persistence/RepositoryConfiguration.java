@@ -37,25 +37,25 @@ public interface RepositoryConfiguration extends Entity {
     public void setCiEnabled(Boolean url);
 
     @NotNull
-    @Default("empty")
+    @Default("refs/(heads/master|tags/.*)")
     public String getPublishBranchRegex();
 
     public void setPublishBranchRegex(String publishBranchRegex);
 
     @NotNull
-    @Default("/bin/true")
+    @Default("./scripts/publish.sh")
     public String getPublishBuildCommand();
 
     public void setPublishBuildCommand(String publishBuildCommand);
 
     @NotNull
-    @Default("empty")
+    @Default("refs/heads/.*")
     public String getVerifyBranchRegex();
 
     public void setVerifyBranchRegex(String verifyBranchRegex);
 
     @NotNull
-    @Default("/bin/true")
+    @Default("./scripts/verify.sh")
     public String getVerifyBuildCommand();
 
     public void setVerifyBuildCommand(String verifyBuildCommand);
