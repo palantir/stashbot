@@ -458,19 +458,13 @@ ConfigurationPersistenceService {
 					new DBParam("ARTIFACTS_PATH", artifactsPath),
 					new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
 					new DBParam("BUILD_TIMEOUT", buildTimeout),
-					new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings
-							.getEmailNotificationsEnabled()),
-							new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings
-									.getEmailForEveryUnstableBuild()),
-									new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings
-											.getEmailPerModuleEmail()),
-											new DBParam("EMAIL_RECIPIENTS", emailSettings
-													.getEmailRecipients()),
-													new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings
-															.getEmailSendToIndividuals()), new DBParam(
-																	"STRICT_VERIFY_MODE", strictVerifyMode),
-																	new DBParam("PRESERVE_JENKINS_JOB_CONFIG",
-																			preserveJenkinsJobConfig));
+					new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings.getEmailNotificationsEnabled()),
+					new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
+					new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
+					new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
+					new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals()),
+					new DBParam("STRICT_VERIFY_MODE", strictVerifyMode),
+					new DBParam("PRESERVE_JENKINS_JOB_CONFIG",preserveJenkinsJobConfig));
 			if (maxVerifyChain != null) {
 				rc.setMaxVerifyChain(maxVerifyChain);
 			}
