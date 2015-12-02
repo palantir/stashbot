@@ -20,6 +20,8 @@ import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildResultExpirySettings;
+
 @Table("RepoConfig001")
 @Preload
 public interface RepositoryConfiguration extends Entity {
@@ -187,4 +189,27 @@ public interface RepositoryConfiguration extends Entity {
     public Integer getBuildTimeout();
 
     public void setBuildTimeout(Integer buildTimeout);
+
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_VERIFY_DAYS)
+    public Integer getVerifyBuildExpiryDays();
+    public void setVerifyBuildExpiryDays(Integer verifyBuildExpiryDays);
+
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_VERIFY_NUMBER)
+    public Integer getVerifyBuildExpiryNumber();
+    public void setVerifyBuildExpiryNumber(Integer verifyBuildExpiryNumber);
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_PUBLISH_DAYS)
+    public Integer getPublishBuildExpiryDays();
+    public void setPublishBuildExpiryDays(Integer publishBuildExpiryDays);
+
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_PUBLISH_NUMBER)
+    public Integer getPublishBuildExpiryNumber();
+    public void setPublishBuildExpiryNumber(Integer publishBuildExpiryNumber);
 }

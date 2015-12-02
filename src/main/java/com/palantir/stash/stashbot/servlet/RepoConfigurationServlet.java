@@ -43,6 +43,7 @@ import com.atlassian.stash.util.PageRequestImpl;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
 import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildResultExpirySettings;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
 import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
@@ -169,6 +170,12 @@ public class RepoConfigurationServlet extends HttpServlet {
                         .put("buildTimeout", rc.getBuildTimeout())
                         .put("buildTimeoutMin", JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MIN)
                         .put("buildTimeoutMax", JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_MAX)
+                        .put("verifyBuildExpiryDays", rc.getVerifyBuildExpiryDays())
+                        .put("verifyBuildExpiryNumber", rc.getVerifyBuildExpiryNumber())
+                        .put("publishBuildExpiryDays", rc.getPublishBuildExpiryDays())
+                        .put("publishBuildExpiryNumber", rc.getPublishBuildExpiryNumber())
+                        .put("buildExpiryMaxDays", BuildResultExpirySettings.MAX_DAYS)
+                        .put("buildExpiryMaxNumber", BuildResultExpirySettings.MAX_NUMBER)
                         .put("isLocked", isLocked(theJsc))
                         .put("verificationEnabled",
                             configurationPersistanceManager.getJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT))
