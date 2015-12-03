@@ -87,7 +87,8 @@ public interface ConfigurationPersistenceService {
 			boolean isJunitEnabled, String junitPath, boolean artifactsEnabled,
 			String artifactsPath, Integer maxVerifyChain,
 			EmailSettings emailSettings, boolean strictVerifyMode,
-			Boolean preserveJenkinsJobConfig, Integer buildTimeout) throws SQLException,
+			Boolean preserveJenkinsJobConfig, Integer buildTimeout,
+			BuildResultExpirySettings expirySettings) throws SQLException,
 			IllegalArgumentException;
 
 	public abstract ImmutableCollection<JenkinsServerConfiguration> getAllJenkinsServerConfigurations()
@@ -137,6 +138,54 @@ public interface ConfigurationPersistenceService {
 
 	public abstract void setJobTypeStatusMapping(RepositoryConfiguration rc,
 			JobType jt, Boolean isEnabled);
+
+	/*
+	 * A class to contain the various values related
+	 * to build expiry rules in Jenkins
+	 */
+	public static class BuildResultExpirySettings {
+	    public static final String MAX_DAYS = "365";
+	    public static final String MAX_NUMBER = "1000";
+
+	    public static final String DEFAULT_VERIFY_DAYS = "30";
+	    public static final String DEFAULT_VERIFY_NUMBER = "100";
+	    public static final String DEFAULT_PUBLISH_DAYS = "30";
+	    public static final String DEFAULT_PUBLISH_NUMBER = "100";
+
+	    private final Integer verifyDays;
+	    private final Integer verifyNumber;
+	    private final Integer publishDays;
+	    private final Integer publishNumber;
+
+	    public BuildResultExpirySettings() {
+	        this(Integer.parseInt(DEFAULT_VERIFY_DAYS), Integer.parseInt(DEFAULT_VERIFY_NUMBER),
+	                Integer.parseInt(DEFAULT_PUBLISH_DAYS), Integer.parseInt(DEFAULT_PUBLISH_NUMBER));
+	    }
+
+	    public BuildResultExpirySettings(Integer verifyDays, Integer verifyNumber,
+	            Integer publishDays, Integer publishNumber) {
+	        this.verifyDays = verifyDays;
+	        this.verifyNumber = verifyNumber;
+	        this.publishDays = publishDays;
+	        this.publishNumber = publishNumber;
+	    }
+
+        public Integer getVerifyDays() {
+            return verifyDays;
+        }
+
+        public Integer getVerifyNumber() {
+            return verifyNumber;
+        }
+
+        public Integer getPublishDays() {
+            return publishDays;
+        }
+
+        public Integer getPublishNumber() {
+            return publishNumber;
+        }
+	}
 
 	/*
 	 * A class to contain all our build

@@ -233,16 +233,21 @@ public class JenkinsJobXmlFormatter {
         }
         vc.put("buildTimeout", buildTimeout);
 
-        // insert pinned data
+
+        // insert pinned data and expiry info
         switch (jobTemplate.getJobType()) {
         case VERIFY_COMMIT:
         case VERIFY_PR:
             vc.put("isPinned", rc.getVerifyPinned());
             vc.put("label", rc.getVerifyLabel());
+            vc.put("verifyBuildExpiryDays", rc.getVerifyBuildExpiryDays());
+            vc.put("verifyBuildExpiryNumber", rc.getVerifyBuildExpiryNumber());
             break;
         case PUBLISH:
             vc.put("isPinned", rc.getPublishPinned());
             vc.put("label", rc.getPublishLabel());
+            vc.put("publishBuildExpiryDays", rc.getPublishBuildExpiryDays());
+            vc.put("publishBuildExpiryNumber", rc.getPublishBuildExpiryNumber());
             break;
         case NOOP:
             vc.put("isPinned", false);

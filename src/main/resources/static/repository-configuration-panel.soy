@@ -35,6 +35,12 @@
  * @param buildTimeout
  * @param buildTimeoutMin
  * @param buildTimeoutMax
+ * @param verifyBuildExpiryDays
+ * @param verifyBuildExpiryNumber
+ * @param publishBuildExpiryDays
+ * @param publishBuildExpiryNumber
+ * @param buildExpiryMaxDays
+ * @param buildExpiryMaxNumber
  *
  **/
 {template .repositoryConfigurationPanel}
@@ -128,19 +134,49 @@
                 {call aui.expander.content}
                     {param id: 'advanced-expand-publish-content'/}
                     {param content}
-                        {call aui.form.checkboxField}
-                            {param legendContent: stash_i18n('stash.web.stash.publish-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
-                            {param fields: [[
-                              'id': 'isPublishPinned',
-                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-                              'isChecked': $isPublishPinned
-                              ]] /}
-                        {/call}
-                        {call aui.form.textField}
-                            {param id: 'publishLabel' /}
-                            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
-                            {param value: $publishLabel /}
-                            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
+                        {call aui.group.group}
+                            {param content}
+                                {call aui.group.item}
+                                    {param content}
+                                        {call aui.form.checkboxField}
+                                            {param legendContent: stash_i18n('stash.web.stash.publish-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
+                                            {param fields: [[
+                                              'id': 'isPublishPinned',
+                                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                                              'isChecked': $isPublishPinned
+                                              ]] /}
+                                        {/call}
+                                        {call aui.form.textField}
+                                            {param id: 'publishLabel' /}
+                                            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
+                                            {param value: $publishLabel /}
+                                            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
+                                        {/call}
+                                    {/param}
+                                {/call}
+                                {call aui.group.item}
+                                    {param content}
+                                        <h4>Result Expiration</h4>
+                                        <br/>Build results meeting either of these conditions will be deleted.
+                                        {call aui.form.textField}
+                                            {param id: 'publishBuildExpiryDays' /}
+                                            {param labelContent: 'Days to keep' /}
+                                            {param descriptionText: 'The number of days to keep build results.' /}
+                                            {param value: $publishBuildExpiryDays /}
+                                            {param fieldWidth: 'short' /}
+                                            {param validationArguments: [ 'min' : 1, 'max' : $buildExpiryMaxDays ] /}
+                                        {/call}
+                                        {call aui.form.textField}
+                                            {param id: 'publishBuildExpiryNumber' /}
+                                            {param labelContent: 'Builds to keep' /}
+                                            {param descriptionText: 'The maximum number of build results to keep.' /}
+                                            {param value: $publishBuildExpiryNumber /}
+                                            {param fieldWidth: 'short' /}
+                                            {param validationArguments: [ 'min' : 1, 'max' : $buildExpiryMaxNumber ] /}
+                                        {/call}
+                                    {/param}
+                                {/call}
+                            {/param}
                         {/call}
                     {/param}
                 {/call}
@@ -199,42 +235,71 @@
                 {call aui.expander.content}
                     {param id: 'advanced-expand-verify-content'/}
                     {param content}
-                        {call aui.form.checkboxField}
-                            {param legendContent: stash_i18n('stash.web.stash.verify-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
-                            {param fields: [[
-                              'id': 'isVerifyPinned',
-                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-                              'isChecked': $isVerifyPinned
-                              ]] /}
-                        {/call}
-                        {call aui.form.textField}
-                            {param id: 'verifyLabel' /}
-                            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
-                            {param value: $verifyLabel /}
-                            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
-                            {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
-                        {/call}
-                        {call aui.form.textField}
-                            {param id: 'maxVerifyChain' /}
-                            {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
-                            {param value: $maxVerifyChain /}
-                            {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
-                        {/call}
-                        {call aui.form.checkboxField}
-                            {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild PR on target change') /}
-                            {param fields: [[
-                              'id': 'rebuildOnUpdate',
-                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
-                              'isChecked': $rebuildOnUpdate
-                              ]] /}
-                        {/call}
-                        {call aui.form.checkboxField}
-                            {param legendContent: stash_i18n('stash.web.stash.strict-verify-mode.button.description', 'Strict Verify Mode') /}
-                            {param fields: [[
-                              'id': 'isStrictVerifyMode',
-                              'labelText': stash_i18n('stash.web.stash.strict-verify-mode.button.label', 'Enabled'),
-                              'isChecked': $isStrictVerifyMode
-                              ]] /}
+                        {call aui.group.group}
+                            {param content}
+                                {call aui.group.item}
+                                    {param content}
+                                        {call aui.form.checkboxField}
+                                            {param legendContent: stash_i18n('stash.web.stash.verify-pinned-checkbox.button.description', 'Restrict Jenkins Nodes') /}
+                                            {param fields: [[
+                                              'id': 'isVerifyPinned',
+                                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                                              'isChecked': $isVerifyPinned
+                                              ]] /}
+                                        {/call}
+                                        {call aui.form.textField}
+                                            {param id: 'verifyLabel' /}
+                                            {param labelContent: stash_i18n('stash.web.stash.verifyLabel.label', 'Jenkins Node Label') /}
+                                            {param value: $verifyLabel /}
+                                            {param descriptionText: stash_i18n('stash.web.stash.verifyBranchRegex.description', 'Jenkins node label to restrict publish builds to') /}
+                                            {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
+                                        {/call}
+                                        {call aui.form.textField}
+                                            {param id: 'maxVerifyChain' /}
+                                            {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
+                                            {param value: $maxVerifyChain /}
+                                            {param validationArguments: [ 'minlength' : 1, 'maxlength' : 255 ] /}
+                                        {/call}
+                                        {call aui.form.checkboxField}
+                                            {param legendContent: stash_i18n('stash.web.stash.rebuild-on-update-radio.button.description', 'Rebuild PR on target change') /}
+                                            {param fields: [[
+                                              'id': 'rebuildOnUpdate',
+                                              'labelText': stash_i18n('stash.web.stash.enable-ci-radio.button.label', 'Enabled'),
+                                              'isChecked': $rebuildOnUpdate
+                                              ]] /}
+                                        {/call}
+                                        {call aui.form.checkboxField}
+                                            {param legendContent: stash_i18n('stash.web.stash.strict-verify-mode.button.description', 'Strict Verify Mode') /}
+                                            {param fields: [[
+                                              'id': 'isStrictVerifyMode',
+                                              'labelText': stash_i18n('stash.web.stash.strict-verify-mode.button.label', 'Enabled'),
+                                              'isChecked': $isStrictVerifyMode
+                                              ]] /}
+                                        {/call}
+                                    {/param}
+                                {/call}
+                                {call aui.group.item}
+                                    {param content}
+                                        <h4>Result Expiration</h4>
+                                        {call aui.form.textField}
+                                            {param id: 'verifyBuildExpiryDays' /}
+                                            {param labelContent: 'Days to keep' /}
+                                            {param descriptionText: 'The number of days to keep build results.' /}
+                                            {param value: $verifyBuildExpiryDays /}
+                                            {param fieldWidth: 'short' /}
+                                            {param validationArguments: [ 'min' : 1, 'max' : $buildExpiryMaxDays ] /}
+                                        {/call}
+                                        {call aui.form.textField}
+                                            {param id: 'verifyBuildExpiryNumber' /}
+                                            {param labelContent: 'Builds to keep' /}
+                                            {param descriptionText: 'The number of build results to keep.' /}
+                                            {param value: $verifyBuildExpiryNumber /}
+                                            {param fieldWidth: 'short' /}
+                                            {param validationArguments: [ 'min' : 1, 'max' : $buildExpiryMaxNumber ] /}
+                                        {/call}
+                                    {/param}
+                                {/call}
+                            {/param}
                         {/call}
                     {/param}
                 {/call} /* Expanded Group End */

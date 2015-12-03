@@ -278,7 +278,8 @@ ConfigurationPersistenceService {
 				verifyBranchRegex, verifyBuildCommand, false, "N/A",
 				publishBranchRegex, publishBuildCommand, false, "N/A",
 				prebuildCommand, null, rebuildOnUpdate, false, "N/A",
-				rebuildOnUpdate, null, null, new EmailSettings(), false, false, -1);
+				rebuildOnUpdate, null, null, new EmailSettings(), false, false, -1,
+				new BuildResultExpirySettings());
 	}
 
 	/*
@@ -324,6 +325,8 @@ ConfigurationPersistenceService {
 
 		EmailSettings emailSettings = getEmailSettings(req);
 
+		BuildResultExpirySettings expirySettings = getBuildExpirySettings(req);
+
 		String buildTimeoutStr = req.getParameter("buildTimeout");
 		Integer buildTimeout = null;
 		if (buildTimeoutStr != null && !buildTimeoutStr.trim().isEmpty()) {
@@ -337,7 +340,7 @@ ConfigurationPersistenceService {
 				isPublishPinned, publishLabel, prebuildCommand,
 				jenkinsServerName, rebuildOnUpdate, junitEnabled, junitPath,
 				artifactsEnabled, artifactsPath, maxVerifyChain, emailSettings,
-				strictVerifyMode, preserveJenkinsJobConfig, buildTimeout);
+				strictVerifyMode, preserveJenkinsJobConfig, buildTimeout, expirySettings);
 		RepositoryConfiguration rc = getRepositoryConfigurationForRepository(repo);
 		setJobTypeStatusMapping(rc, JobType.VERIFY_COMMIT,
 				getBoolean(req, "verificationEnabled"));
@@ -384,6 +387,23 @@ ConfigurationPersistenceService {
 	    return new GlobalBuildCommandSettings(prebuild);
 	}
 
+	private BuildResultExpirySettings getBuildExpirySettings(HttpServletRequest req) {
+	    Integer verifyDays = Integer.parseInt(req.getParameter("verifyBuildExpiryDays"));
+	    Integer verifyNumber = Integer.parseInt(req.getParameter("verifyBuildExpiryNumber"));
+	    Integer publishDays = Integer.parseInt(req.getParameter("publishBuildExpiryDays"));
+	    Integer publishNumber = Integer.parseInt(req.getParameter("publishBuildExpiryNumber"));
+
+	    Integer maxDays = Integer.parseInt(BuildResultExpirySettings.MAX_DAYS);
+	    Integer maxNumber = Integer.parseInt(BuildResultExpirySettings.MAX_NUMBER);
+
+	    validateIntegerRange(verifyDays, 1, maxDays, "Days to keep verify build results", "days");
+	    validateIntegerRange(verifyNumber, 1, maxNumber, "Number of verify build results to keep", "builds");
+	    validateIntegerRange(publishDays, 1, maxDays, "Days to keep publish build results", "days");
+	    validateIntegerRange(publishNumber, 1, maxNumber, "Number of publish build results to keep", "builds");
+
+	    return new BuildResultExpirySettings(verifyDays, verifyNumber, publishDays, publishNumber);
+	}
+
 	private EmailSettings getEmailSettings(HttpServletRequest req) {
 		Boolean emailNotificationsEnabled = getBoolean(req,
 				"isEmailNotificationsEnabled");
@@ -426,7 +446,8 @@ ConfigurationPersistenceService {
 			boolean isJunitEnabled, String junitPath, boolean artifactsEnabled,
 			String artifactsPath, Integer maxVerifyChain,
 			EmailSettings emailSettings, boolean strictVerifyMode,
-			Boolean preserveJenkinsJobConfig, Integer buildTimeout) throws SQLException,
+			Boolean preserveJenkinsJobConfig, Integer buildTimeout,
+			BuildResultExpirySettings expirySettings) throws SQLException,
 			IllegalArgumentException {
 		if (jenkinsServerName == null) {
 			jenkinsServerName = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
@@ -458,19 +479,17 @@ ConfigurationPersistenceService {
 					new DBParam("ARTIFACTS_PATH", artifactsPath),
 					new DBParam("REBUILD_ON_TARGET_UPDATE", rebuildOnUpdate),
 					new DBParam("BUILD_TIMEOUT", buildTimeout),
-					new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings
-							.getEmailNotificationsEnabled()),
-							new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings
-									.getEmailForEveryUnstableBuild()),
-									new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings
-											.getEmailPerModuleEmail()),
-											new DBParam("EMAIL_RECIPIENTS", emailSettings
-													.getEmailRecipients()),
-													new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings
-															.getEmailSendToIndividuals()), new DBParam(
-																	"STRICT_VERIFY_MODE", strictVerifyMode),
-																	new DBParam("PRESERVE_JENKINS_JOB_CONFIG",
-																			preserveJenkinsJobConfig));
+					new DBParam("VERIFY_BUILD_EXPIRY_DAYS", expirySettings.getVerifyDays()),
+					new DBParam("VERIFY_BUILD_EXPIRY_NUMBER", expirySettings.getVerifyNumber()),
+					new DBParam("PUBLISH_BUILD_EXPIRY_DAYS", expirySettings.getPublishDays()),
+					new DBParam("PUBLISH_BUILD_EXPIRY_NUMBER", expirySettings.getPublishNumber()),
+					new DBParam("EMAIL_NOTIFICATIONS_ENABLED", emailSettings.getEmailNotificationsEnabled()),
+					new DBParam("EMAIL_FOR_EVERY_UNSTABLE_BUILD", emailSettings.getEmailForEveryUnstableBuild()),
+					new DBParam("EMAIL_PER_MODULE_EMAIL", emailSettings.getEmailPerModuleEmail()),
+					new DBParam("EMAIL_RECIPIENTS", emailSettings.getEmailRecipients()),
+					new DBParam("EMAIL_SEND_TO_INDIVIDUALS", emailSettings.getEmailSendToIndividuals()),
+					new DBParam("STRICT_VERIFY_MODE", strictVerifyMode),
+					new DBParam("PRESERVE_JENKINS_JOB_CONFIG",preserveJenkinsJobConfig));
 			if (maxVerifyChain != null) {
 				rc.setMaxVerifyChain(maxVerifyChain);
 			}
@@ -513,6 +532,10 @@ ConfigurationPersistenceService {
 		foundRepo.setStrictVerifyMode(strictVerifyMode);
 		foundRepo.setPreserveJenkinsJobConfig(preserveJenkinsJobConfig);
 		foundRepo.setBuildTimeout(buildTimeout);
+		foundRepo.setVerifyBuildExpiryDays(expirySettings.getVerifyDays());
+		foundRepo.setVerifyBuildExpiryNumber(expirySettings.getVerifyNumber());
+		foundRepo.setPublishBuildExpiryDays(expirySettings.getPublishDays());
+		foundRepo.setPublishBuildExpiryNumber(expirySettings.getPublishNumber());
 		foundRepo.save();
 	}
 
@@ -577,6 +600,13 @@ ConfigurationPersistenceService {
                 JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_DEFAULT + " minutes).");
         }
     }
+
+    private void validateIntegerRange(int value, int min, int max, String name, String unit) {
+        if (value < min || value > max) {
+            throw new IllegalArgumentException(name + " must be between " + min + " and " + max + " " + unit + ".");
+        }
+    }
+
 	/*
 	 * (non-Javadoc)
 	 *
