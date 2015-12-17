@@ -265,7 +265,14 @@ public class JenkinsManager implements DisposableBean {
             String key = jt.getBuildNameFor(repo, jsc);
 
 			if (!jobMap.containsKey(key)) {
-				throw new RuntimeException("Build doesn't exist: " + key);
+				List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
+				for (JobTemplate jobTemplate : templates) {
+					if (key.equals(jobTemplate.getBuildNameFor(repo, jsc))) {
+						log.info("Build " + key + "doesn't exist, creating it");
+						createJob(repo, jobTemplate);
+					}
+				}
+				jobMap = js.getJobs();
 			}
 
 			Builder<String, String> builder = ImmutableMap.builder();
@@ -327,7 +334,14 @@ public class JenkinsManager implements DisposableBean {
             String key = jt.getBuildNameFor(repo, jsc);
 
 			if (!jobMap.containsKey(key)) {
-				throw new RuntimeException("Build doesn't exist: " + key);
+				List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
+				for (JobTemplate jobTemplate : templates) {
+					if (key.equals(jobTemplate.getBuildNameFor(repo, jsc))) {
+						log.info("Build " + key + "doesn't exist, creating it");
+						createJob(repo, jobTemplate);
+					}
+				}
+				jobMap = js.getJobs();
 			}
 
 			Builder<String, String> builder = ImmutableMap.builder();
