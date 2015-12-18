@@ -315,26 +315,57 @@
     {/param}
 {/call}
 
+<div style="border-top:1px solid #CCC;"><h2>&nbsp;</h2></div>
+
 {call aui.group.group}
     {param content}
         <h2>Stashbot Administrative Tasks</h2>
         {call aui.group.group}
             {param content}
-                {call aui.group.item}
+                {call aui.group.group}
                     {param content}
+                        <h3>Create and Update</h3>
+
                         {call stash.buttons.button}
                           {param id: 'button-create-missing-plans' /}
                           {param buttonText: 'Create Missing Plans' /}
                           {param href: $relUrl + '/create-new/.' /}
                         {/call}
-                    {/param}
-                {/call}
-                {call aui.group.item}
-                    {param content}
+
                         {call stash.buttons.button}
                           {param id: 'button-update-all-plans' /}
                           {param buttonText: 'Update/Create Plans' /}
                           {param href: $relUrl + '/reload-all/.' /}
+                        {/call}
+                    {/param}
+                {/call}
+
+                {call aui.group.group}
+                    {param content}
+                        <h3>Cleaning</h3>
+                        Clean up Jenkins Jobs that haven't been run in a certain amount of days.
+                        {call aui.form.form}
+                            {param action: $relUrl + '/clean-jobs/' /}
+                            {param method: 'get' /}
+                            {param content}
+
+                                {call aui.form.textField}
+                                    {param id: 'age' /}
+                                    {param labelContent: stash_i18n('stash.web.stash.ageToClean.label', 'Age to Delete') /}
+                                    {param value: '90' /}
+                                {/call}
+
+                                {call aui.form.buttons}
+                                {param content}
+                                    {call aui.form.submit}
+                                        {param id: 'submit' /}
+                                        {param text: 'Clean Jobs' /}
+                                        {param type: 'submit' /}
+                                    {/call}
+                                {/param}
+                                {/call}
+
+                            {/param}
                         {/call}
                     {/param}
                 {/call}

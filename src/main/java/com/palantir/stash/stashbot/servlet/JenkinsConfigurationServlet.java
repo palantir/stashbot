@@ -102,6 +102,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
             .replaceAll("/delete/?.*$", "")
             .replaceAll("/reload-all/?.*$", "")
             .replaceAll("/create-new/?.*$", "")
+            .replaceAll("/clean-jobs/?.*$", "")
             .replaceAll("\\?notice=.*$", "")
             .replaceAll("\\?error=.*$", "");
 
@@ -121,6 +122,21 @@ public class JenkinsConfigurationServlet extends HttpServlet {
             if (parts[1].equals("create-new")) {
                 jenkinsManager.createMissingJobs();
                 res.sendRedirect(relUrl);
+            }
+            if (parts[1].equals("clean-jobs")) {
+                String ageAsString = req.getParameter("age");
+                int age;
+                if (ageAsString == null) {
+                    res.sendRedirect(relUrl + "?error=\"Age is required\"");
+                } else {
+                    try {
+                        age = Integer.decode(ageAsString);
+                        jenkinsManager.cleanOldJobs(age);
+                        res.sendRedirect(relUrl);
+                    } catch (NumberFormatException e) {
+                        res.sendRedirect(relUrl + "?error=\"Age must be a number\"");
+                    }
+                }
             }
         }
 
