@@ -61,7 +61,7 @@ public interface ConfigurationPersistenceService {
 			AuthenticationMode authenticationMode, String stashUsername,
 			String stashPassword, Integer maxVerifyChain, Integer defaultTimeout,
 			GlobalBuildCommandSettings globalBuildCommands,
-        String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException;
+        String prefixTemplate, String jobTemplate, String globalLabel, Boolean isLocked) throws SQLException;
 
 	public abstract RepositoryConfiguration getRepositoryConfigurationForRepository(
 			Repository repo) throws SQLException;

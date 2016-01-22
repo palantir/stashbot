@@ -218,6 +218,10 @@ public interface JenkinsServerConfiguration extends Entity {
 	public void setGlobalPrebuildCommand(String command);
 
 
+	public String getGlobalLabel();
+	public void setGlobalLabel(String label);
+
+
 	// For security - allow a jenkins server config to be locked to
 	// non-system-admins
 	@NotNull

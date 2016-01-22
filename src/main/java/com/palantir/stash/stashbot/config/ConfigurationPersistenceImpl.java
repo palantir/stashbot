@@ -136,9 +136,11 @@ ConfigurationPersistenceService {
 
 		GlobalBuildCommandSettings globalBuildCommands = getGlobalBuildCommands(req);
 
+		String globalLabel = cleanGlobalLabel(req.getParameter("globalLabel"));
+
 		setJenkinsServerConfiguration(name, url, username, password, am,
             stashUsername, stashPassword, maxVerifyChain, defaultTimeout,
-            globalBuildCommands, prefixTemplate, jobTemplate, isLocked);
+            globalBuildCommands, prefixTemplate, jobTemplate, globalLabel, isLocked);
 	}
 
 	/*
@@ -168,7 +170,7 @@ ConfigurationPersistenceService {
 		setJenkinsServerConfiguration(name, url, username, password,
 				authenticationMode, stashUsername, stashPassword,
             maxVerifyChain, JenkinsServerConfiguration.BUILD_TIMEOUT_MINUTES_DEFAULT,
-            new GlobalBuildCommandSettings(), "/", "$project_$repo", false);
+            new GlobalBuildCommandSettings(), "/", "$project_$repo", null, false);
 	}
 
 	/*
@@ -187,7 +189,7 @@ ConfigurationPersistenceService {
 			AuthenticationMode authenticationMode, String stashUsername,
 			String stashPassword, Integer maxVerifyChain, Integer defaultTimeout,
 			GlobalBuildCommandSettings globalBuildCommands,
-        String prefixTemplate, String jobTemplate, Boolean isLocked) throws SQLException {
+        String prefixTemplate, String jobTemplate, String globalLabel, Boolean isLocked) throws SQLException {
 		if (name == null) {
 			name = DEFAULT_JENKINS_SERVER_CONFIG_KEY;
 		}
@@ -208,8 +210,8 @@ ConfigurationPersistenceService {
 					"MAX_VERIFY_CHAIN", maxVerifyChain), new DBParam(
 					"DEFAULT_TIMEOUT", defaultTimeout), new DBParam(
 					"GLOBAL_PREBUILD_COMMAND", globalBuildCommands.getPrebuild()), new DBParam(
-                "PREFIX_TEMPLATE", prefixTemplate), new DBParam("JOB_TEMPLATE", jobTemplate), new DBParam("LOCKED",
-					isLocked));
+                "PREFIX_TEMPLATE", prefixTemplate), new DBParam("JOB_TEMPLATE", jobTemplate),
+                    new DBParam("GLOBAL_LABEL", cleanGlobalLabel(globalLabel)), new DBParam("LOCKED", isLocked));
 			return;
 		}
 		// already exists, so update it
@@ -226,6 +228,7 @@ ConfigurationPersistenceService {
 		configs[0].setGlobalPrebuildCommand(globalBuildCommands.getPrebuild());
 		configs[0].setPrefixTemplate(prefixTemplate);
         configs[0].setJobTemplate(jobTemplate);
+        configs[0].setGlobalLabel(globalLabel);
 		configs[0].setLocked(isLocked);
 		configs[0].save();
 	}
@@ -605,6 +608,13 @@ ConfigurationPersistenceService {
         if (value < min || value > max) {
             throw new IllegalArgumentException(name + " must be between " + min + " and " + max + " " + unit + ".");
         }
+    }
+
+    private String cleanGlobalLabel(String label) {
+        if (label != null && label.trim().equals("")) {
+            return null;
+        }
+        return label;
     }
 
 	/*

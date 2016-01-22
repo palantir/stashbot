@@ -154,6 +154,12 @@
                               {param value: $jenkinsConfig.defaultTimeout /}
                               {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
                             {/call}
+                            {call aui.form.textField}
+                              {param id: 'globalLabel' /}
+                              {param labelContent: 'Global Job Label' /}
+                              {param value: $jenkinsConfig.globalLabel /}
+                              {param descriptionText: 'The default label all Stashbot jobs should have on this Jenkins server. This is useful for Jenkins servers with multiple pools of nodes.  For no default label, leave blank.' /}
+                            {/call}
                             {call aui.form.textareaField}
                               {param id: 'globalPrebuild' /}
                               {param labelContent: stash_i18n('stash.web.stash.globalPrebuild.label', 'Global Pre-build Commands') /}
@@ -285,6 +291,12 @@
                               {param labelContent: stash_i18n('stash.web.stash.defaultTimeout.label', 'Default Build Timeout') /}
                               {param value: '240' /}
                               {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'globalLabel' /}
+                              {param labelContent: 'Global Job Label' /}
+                              {param value: '' /}
+                              {param descriptionText: 'The default label all Stashbot jobs should have on this Jenkins server. This is useful for Jenkins servers with multiple pools of nodes.  For no default label, leave blank.' /}
                             {/call}
                             {call aui.form.textareaField}
                               {param id: 'globalPrebuild' /}
