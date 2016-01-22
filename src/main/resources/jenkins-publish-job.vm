@@ -93,7 +93,7 @@
     <scmName></scmName>
   </scm>
 #if ( $isPinned )
-  <assignedNode>$label</assignedNode>
+  <assignedNode>$esc.xml($label)</assignedNode>
   <canRoam>false</canRoam>
 #else
   <canRoam>true</canRoam>

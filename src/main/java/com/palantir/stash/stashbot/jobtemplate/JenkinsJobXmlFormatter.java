@@ -233,19 +233,20 @@ public class JenkinsJobXmlFormatter {
         }
         vc.put("buildTimeout", buildTimeout);
 
+        boolean isGlobalLabel = jsc.getGlobalLabel() != null && !jsc.getGlobalLabel().trim().equals("");
 
         // insert pinned data and expiry info
         switch (jobTemplate.getJobType()) {
         case VERIFY_COMMIT:
         case VERIFY_PR:
-            vc.put("isPinned", rc.getVerifyPinned());
-            vc.put("label", rc.getVerifyLabel());
+            vc.put("isPinned", rc.getVerifyPinned() || isGlobalLabel);
+            vc.put("label", buildLabel(jsc.getGlobalLabel(), isGlobalLabel, rc.getVerifyLabel(), rc.getVerifyPinned()));
             vc.put("verifyBuildExpiryDays", rc.getVerifyBuildExpiryDays());
             vc.put("verifyBuildExpiryNumber", rc.getVerifyBuildExpiryNumber());
             break;
         case PUBLISH:
-            vc.put("isPinned", rc.getPublishPinned());
-            vc.put("label", rc.getPublishLabel());
+            vc.put("isPinned", rc.getPublishPinned() || isGlobalLabel);
+            vc.put("label", buildLabel(jsc.getGlobalLabel(), isGlobalLabel, rc.getPublishLabel(), rc.getPublishPinned()));
             vc.put("publishBuildExpiryDays", rc.getPublishBuildExpiryDays());
             vc.put("publishBuildExpiryNumber", rc.getPublishBuildExpiryNumber());
             break;
@@ -270,6 +271,21 @@ public class JenkinsJobXmlFormatter {
     public static enum JenkinsBuildParamType {
         StringParameterDefinition, BooleanParameterDefinition;
         // TODO: more?
+    }
+
+    private String buildLabel(String globalLabel, boolean isGlobalLabel, String repoLabel, boolean isRepoPinned) {
+        if (isGlobalLabel && isRepoPinned) {
+            return globalLabel + " && ( " + repoLabel + " )";
+        } else if (!isGlobalLabel && isRepoPinned) {
+            return repoLabel;
+        } else if (isGlobalLabel && !isRepoPinned) {
+            return globalLabel;
+        }
+
+        // Doesn't actually matter what we return
+        //  In this case, there is no global or repo pin value
+        //  so this value won't be used.
+        return repoLabel;
     }
 
     /**
