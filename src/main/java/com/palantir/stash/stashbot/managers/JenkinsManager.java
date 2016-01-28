@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.offbytwo.jenkins.model.Build;
 import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
@@ -543,6 +544,138 @@ public class JenkinsManager implements DisposableBean {
 			} catch (ExecutionException e) {
 				log.error(
 						"Exception while attempting to create missing jobs for a repo: ",
+						e);
+			} catch (InterruptedException e) {
+				log.error("Interrupted: this shouldn't happen", e);
+			}
+		}
+	}
+
+	/**
+	 * Code to delete jobs in Jenkins that haven't been run recently.
+	 *
+	 * Jobs that have never been run will be ignored.
+	 *
+	 * @author jshumway
+	 */
+	class CleanOldJobsVisitor implements Callable<Void> {
+
+		private final JenkinsClientManager jcm;
+		private final JobTemplateManager jtm;
+		private final ConfigurationPersistenceService cpm;
+		private final Repository r;
+		private final Logger log;
+		private final long age;
+
+		public CleanOldJobsVisitor(JenkinsClientManager jcm,
+								   JobTemplateManager jtm,
+								   ConfigurationPersistenceService cpm,
+								   Repository r, PluginLoggerFactory lf, int age) {
+			this.jcm = jcm;
+			this.jtm = jtm;
+			this.cpm = cpm;
+			this.r = r;
+			this.log = lf.getLoggerForThis(this);
+			this.age = age;
+		}
+
+		@Override
+		public Void call() throws Exception {
+			RepositoryConfiguration rc = cpm
+					.getRepositoryConfigurationForRepository(r);
+
+			// Do not delete jobs from repositories with 'Preserve Jenkins Job Config'
+			// marked, as they cannot be automatically recreated.
+			if (rc.getPreserveJenkinsJobConfig())
+				return null;
+
+			List<JobTemplate> templates = jtm.getJenkinsJobsForRepository(rc);
+			JenkinsServerConfiguration jsc = cpm
+					.getJenkinsServerConfiguration(rc.getJenkinsServerName());
+			JenkinsServer js = jcm.getJenkinsServer(jsc, rc, r);
+			Map<String, Job> jobs = js.getJobs();
+
+			for (JobTemplate template: templates) {
+				String jobName = template.getBuildNameFor(r, jsc);
+				Job job = jobs.get(jobName);
+
+				if (job != null && jobOlderThan(job, 1000 * 60 * 60 * 24 * age)) {
+					log.info("Deleting job " + job.getName() + " from Jenkins: last " +
+							"job occurred over " + age + " days ago");
+					js.deleteJob(job.getName());
+				}
+			}
+
+			return null;
+		}
+
+		boolean jobOlderThan(Job job, long ageCutoff) {
+			try {
+				final Build lastBuild = job.details().getLastBuild();
+
+				// Consider jobs with no builds to be newer than |ageCutoff|
+				if (lastBuild == null)
+					return false;
+
+				final long lastBuildTime = lastBuild.details().getTimestamp();
+				final long now = System.currentTimeMillis();
+				final long elapsedTime = now - lastBuildTime;
+
+				return elapsedTime > ageCutoff;
+			} catch (IOException e) {
+				return false;
+			}
+		}
+	}
+
+	static class RepositoryFuture {
+		public Repository r;
+		public Future<Void> f;
+		public RepositoryFuture(Repository repo, Future<Void> future) {
+			this.r = repo;
+			this.f = future;
+		}
+	}
+
+	/**
+	 * For each repo with a Stashbot configuration that does not have
+	 * 'Preserve Jenkins Config' checked, delete job plans from Jenkins
+	 * if the job has not been run in more than |age| days.
+	 *
+	 * If a job has never been run, it will be ignored. It is possible
+	 * that such jobs are brand new and should not be deleted.
+	 *
+	 * @param age the number of days old a job must be to be deleted
+     */
+	public void cleanOldJobs(int age) {
+
+		ExecutorService es = Executors.newCachedThreadPool();
+		List<RepositoryFuture> repoFutures = new LinkedList<RepositoryFuture>();
+
+		PageRequest pageReq = new PageRequestImpl(0, 500);
+		Page<? extends Repository> p = repositoryService.findAll(pageReq);
+
+		while (true) {
+			for (Repository r : p.getValues()) {
+				Future<Void> f = es.submit(new CleanOldJobsVisitor(
+						jenkinsClientManager, jtm, cpm, r, lf, age));
+				repoFutures.add(new RepositoryFuture(r, f));
+			}
+			if (p.getIsLastPage())
+				break;
+			pageReq = p.getNextPageRequest();
+			p = repositoryService.findAll(pageReq);
+		}
+
+		for (RepositoryFuture repoFuture : repoFutures) {
+			Repository r = repoFuture.r;
+			Future f = repoFuture.f;
+			try {
+				f.get(); // don't care about return, just catch exceptions
+			} catch (ExecutionException e) {
+				log.error(
+						"Exception while attempting to clean old jobs for repo " +
+								r.getName() + ": ",
 						e);
 			} catch (InterruptedException e) {
 				log.error("Interrupted: this shouldn't happen", e);
