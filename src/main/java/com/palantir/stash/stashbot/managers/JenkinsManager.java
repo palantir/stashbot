@@ -566,17 +566,20 @@ public class JenkinsManager implements DisposableBean {
 		private final Repository r;
 		private final Logger log;
 		private final long age;
+		private final boolean dryRun;
 
 		public CleanOldJobsVisitor(JenkinsClientManager jcm,
 								   JobTemplateManager jtm,
 								   ConfigurationPersistenceService cpm,
-								   Repository r, PluginLoggerFactory lf, int age) {
+								   Repository r, PluginLoggerFactory lf, int age,
+								   boolean dryRun) {
 			this.jcm = jcm;
 			this.jtm = jtm;
 			this.cpm = cpm;
 			this.r = r;
 			this.log = lf.getLoggerForThis(this);
 			this.age = age;
+			this.dryRun = dryRun;
 		}
 
 		@Override
@@ -602,7 +605,9 @@ public class JenkinsManager implements DisposableBean {
 				if (job != null && jobOlderThan(job, 1000 * 60 * 60 * 24 * age)) {
 					log.info("Deleting job " + job.getName() + " from Jenkins: last " +
 							"job occurred over " + age + " days ago");
-					js.deleteJob(job.getName());
+					if (!dryRun) {
+						js.deleteJob(job.getName());
+					}
 				}
 			}
 
@@ -647,7 +652,7 @@ public class JenkinsManager implements DisposableBean {
 	 *
 	 * @param age the number of days old a job must be to be deleted
      */
-	public void cleanOldJobs(int age) {
+	public void cleanOldJobs(int age, boolean dryRun) {
 
 		ExecutorService es = Executors.newCachedThreadPool();
 		List<RepositoryFuture> repoFutures = new LinkedList<RepositoryFuture>();
@@ -658,7 +663,7 @@ public class JenkinsManager implements DisposableBean {
 		while (true) {
 			for (Repository r : p.getValues()) {
 				Future<Void> f = es.submit(new CleanOldJobsVisitor(
-						jenkinsClientManager, jtm, cpm, r, lf, age));
+						jenkinsClientManager, jtm, cpm, r, lf, age, dryRun));
 				repoFutures.add(new RepositoryFuture(r, f));
 			}
 			if (p.getIsLastPage())
