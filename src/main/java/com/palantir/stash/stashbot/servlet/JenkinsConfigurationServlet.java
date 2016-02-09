@@ -124,14 +124,22 @@ public class JenkinsConfigurationServlet extends HttpServlet {
                 res.sendRedirect(relUrl);
             }
             if (parts[1].equals("clean-jobs")) {
-                String ageAsString = req.getParameter("age");
                 int age;
+                boolean dryRun = true;
+
+                String dryRunAsString = req.getParameter("dry_run");
+                if (dryRunAsString == null) {
+                    dryRun = false;
+                }
+
+                String ageAsString = req.getParameter("age");
+
                 if (ageAsString == null) {
                     res.sendRedirect(relUrl + "?error=\"Age is required\"");
                 } else {
                     try {
                         age = Integer.decode(ageAsString);
-                        jenkinsManager.cleanOldJobs(age);
+                        jenkinsManager.cleanOldJobs(age, dryRun);
                         res.sendRedirect(relUrl);
                     } catch (NumberFormatException e) {
                         res.sendRedirect(relUrl + "?error=\"Age must be a number\"");
