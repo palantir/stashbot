@@ -367,6 +367,15 @@
                                     {param value: '90' /}
                                 {/call}
 
+                                {call aui.form.checkboxField}
+                                  {param legendContent: stash_i18n('stash.web.stash.cleanjobsdryrun.button.legend', 'Dry Run') /}
+                                  {param fields: [[
+                                    'id': 'dry_run',
+                                    'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Enabled'),
+                                    'isChecked': true
+                                    ]] /}
+                                {/call}
+
                                 {call aui.form.buttons}
                                 {param content}
                                     {call aui.form.submit}
