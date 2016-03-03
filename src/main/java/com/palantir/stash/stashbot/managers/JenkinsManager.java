@@ -693,6 +693,8 @@ public class JenkinsManager implements DisposableBean {
 				log.error("Interrupted: this shouldn't happen", e);
 			}
 		}
+
+	    log.info("Ending clean jobs job.");
 	}
 
 	@Override
