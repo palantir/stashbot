@@ -376,6 +376,16 @@
                                     ]] /}
                                 {/call}
 
+                                {call aui.form.checkboxField}
+                                  {param legendContent: stash_i18n('stash.web.stash.cleanjobsdeleteunused.button.legend', 'Include Unused Jobs') /}
+                                  {param descriptionText: 'Including unused builds means that any builds that have never run are deleted.' /}
+                                  {param fields: [[
+                                    'id': 'delete_unused',
+                                    'labelText': stash_i18n('stash.web.stash.cleanjobsdeketeunused.button.label', 'Enabled'),
+                                    'isChecked': false
+                                    ]] /}
+                                {/call}
+
                                 {call aui.form.buttons}
                                 {param content}
                                     {call aui.form.submit}

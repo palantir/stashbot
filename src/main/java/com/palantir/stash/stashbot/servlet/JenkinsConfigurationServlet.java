@@ -126,10 +126,16 @@ public class JenkinsConfigurationServlet extends HttpServlet {
             if (parts[1].equals("clean-jobs")) {
                 int age;
                 boolean dryRun = true;
+                boolean deleteUnused = true;
 
                 String dryRunAsString = req.getParameter("dry_run");
                 if (dryRunAsString == null || dryRunAsString.trim().equals("") || !dryRunAsString.equals("on")) {
                     dryRun = false;
+                }
+
+                String deleteUnusedAsString = req.getParameter("delete_unused");
+                if (deleteUnusedAsString == null || deleteUnusedAsString.trim().equals("") || !deleteUnusedAsString.equals("on")) {
+                    deleteUnused = false;
                 }
 
                 String ageAsString = req.getParameter("age");
@@ -139,7 +145,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
                 } else {
                     try {
                         age = Integer.decode(ageAsString);
-                        jenkinsManager.cleanOldJobs(age, dryRun);
+                        jenkinsManager.cleanOldJobs(age, dryRun, deleteUnused);
                         res.sendRedirect(relUrl);
                     } catch (NumberFormatException e) {
                         res.sendRedirect(relUrl + "?error=\"Age must be a number\"");
