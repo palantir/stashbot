@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.offbytwo.jenkins.model.Build;
 import org.apache.http.client.HttpResponseException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
@@ -44,6 +43,7 @@ import com.atlassian.stash.util.PageRequestImpl;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.offbytwo.jenkins.JenkinsServer;
+import com.offbytwo.jenkins.model.Build;
 import com.offbytwo.jenkins.model.Job;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter;
@@ -598,12 +598,13 @@ public class JenkinsManager implements DisposableBean {
 			JenkinsServer js = jcm.getJenkinsServer(jsc, rc, r);
 			Map<String, Job> jobs = js.getJobs();
 
+			String dryRunMessage = dryRun ? " [DryRun] " : " ";
 			for (JobTemplate template: templates) {
 				String jobName = template.getBuildNameFor(r, jsc);
 				Job job = jobs.get(jobName);
 
 				if (job != null && jobOlderThan(job, 1000 * 60 * 60 * 24 * age)) {
-					log.info("Deleting job " + job.getName() + " from Jenkins: last " +
+					log.info("Deleting" + dryRunMessage + "job " + job.getName() + " from Jenkins: last " +
 							"job occurred over " + age + " days ago");
 					if (!dryRun) {
 						js.deleteJob(job.getName());
@@ -656,6 +657,12 @@ public class JenkinsManager implements DisposableBean {
 
 		ExecutorService es = Executors.newCachedThreadPool();
 		List<RepositoryFuture> repoFutures = new LinkedList<RepositoryFuture>();
+
+		if (dryRun) {
+		    log.info("Starting clean jobs job.  Dry Run.");
+		} else {
+		    log.info("Starting clean jobs job.");
+		}
 
 		PageRequest pageReq = new PageRequestImpl(0, 500);
 		Page<? extends Repository> p = repositoryService.findAll(pageReq);

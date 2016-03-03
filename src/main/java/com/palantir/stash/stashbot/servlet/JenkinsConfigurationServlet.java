@@ -128,7 +128,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
                 boolean dryRun = true;
 
                 String dryRunAsString = req.getParameter("dry_run");
-                if (dryRunAsString == null) {
+                if (dryRunAsString == null || dryRunAsString.trim().equals("") || !dryRunAsString.equals("on")) {
                     dryRun = false;
                 }
 
