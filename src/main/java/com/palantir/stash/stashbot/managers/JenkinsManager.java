@@ -665,11 +665,14 @@ public class JenkinsManager implements DisposableBean {
 		ExecutorService es = Executors.newCachedThreadPool();
 		List<RepositoryFuture> repoFutures = new LinkedList<RepositoryFuture>();
 
-		if (dryRun) {
-		    log.info("Starting clean jobs job.  Dry Run.");
-		} else {
-		    log.info("Starting clean jobs job.");
+		String startMessage = "Starting clean jobs job.";
+		if (deleteUnused) {
+		    startMessage += "  Delete unbuilt jobs.";
 		}
+		if (dryRun) {
+		    startMessage += "  Dry run.";
+		}
+		log.info(startMessage);
 
 		PageRequest pageReq = new PageRequestImpl(0, 500);
 		Page<? extends Repository> p = repositoryService.findAll(pageReq);
