@@ -567,12 +567,13 @@ public class JenkinsManager implements DisposableBean {
 		private final Logger log;
 		private final long age;
 		private final boolean dryRun;
+		private final boolean deleteUnused;
 
 		public CleanOldJobsVisitor(JenkinsClientManager jcm,
 								   JobTemplateManager jtm,
 								   ConfigurationPersistenceService cpm,
 								   Repository r, PluginLoggerFactory lf, int age,
-								   boolean dryRun) {
+								   boolean dryRun, boolean deleteUnused) {
 			this.jcm = jcm;
 			this.jtm = jtm;
 			this.cpm = cpm;
@@ -580,6 +581,7 @@ public class JenkinsManager implements DisposableBean {
 			this.log = lf.getLoggerForThis(this);
 			this.age = age;
 			this.dryRun = dryRun;
+			this.deleteUnused = deleteUnused;
 		}
 
 		@Override
@@ -603,9 +605,13 @@ public class JenkinsManager implements DisposableBean {
 				String jobName = template.getBuildNameFor(r, jsc);
 				Job job = jobs.get(jobName);
 
-				if (job != null && jobOlderThan(job, 1000 * 60 * 60 * 24 * age)) {
-					log.info("Deleting" + dryRunMessage + "job " + job.getName() + " from Jenkins: last " +
-							"job occurred over " + age + " days ago");
+				if (job != null && jobOlderThan(job, 1000 * 60 * 60 * 24 * age, deleteUnused)) {
+					String deleteMessage = "Deleting" + dryRunMessage + "job " + job.getName() + " from Jenkins: last " +
+							"job occurred over " + age + " days ago";
+					if (deleteUnused) {
+					    deleteMessage += " (or because it was never built)";
+					}
+					log.info(deleteMessage);
 					if (!dryRun) {
 						js.deleteJob(job.getName());
 					}
@@ -615,13 +621,14 @@ public class JenkinsManager implements DisposableBean {
 			return null;
 		}
 
-		boolean jobOlderThan(Job job, long ageCutoff) {
+		boolean jobOlderThan(Job job, long ageCutoff, boolean deleteUnused) {
 			try {
 				final Build lastBuild = job.details().getLastBuild();
 
-				// Consider jobs with no builds to be newer than |ageCutoff|
-				if (lastBuild == null)
-					return false;
+				// Consider jobs with no builds to be newer than |ageCutoff| (unless delete unused is set)
+				if (lastBuild == null) {
+				    return deleteUnused;
+				}
 
 				final long lastBuildTime = lastBuild.details().getTimestamp();
 				final long now = System.currentTimeMillis();
@@ -653,16 +660,19 @@ public class JenkinsManager implements DisposableBean {
 	 *
 	 * @param age the number of days old a job must be to be deleted
      */
-	public void cleanOldJobs(int age, boolean dryRun) {
+	public void cleanOldJobs(int age, boolean dryRun, boolean deleteUnused) {
 
 		ExecutorService es = Executors.newCachedThreadPool();
 		List<RepositoryFuture> repoFutures = new LinkedList<RepositoryFuture>();
 
-		if (dryRun) {
-		    log.info("Starting clean jobs job.  Dry Run.");
-		} else {
-		    log.info("Starting clean jobs job.");
+		String startMessage = "Starting clean jobs job.";
+		if (deleteUnused) {
+		    startMessage += "  Delete unbuilt jobs.";
 		}
+		if (dryRun) {
+		    startMessage += "  Dry run.";
+		}
+		log.info(startMessage);
 
 		PageRequest pageReq = new PageRequestImpl(0, 500);
 		Page<? extends Repository> p = repositoryService.findAll(pageReq);
@@ -670,7 +680,7 @@ public class JenkinsManager implements DisposableBean {
 		while (true) {
 			for (Repository r : p.getValues()) {
 				Future<Void> f = es.submit(new CleanOldJobsVisitor(
-						jenkinsClientManager, jtm, cpm, r, lf, age, dryRun));
+						jenkinsClientManager, jtm, cpm, r, lf, age, dryRun, deleteUnused));
 				repoFutures.add(new RepositoryFuture(r, f));
 			}
 			if (p.getIsLastPage())
@@ -693,6 +703,8 @@ public class JenkinsManager implements DisposableBean {
 				log.error("Interrupted: this shouldn't happen", e);
 			}
 		}
+
+	    log.info("Ending clean jobs job.");
 	}
 
 	@Override
