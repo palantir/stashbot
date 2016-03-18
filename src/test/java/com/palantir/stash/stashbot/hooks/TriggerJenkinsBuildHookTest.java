@@ -101,7 +101,7 @@ public class TriggerJenkinsBuildHookTest {
 
         // MGC stuff
         mgc = new MockGitCommandBuilderFactory();
-        mgc.getChangesets().add(HEAD);
+        mgc.getCommits().add(HEAD);
         mgc.getBranchMap().put(HEAD, ImmutableList.of("  otherbranch"));
 
         gcbf = mgc.getGitCommandBuilderFactory();
@@ -137,7 +137,7 @@ public class TriggerJenkinsBuildHookTest {
     @Test
     public void testNoBuildOnDelete() {
         Mockito.when(change.getType()).thenReturn(RefChangeType.DELETE);
-        mgc.getChangesets().clear(); // empty changesets means no new changes
+        mgc.getCommits().clear(); // empty Commits means no new changes
 
         tjbh.onReceive(repo, changes, hr);
 
@@ -175,9 +175,9 @@ public class TriggerJenkinsBuildHookTest {
 
     @Test
     public void testVerifyBuildsMultipleChanges() {
-        mgc.getChangesets().clear();
-        mgc.getChangesets().add(HEAD_MINUS_ONE);
-        mgc.getChangesets().add(HEAD);
+        mgc.getCommits().clear();
+        mgc.getCommits().add(HEAD_MINUS_ONE);
+        mgc.getCommits().add(HEAD);
 
         tjbh.onReceive(repo, changes, hr);
 
@@ -192,11 +192,11 @@ public class TriggerJenkinsBuildHookTest {
     @Test
     public void testVerifyIgnoresChangeAlreadyInPreviousBranch() {
         // the revlist call here is -- HEAD ^HEAD_MINUS_ONE
-        // so we'll accomplish that by adding both to the changesets list but blacklisting HEAD_MINUS_ONE so the only new change is HEAD.
-        mgc.getChangesets().clear();
-        mgc.getChangesets().add(HEAD_MINUS_ONE);
-        mgc.getChangesets().add(HEAD);
-        mgc.getBlacklistedChangesets().add(HEAD_MINUS_ONE);
+        // so we'll accomplish that by adding both to the Commits list but blacklisting HEAD_MINUS_ONE so the only new change is HEAD.
+        mgc.getCommits().clear();
+        mgc.getCommits().add(HEAD_MINUS_ONE);
+        mgc.getCommits().add(HEAD);
+        mgc.getBlacklistedCommits().add(HEAD_MINUS_ONE);
         // HEAD_MINUS_ONE is already in branch master2, so don't verify it
         mgc.getBranchMap().put(HEAD_MINUS_ONE, ImmutableList.of("  master2"));
 
@@ -209,9 +209,9 @@ public class TriggerJenkinsBuildHookTest {
 
     @Test
     public void testVerifyNewBranch() {
-        mgc.getChangesets().clear();
-        mgc.getChangesets().add(HEAD_MINUS_ONE);
-        mgc.getChangesets().add(HEAD);
+        mgc.getCommits().clear();
+        mgc.getCommits().add(HEAD_MINUS_ONE);
+        mgc.getCommits().add(HEAD);
         Mockito.when(change.getType()).thenReturn(RefChangeType.ADD);
         Mockito.when(change.getFromHash()).thenReturn("0000000000000000000000000000000000000000");
 

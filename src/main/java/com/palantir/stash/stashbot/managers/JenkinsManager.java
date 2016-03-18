@@ -292,7 +292,7 @@ public class JenkinsManager implements DisposableBean {
 
         try {
             String pullRequestId = pullRequest.getId().toString();
-            String hashToBuild = pullRequest.getToRef().getLatestChangeset();
+            String hashToBuild = pullRequest.getToRef().getLatestCommit();
 
             RepositoryConfiguration rc = cpm
                 .getRepositoryConfigurationForRepository(repo);
@@ -325,13 +325,13 @@ public class JenkinsManager implements DisposableBean {
                 builder.put("pullRequestId", pullRequestId);
                 // toRef is always present in the repo
                 builder.put("buildHead", pullRequest.getToRef()
-                    .getLatestChangeset().toString());
+                    .getLatestCommit().toString());
                 // fromRef may be in a different repo
                 builder.put("mergeRef", pullRequest.getFromRef().getId());
                 builder.put("buildRef", pullRequest.getToRef().getId());
                 builder.put("mergeRefUrl", sub.buildCloneUrl(pullRequest.getFromRef().getRepository(), jsc));
                 builder.put("mergeHead", pullRequest.getFromRef()
-                    .getLatestChangeset().toString());
+                    .getLatestCommit().toString());
             }
 
             jobMap.get(key).build(builder.build());

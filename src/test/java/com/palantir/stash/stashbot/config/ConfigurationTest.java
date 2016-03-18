@@ -87,8 +87,8 @@ public class ConfigurationTest {
         Mockito.when(pr.getFromRef()).thenReturn(fromRef);
         Mockito.when(pr.getId()).thenReturn(PR_ID);
         Mockito.when(toRef.getRepository()).thenReturn(repo);
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA);
-        Mockito.when(fromRef.getLatestChangeset()).thenReturn(FROM_SHA);
+        Mockito.when(toRef.getLatestCommit()).thenReturn(TO_SHA);
+        Mockito.when(fromRef.getLatestCommit()).thenReturn(FROM_SHA);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
 
         // ensure our runner sets this for us

@@ -44,7 +44,7 @@ public class StashbotUrlBuilder {
         urlB.append(buildHead);
         if (pullRequest != null) {
             urlB.append("/");
-            urlB.append(pullRequest.getToRef().getLatestChangeset());
+            urlB.append(pullRequest.getToRef().getLatestCommit());
             urlB.append("/");
             urlB.append(pullRequest.getId().toString());
         }
@@ -87,8 +87,8 @@ public class StashbotUrlBuilder {
         return url;
     }
 
-    public String buildStashCommitUrl(Repository repo, String changeset) {
-        return nb.repo(repo).changeset(changeset).buildAbsolute();
+    public String buildStashCommitUrl(Repository repo, String commit) {
+        return nb.repo(repo).commit(commit).buildAbsolute();
     }
 
     private String mask( String str ) {

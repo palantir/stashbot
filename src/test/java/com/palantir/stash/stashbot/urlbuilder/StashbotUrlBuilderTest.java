@@ -77,8 +77,8 @@ public class StashbotUrlBuilderTest {
         Mockito.when(pr.getId()).thenReturn(PULL_REQUEST_ID);
         Mockito.when(pr.getFromRef()).thenReturn(fromRef);
         Mockito.when(pr.getToRef()).thenReturn(toRef);
-        Mockito.when(toRef.getLatestChangeset()).thenReturn(TO_SHA);
-        Mockito.when(fromRef.getLatestChangeset()).thenReturn(BUILD_HEAD);
+        Mockito.when(toRef.getLatestCommit()).thenReturn(TO_SHA);
+        Mockito.when(fromRef.getLatestCommit()).thenReturn(BUILD_HEAD);
         Mockito.when(repo.getId()).thenReturn(REPO_ID);
         Mockito.when(rs.getCloneLinks(Mockito.any(RepositoryCloneLinksRequest.class))).thenReturn(links);
 

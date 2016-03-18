@@ -144,7 +144,7 @@ public class BuildStatusReportingServlet extends HttpServlet {
             output.put("canMerge", canMerge.canMerge());
             if (!canMerge.canMerge()) {
                 JSONArray vetoes = new JSONArray();
-                for (PullRequestMergeVeto prmv : canMerge.getVetos()) {
+                for (PullRequestMergeVeto prmv : canMerge.getVetoes()) {
                     JSONObject prmvjs = new JSONObject();
                     prmvjs.put("summary", prmv.getSummaryMessage());
                     prmvjs.put("details", prmv.getDetailedMessage());

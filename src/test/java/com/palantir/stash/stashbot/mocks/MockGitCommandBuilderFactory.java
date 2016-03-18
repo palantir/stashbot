@@ -45,8 +45,8 @@ public class MockGitCommandBuilderFactory {
     private GitScmCommandBuilder branchCommandBuilder;
     private GitCommand<Object> branchCommand;
 
-    private List<String> changesets;
-    private Set<String> blacklistedChangesets;
+    private List<String> commits;
+    private Set<String> blacklistedCommits;
     private Map<String, List<String>> branchMap;
 
     public MockGitCommandBuilderFactory() {
@@ -55,9 +55,9 @@ public class MockGitCommandBuilderFactory {
 
     @SuppressWarnings("unchecked")
     private void reset() {
-        // list of changesets in order
-        changesets = new ArrayList<String>();
-        blacklistedChangesets = new HashSet<String>();
+        // list of commits in order
+        commits = new ArrayList<String>();
+        blacklistedCommits = new HashSet<String>();
         // for each hash, list of branches that contain said hash
         branchMap = new HashMap<String, List<String>>();
 
@@ -83,8 +83,8 @@ public class MockGitCommandBuilderFactory {
                 CommandOutputHandler<Object> coh = cohCaptor.getValue();
 
                 List<String> finalCS = new ArrayList<String>();
-                for (String cs : changesets) {
-                    if (!blacklistedChangesets.contains(cs)) {
+                for (String cs : commits) {
+                    if (!blacklistedCommits.contains(cs)) {
                         finalCS.add(cs);
                     }
                 }
@@ -119,12 +119,12 @@ public class MockGitCommandBuilderFactory {
         }).when(branchCommand).call();
     }
 
-    public List<String> getChangesets() {
-        return changesets;
+    public List<String> getCommits() {
+        return commits;
     }
 
-    public Set<String> getBlacklistedChangesets() {
-        return blacklistedChangesets;
+    public Set<String> getBlacklistedCommits() {
+        return blacklistedCommits;
     }
 
     public Map<String, List<String>> getBranchMap() {

@@ -22,7 +22,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 
 import com.atlassian.plugin.web.model.WebPanel;
-import com.atlassian.stash.content.Changeset;
+import com.atlassian.stash.commit.Commit;
 import com.atlassian.stash.repository.Repository;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
@@ -68,11 +68,11 @@ public class RetriggerLinkWebPanel implements WebPanel {
                 return;
             }
 
-            Changeset changeset = (Changeset) context.get("changeset");
+            Commit Commit = (Commit) context.get("commit");
             String url = ub.getJenkinsTriggerUrl(repo, JobType.VERIFY_COMMIT,
-                changeset.getId(), null);
+                Commit.getId(), null);
             String pubUrl = ub.getJenkinsTriggerUrl(repo, JobType.PUBLISH,
-                changeset.getId(), null);
+                Commit.getId(), null);
             // TODO: add ?reason=<buildRef> somehow to end of URLs?
             writer.append("Trigger: ( <a href=\"" + url + "\">Verify</a> | ");
             writer.append("<a href=\"" + pubUrl + "\">Publish</a> )");

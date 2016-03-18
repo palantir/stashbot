@@ -29,7 +29,7 @@ public class CommandOutputHandlerFactory {
     public CommandOutputHandler<Object> getRevlistOutputHandler() {
         return new CommandOutputHandler<Object>() {
 
-            private ArrayList<String> changesets;
+            private ArrayList<String> commits;
             private LineReader lr;
             private boolean processed = false;
 
@@ -46,14 +46,14 @@ public class CommandOutputHandlerFactory {
                 if (processed == false) {
                     throw new IllegalStateException("getOutput() called before process()");
                 }
-                return ImmutableList.copyOf(changesets).reverse();
+                return ImmutableList.copyOf(commits).reverse();
             }
 
             @Override
             public void process(InputStream output) throws ProcessException {
                 processed = true;
-                if (changesets == null) {
-                    changesets = new ArrayList<String>();
+                if (commits == null) {
+                    commits = new ArrayList<String>();
                     lr = new LineReader(new InputStreamReader(output));
                 }
 
@@ -66,7 +66,7 @@ public class CommandOutputHandlerFactory {
                         throw new RuntimeException(e);
                     }
                     if (sha1 != null && sha1.matches("[0-9a-fA-F]{40}")) {
-                        changesets.add(sha1);
+                        commits.add(sha1);
                     }
                 }
             }
