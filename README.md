@@ -1,3 +1,9 @@
+# :octocat: Repository has moved:exclamation:
+
+This copy of stashbot is rarely/never updated anymore.  Continuing development, including updates for compatibility with Atlassian BitBucket can be found at https://github.com/terabyte/stashbot/
+
+-----------------------------------------------------------------------
+
 Stashbot Helper is a plugin designed to enable a continuous integration
 workflow within stash (similar to gerrit + jenkins).
 
