@@ -252,6 +252,7 @@ public class RepoConfigurationServlet extends HttpServlet {
                     page = prs.search(prsr, pageReq);
                 }
                 // add permission to the requisite user
+                // (even if we are using ssh keys, the user has the proper keys)
                 JenkinsServerConfiguration jsc =
                     configurationPersistanceManager.getJenkinsServerConfiguration(jenkinsServerName);
                 pluginUserManager.addUserToRepoForReading(jsc.getStashUsername(), rep);

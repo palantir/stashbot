@@ -24,6 +24,7 @@
     <!-- AO resources to persiste configuration data -->
     <ao key="ao-module">
         <description>The AO module for this plugin.</description>
+        <entity>com.palantir.stash.stashbot.persistence.AuthenticationCredential</entity>
         <entity>com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration</entity>
         <entity>com.palantir.stash.stashbot.persistence.PullRequestMetadata</entity>
         <entity>com.palantir.stash.stashbot.persistence.RepositoryConfiguration</entity>
@@ -124,6 +125,7 @@
     <component-import key="repositoryService" interface="com.atlassian.stash.repository.RepositoryService"/>
     <component-import key="securityService" interface="com.atlassian.stash.user.SecurityService"/>
     <component-import key="soyTemplateRenderer" interface="com.atlassian.soy.renderer.SoyTemplateRenderer"/>
+    <component-import key="sshKeyService" interface="com.atlassian.stash.ssh.api.SshKeyService"/>
     <component-import key="userAdminService" interface="com.atlassian.stash.user.UserAdminService"/>
     <component-import key="userManager" interface="com.atlassian.sal.api.user.UserManager"/>
     <component-import key="userService" interface="com.atlassian.stash.user.UserService"/>
@@ -145,6 +147,8 @@
     <component key="jenkinsJobXmlFormatter" class="com.palantir.stash.stashbot.jobtemplate.JenkinsJobXmlFormatter" />
     <component key="jenkinsManager" class="com.palantir.stash.stashbot.managers.JenkinsManager" />
     <component key="jobTemplateManager" class="com.palantir.stash.stashbot.jobtemplate.JobTemplateManager" />
+    <component key="keyUtils" class="com.palantir.stash.stashbot.util.KeyUtils" />
+    <component key="persistenceEvents" class="com.palantir.stash.stashbot.persistence.PersistenceEvents" />
     <component key="pluginUserManager" class="com.palantir.stash.stashbot.managers.PluginUserManager" />
     <component key="pullRequestListener" class="com.palantir.stash.stashbot.hooks.PullRequestListener" />
     <component key="stashbotLoggerFactory" class="com.palantir.stash.stashbot.logger.PluginLoggerFactory"/>

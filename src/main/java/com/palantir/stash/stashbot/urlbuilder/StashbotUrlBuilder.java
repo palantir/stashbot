@@ -77,6 +77,11 @@ public class StashbotUrlBuilder {
                 "://" + mask(jsc.getStashUsername()) + ":" + mask(jsc.getStashPassword())
                     + "@");
             break;
+        case CREDENTIAL_AUTOMATIC_SSH_KEY:
+            RepositoryCloneLinksRequest rclrssh =
+                new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").user(null).build();
+            url = rs.getCloneLinks(rclrssh).iterator().next().getHref();
+            break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
             // do nothing
             // XXX: do we need to get the git/ssh link instead of the http link here?  maybe that's a new mode?
@@ -91,10 +96,10 @@ public class StashbotUrlBuilder {
         return nb.repo(repo).changeset(changeset).buildAbsolute();
     }
 
-    private String mask( String str ) {
+    private String mask(String str) {
         try {
-            return URLEncoder.encode( str, "UTF-8" );
-        } catch( UnsupportedEncodingException e ) {
+            return URLEncoder.encode(str, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
             return str;
         }
     }

@@ -19,9 +19,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.Map;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -54,6 +57,7 @@ import com.palantir.stash.stashbot.logger.PluginLoggerFactory;
 import com.palantir.stash.stashbot.managers.JenkinsManager;
 import com.palantir.stash.stashbot.managers.PluginUserManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration.AuthenticationMode;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.servlet.RepoConfigurationServlet;
 
@@ -170,8 +174,10 @@ public class RepoConfigurationServletTest {
 
         Mockito.when(jsc.getName()).thenReturn(JSN);
         Mockito.when(jsc.getStashUsername()).thenReturn("someuser");
+        Mockito.when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
         Mockito.when(jsc2.getName()).thenReturn(JSN + "2");
         Mockito.when(jsc2.getStashUsername()).thenReturn("someuser");
+        Mockito.when(jsc2.getAuthenticationMode()).thenReturn(AuthenticationMode.USERNAME_AND_PASSWORD);
 
         allServers = ImmutableList.of(jsc, jsc2);
         when(cpm.getAllJenkinsServerConfigurations()).thenReturn(allServers);
@@ -339,5 +345,17 @@ public class RepoConfigurationServletTest {
 
         rcs.doPost(req, res);
         verify(res).sendError(Mockito.anyInt(), Mockito.anyString());
+    }
+
+    @Test
+    public void testAddsUserToRepo() throws SQLException, ServletException, IOException {
+        when(req.getParameter("jenkinsServerName")).thenReturn("default");
+        when(cpm.getDefaultPublicSshKey()).thenReturn("somekey");
+        when(jsc.getAuthenticationMode()).thenReturn(AuthenticationMode.CREDENTIAL_AUTOMATIC_SSH_KEY);
+
+        rcs.doPost(req, res);
+
+        // verify the key is added
+        verify(pum).addUserToRepoForReading("someuser", mockRepo);
     }
 }

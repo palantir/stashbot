@@ -87,6 +87,11 @@
             <version>${google.guava.libversion}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency> <!-- used to generate ssh keys -->
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.53</version>
+        </dependency>
         <!-- used to generate jenkins config xml -->
         <dependency>
             <groupId>org.apache.velocity</groupId>
@@ -122,12 +127,18 @@
             <groupId>com.atlassian.stash</groupId>
             <artifactId>stash-build-integration</artifactId>
             <version>${stash.version}</version>
-            <scope>compile</scope>
+        </dependency>
+        <!-- need for SshKeyService -->
+        <dependency>
+            <groupId>com.atlassian.stash</groupId>
+            <artifactId>stash-ssh</artifactId>
+            <version>${stash.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>
             <artifactId>jenkins-client</artifactId>
-            <version>0.1.5</version>
+            <version>0.3.1-4f8ce857b5abf662129e8f95f1815db928cc64ea</version>
             <!-- excluding guava because jenkins-client uses 13 but stash needs a different version -->
             <exclusions>
                 <exclusion>
@@ -212,8 +223,8 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>3.6.0</stash.version>
-        <stash.data.version>3.6.0</stash.data.version>
+        <stash.version>3.10.0</stash.version>
+        <stash.data.version>3.10.0</stash.data.version>
         <stash.containerId>tomcat7x</stash.containerId>
         <!--
         WARNING: manually sync this with the version in stash - variable in the
@@ -251,4 +262,12 @@
             </activation>
         </profile>
     </profiles>
+    <!-- needed to pull in local jenkins-client version -->
+    <repositories>
+        <repository>
+            <id>jenkins-client</id>
+            <name>data</name>
+            <url>file://${project.basedir}/jenkins-client</url>
+        </repository>
+    </repositories>
 </project>
