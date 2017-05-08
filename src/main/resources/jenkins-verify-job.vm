@@ -98,7 +98,11 @@
   <builders>
     <hudson.tasks.Shell>
         <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
-        <command>(git reset --hard HEAD &amp;&amp; git clean -fdx) || (echo "SETUP exited with status $? ; FAILURE1" ; /bin/false)</command>
+        <command>
+git for-each-ref --format='delete %(refname)' refs/tags | git update-ref --stdin
+git fetch --tags
+(git reset --hard HEAD &amp;&amp; git clean -fdx) || (echo "SETUP exited with status $? ; FAILURE1" ; /bin/false)
+        </command>
     </hudson.tasks.Shell>
     <hudson.tasks.Shell>
         <command>$esc.xml($startedCommand)</command>
