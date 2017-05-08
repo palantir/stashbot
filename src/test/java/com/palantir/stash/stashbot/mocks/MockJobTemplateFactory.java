@@ -47,6 +47,7 @@ public class MockJobTemplateFactory {
         Mockito.when(jtm.getDefaultVerifyJob()).thenReturn(verifyCommit);
         Mockito.when(jtm.getDefaultVerifyPullRequestJob()).thenReturn(verifyPR);
         Mockito.when(jtm.getDefaultPublishJob()).thenReturn(publish);
+        Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
     }
 
     public JobTemplate getJobTemplate(Repository repo, RepositoryConfiguration rc, JobType jt) throws Exception {
