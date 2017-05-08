@@ -6,6 +6,7 @@
  * @param error
  * @param notice
  * @param authenticationModeData
+ * @param defaultJenkinsConfig
  * Xparam authenticationModeDataSelected
  **/
 {template .jenkinsConfigurationPanel}
@@ -16,25 +17,22 @@
 </head>
 <body>
 {if $error}
-  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>ERROR:</b> {$error}</div></div>
+	{call widget.aui.message.error}
+		{param title: 'ERROR' /}
+		{param content}
+			{$error}
+		{/param}
+	{/call}
 {/if}
 {if $notice}
-  <div style="color: #BF3333; background-color: #DDDDDD"><div style="padding: 15px"><b>NOTICE:</b> {$notice}</div></div>
+    {call widget.aui.message.warning}
+		{param title: 'NOTICE' /}
+		{param content}
+			{$notice}
+		{/param}
+    {/call}
 {/if}
 
-{call aui.group.group}
-    {param content}
-        {call aui.group.item}
-            {param content}
-                <h2>Stashbot Administrative Tasks</h2>
-                <ul>
-                <li>Create any plans that don't already exist <a href="{$relUrl}/create-new/.">HERE</a></li>
-                <li>Update/Create all plans <a href="{$relUrl}/reload-all/.">HERE</a></li>
-                </ul>
-            {/param}
-        {/call}
-    {/param}
-{/call}
 {call aui.group.group}
     {param content}
         {call aui.group.item}
@@ -46,173 +44,305 @@
 {/call}
 {call aui.group.group}
     {param content}
-      {foreach $jenkinsConfig in $jenkinsConfigs}
-        <h3>{$jenkinsConfig.name}</h3>
-        {call aui.form.form}
-          {param action: $relUrl /}
-          {param content}
-            {call aui.form.textField}
-              {param id: 'name' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
-              {param value: $jenkinsConfig.name /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'url' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
-              {param value: $jenkinsConfig.url /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
-            {/call}
-            {call aui.form.selectField}
-              {param id: 'authenticationMode' /}
-              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
-              {param options: $authenticationModeData[$jenkinsConfig.name] /}
-              {param value: $jenkinsConfig.authenticationModeStr /}
-              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'username' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
-              {param value: $jenkinsConfig.username /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
-            {/call}
-            {call aui.form.passwordField}
-              {param id: 'password' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
-              {param value: $jenkinsConfig.password /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'stashUsername' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
-              {param value: $jenkinsConfig.stashUsername /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
-            {/call}
-            {call aui.form.passwordField}
-              {param id: 'stashPassword' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
-              {param value: $jenkinsConfig.stashPassword /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'maxVerifyChain' /}
-              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
-              {param value: ($jenkinsConfig.maxVerifyChain == 0 ? '0' : $jenkinsConfig.maxVerifyChain) /}
-              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
-            {/call}
-            {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
-              {param fields: [[
-                'id': 'locked',
-                'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
-                'isChecked': $jenkinsConfig.locked
-                ]] /}
-            {/call}
-            {call aui.form.buttons}
-              {param content}
-                {call aui.form.submit}
-	              {param id: 'submit' /}
-	              {param text: 'Save' /}
-	              {param type: 'submit' /}
-	            {/call}
-	          {/param}
-            {/call}
-		    {call stash.buttons.button}
-              {param id: 'delete' /}
-              {param buttonText: 'Delete Entry ' + $jenkinsConfig.name /}
-              {param href: $relUrl + '/delete/' + $jenkinsConfig.name /}
-            {/call}
-          {/param}
-        {/call}
-      {/foreach}
-        <h3>New Jenkins Server</h3>
-        {call aui.form.form}
-          {param action: $relUrl /}
-          {param content}
-            {call aui.form.textField}
-              {param id: 'name' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
-              {param value: 'enter name here [a-zA-Z0-9]+' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'Jenkins Server Name (referred to in the repository configuration)') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'url' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Jenkins URL') /}
-              {param value: 'http://jenkins.example.com:8080/' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
-            {/call}
-            {call aui.form.selectField}
-              {param id: 'authenticationMode' /}
-              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Stash Authentication Mode') /}
-              {param options: $authenticationModeData['default'] /}
-              {param descriptionText: stash_i18n('stash.web.stash.authenticationMode.description', 'Stash Authentication Mode') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'username' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Jenkins Username') /}
-              {param value: 'jenkins_user' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Username') /}
-            {/call}
-            {call aui.form.passwordField}
-              {param id: 'password' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Jenkins Password') /}
-              {param value: 'jenkins_password' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.description', 'Jenkins Password') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'stashUsername' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Stash Username') /}
-              {param value: 'stash_user' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash Username') /}
-            {/call}
-            {call aui.form.passwordField}
-              {param id: 'stashPassword' /}
-              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Stash Password') /}
-              {param value: 'stash_password' /}
-              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Stash Password') /}
-            {/call}
-            {call aui.form.textField}
-              {param id: 'maxVerifyChain' /}
-              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum number of commits to verify on a single push') /}
-              {param value: '10' /}
-              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'Maximum number of commits to verify on a single push') /}
-            {/call}
-            {call aui.form.checkboxField}
-              {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Lock projects into this configuration') /}
-              {param fields: [[
-                'id': 'locked',
-                'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
-                ]] /}
-            {/call}
-            {call aui.form.buttons}
-              {param content}
-                {call aui.form.submit}
-	              {param id: 'submit' /}
-	              {param text: 'Save' /}
-	              {param type: 'submit' /}
-	            {/call}
-	          {/param}
-            {/call}
-          {/param}
+      <div class="aui-tabs horizontal-tabs">
+        <ul class="tabs-menu">
+          {foreach $jenkinsConfig in $jenkinsConfigs}
+            <li class="menu-item {if $jenkinsConfig.name == $defaultJenkinsConfig}active-tab{/if}"><!--  active-tab -->
+                <a href="#tabs-jenkins-server-{$jenkinsConfig.name}">{$jenkinsConfig.name}</a>
+            </li>
+          {/foreach}
+            <li class="menu-item">
+                <a href="#tabs-jenkins-server-create-new-server">+</a>
+            </li>
+        </ul>
+        {foreach $jenkinsConfig in $jenkinsConfigs}
+            <div class="tabs-pane {if $jenkinsConfig.name == $defaultJenkinsConfig}active-pane{/if}" id="tabs-jenkins-server-{$jenkinsConfig.name}"><!--  active-pane -->
+                {call aui.form.form}
+                  {param action: $relUrl /}
+                  {param content}
+                    {call aui.group.group}
+                        {param content}
+                        {call aui.form.textField}
+                          {param id: 'name' /}
+                          {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
+                          {param value: $jenkinsConfig.name /}
+                          {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'This name will be used by users setting up Stashbot to pick a Jenkins server.') /}
+                        {/call}
+                        {call aui.form.checkboxField}
+                          {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Force as Default Server') /}
+                          {param descriptionText: 'Locking this Jenkins server forces repository owners to use this Jenkins server configuration by default.  For a repo to use a different server, a System Admin needs to change it for them.' /}
+                          {param fields: [[
+                            'id': 'locked',
+                            'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
+                            'isChecked': $jenkinsConfig.locked
+                            ]] /}
+                        {/call}
+                        {/param}
+                    {/call}
+
+                    {call aui.group.group}
+                        {param content}
+                            <h3>Jenkins Settings</h3>
+                            {call aui.form.textField}
+                              {param id: 'url' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Server URL') /}
+                              {param value: $jenkinsConfig.url /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'username' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Username') /}
+                              {param value: $jenkinsConfig.username /}
+                            {/call}
+                            {call aui.form.passwordField}
+                              {param id: 'password' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Password') /}
+                              {param value: $jenkinsConfig.password /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'prefixTemplate' /}
+                              {param labelContent: stash_i18n('stash.web.stash.prefixTemplate.label', 'Job Folder') /}
+                              {param value: $jenkinsConfig.prefixTemplate /}
+                              {param descriptionText: stash_i18n('stash.web.stash.prefixTemplate.description', 'The folder Stashbot will place jobs in Jenkins. If you are not using the Jenkins Folders plugin, or do not want to use subfolders, just use /. The folder can be specified using the template variables $project and $repo') /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'jobTemplate' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jobTemplate.label', 'Job Name Template') /}
+                              {param value: $jenkinsConfig.jobTemplate /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jobTemplate.description', 'The name of the jobs created.  It supports template variables $project and $repo.  The job type will be appended at the end.') /}
+                            {/call}
+                        {/param}
+                    {/call}
+
+                    {call aui.group.group}
+                        {param content}
+                            <h3>Stash Settings</h3>
+                            {call aui.form.selectField}
+                              {param id: 'authenticationMode' /}
+                              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Authentication Mode') /}
+                              {param options: $authenticationModeData[$jenkinsConfig.name] /}
+                              {param value: $jenkinsConfig.authenticationModeStr /}
+                              {param descriptionText: 'The authentication mode to use for jenkins to talk back to stash. If you select Manual Credentials, create it in jenkins first then add the UUID of the credential in the password field, while using a valid username for stash in the username field (which is still used for comments on pull requests, etc.)' /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'stashUsername' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Username') /}
+                              {param value: $jenkinsConfig.stashUsername /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash user that can clone the appropriate repos.  This user will also comment on PRs.  If the user does not exist, Stashbot will create it with the password below.') /}
+                            {/call}
+                            {call aui.form.passwordField}
+                              {param id: 'stashPassword' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Password or Jenkins Cred ID') /}
+                              {param value: $jenkinsConfig.stashPassword /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Password for the username.  In Credential UUID mode, it is a Jenkins Credential ID.  Supports $password and $repo replacement in Credential UUID mode.') /}
+                            {/call}
+                        {/param}
+                    {/call}
+
+                    {call aui.group.group}
+                        {param content}
+                            <h3>Job Settings</h3>
+                            {call aui.form.textField}
+                              {param id: 'maxVerifyChain' /}
+                              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum Commit Verifications') /}
+                              {param value: ($jenkinsConfig.maxVerifyChain == 0 ? '0' : $jenkinsConfig.maxVerifyChain) /}
+                              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'The maximum number of builds to trigger for a single push.  Individual repositories also have this setting, but they are limited by the setting of the jenkins server as well.  Set to 0 for "no limit".  You probably want to set this to between 50% and 200% of the number of executors your jenkins instance has, depending on how long your build takes, your expected latency, and load.') /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'defaultTimeout' /}
+                              {param labelContent: stash_i18n('stash.web.stash.defaultTimeout.label', 'Default Build Timeout') /}
+                              {param value: $jenkinsConfig.defaultTimeout /}
+                              {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
+                            {/call}
+                            {call aui.form.textareaField}
+                              {param id: 'globalPrebuild' /}
+                              {param labelContent: stash_i18n('stash.web.stash.globalPrebuild.label', 'Global Pre-build Commands') /}
+                              {param value: $jenkinsConfig.globalPrebuildCommand /}
+                              {param descriptionText: stash_i18n('stash.web.stash.globalPrebuild.description', 'Command or commands to run before all builds.  Useful for cleanup and global prep.') /}
+                            {/call}
+                        {/param}
+                    {/call}
+
+                    {call aui.group.group}
+                        {param content}
+                            {call aui.form.buttons}
+                              {param content}
+                                {call aui.form.submit}
+                                  {param id: 'submit' /}
+                                  {param text: 'Save' /}
+                                  {param type: 'submit' /}
+                                {/call}
+                                {call stash.buttons.button}
+                                  {param id: 'delete' /}
+                                  {param buttonText: 'Delete Entry ' + $jenkinsConfig.name /}
+                                  {param href: $relUrl + '/delete/' + $jenkinsConfig.name /}
+                                {/call}
+                              {/param}
+                            {/call}
+                        {/param}
+                    {/call}
+
+
+                  {/param}
+                {/call}
+            </div>
+        {/foreach}
+
+            <div class="tabs-pane" id="tabs-jenkins-server-create-new-server">
+                {call aui.form.form}
+                  {param action: $relUrl /}
+                  {param content}
+
+                    {call aui.group.group}
+                        {param content}
+                        {call aui.form.textField}
+                          {param id: 'name' /}
+                          {param labelContent: stash_i18n('stash.web.stash.jenkins.name.label', 'Jenkins Server Name') /}
+                          {param placeholderText: 'enter name here [a-zA-Z0-9]+' /}
+                          {param descriptionText: stash_i18n('stash.web.stash.jenkins.name.description', 'This name will be used by users setting up Stashbot to pick a Jenkins server.') /}
+                        {/call}
+                        {call aui.form.checkboxField}
+                          {param legendContent: stash_i18n('stash.web.stash.locked.button.description', 'Force as Default Server') /}
+                          {param descriptionText: 'Locking this Jenkins server forces repository owners to use this Jenkins server configuration by default.  For a repo to use a different server, a System Admin needs to change it for them.' /}
+                          {param fields: [[
+                            'id': 'locked',
+                            'labelText': stash_i18n('stash.web.stash.locked.button.label', 'Locked'),
+                            ]] /}
+                        {/call}
+                        {/param}
+                    {/call}
+
+                    {call aui.group.group}
+                        {param content}
+                            <h3>Jenkins Settings</h3>
+                            {call aui.form.textField}
+                              {param id: 'url' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.url.label', 'Server URL') /}
+                              {param placeholderText: 'http://jenkins.example.com:8080/' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jenkins.url.description', 'Jenkins URL (e.g. http://jenkins.example.com:1234/)') /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'username' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.username.label', 'Username') /}
+                              {param value: 'jenkins_user' /}
+                            {/call}
+                            {call aui.form.passwordField}
+                              {param id: 'password' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.password.label', 'Password') /}
+                              {param value: 'jenkins_password' /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'prefixTemplate' /}
+                              {param labelContent: stash_i18n('stash.web.stash.prefixTemplate.label', 'Job Folder') /}
+                              {param value: '/' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.prefixTemplate.description', 'The folder Stashbot will place jobs in Jenkins. If you are not using the Jenkins Folders plugin, or do not want to use subfolders, just use /. The folder can be specified using the template variables $project and $repo') /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'jobTemplate' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jobTemplate.label', 'Job Name Template') /}
+                              {param value: '$project_$repo' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jobTemplate.description', 'The name of the jobs created.  It supports template variables $project and $repo.  The job type will be appended at the end.') /}
+                            {/call}
+                        {/param}
+                    {/call}
+
+                    {call aui.group.group}
+                        {param content}
+                            <h3>Stash Settings</h3>
+                            {call aui.form.selectField}
+                              {param id: 'authenticationMode' /}
+                              {param labelContent: stash_i18n('stash.web.stash.authenticationMode.label', 'Authentication Mode') /}
+                              {param options: $authenticationModeData['default'] /}
+                              {param descriptionText: 'The authentication mode to use for jenkins to talk back to stash. If you select Manual Credentials, create it in jenkins first then add the UUID of the credential in the password field, while using a valid username for stash in the username field (which is still used for comments on pull requests, etc.)' /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'stashUsername' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashusername.label', 'Username') /}
+                              {param value: 'stash_user' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashusername.description', 'Stash user that can clone the appropriate repos.  This user will also comment on PRs.  If the user does not exist, Stashbot will create it with the password below.') /}
+                            {/call}
+                            {call aui.form.passwordField}
+                              {param id: 'stashPassword' /}
+                              {param labelContent: stash_i18n('stash.web.stash.jenkins.stashpassword.label', 'Password or Jenkins Cred ID') /}
+                              {param value: 'stash_password' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.jenkins.stashpassword.description', 'Password for the username.  In Credential UUID mode, it is a Jenkins Credential ID.  Supports $password and $repo replacement in Credential UUID mode.') /}
+                            {/call}
+                        {/param}
+                    {/call}
+
+
+                    {call aui.group.group}
+                        {param content}
+                            <h3>Job Settings</h3>
+                            {call aui.form.textField}
+                              {param id: 'maxVerifyChain' /}
+                              {param labelContent: stash_i18n('stash.web.stash.maxVerifyChain.label', 'Maximum Commit Verifications') /}
+                              {param value: '10' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.maxVerifyChain.description', 'The maximum number of builds to trigger for a single push.  Individual repositories also have this setting, but they are limited by the setting of the jenkins server as well.  Set to 0 for "no limit".  You probably want to set this to between 50% and 200% of the number of executors your jenkins instance has, depending on how long your build takes, your expected latency, and load.') /}
+                            {/call}
+                            {call aui.form.textField}
+                              {param id: 'defaultTimeout' /}
+                              {param labelContent: stash_i18n('stash.web.stash.defaultTimeout.label', 'Default Build Timeout') /}
+                              {param value: '240' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.defaultTimeout.description', 'The default timeout value (in minutes from 5 to 10080) for a Jenkins job created by Stashbot.  This can be overriden on the repo level.') /}
+                            {/call}
+                            {call aui.form.textareaField}
+                              {param id: 'globalPrebuild' /}
+                              {param labelContent: stash_i18n('stash.web.stash.globalPrebuild.label', 'Global Pre-build Commands') /}
+                              {param value: '/bin/true' /}
+                              {param descriptionText: stash_i18n('stash.web.stash.globalPrebuild.description', 'Command or commands to run before all builds.  Useful for cleanup and global prep.') /}
+                            {/call}
+                        {/param}
+                    {/call}
+
+
+                    {call aui.form.buttons}
+                      {param content}
+                        {call aui.form.submit}
+                          {param id: 'submit' /}
+                          {param text: 'Save' /}
+                          {param type: 'submit' /}
+                        {/call}
+                      {/param}
+                    {/call}
+
+                  {/param}
+                {/call}
+            </div>
+
+      </div>
+
+    {/param}
+{/call}
+
+{call aui.group.group}
+    {param content}
+        <h2>Stashbot Administrative Tasks</h2>
+        {call aui.group.group}
+            {param content}
+                {call aui.group.item}
+                    {param content}
+                        {call stash.buttons.button}
+                          {param id: 'button-create-missing-plans' /}
+                          {param buttonText: 'Create Missing Plans' /}
+                          {param href: $relUrl + '/create-new/.' /}
+                        {/call}
+                    {/param}
+                {/call}
+                {call aui.group.item}
+                    {param content}
+                        {call stash.buttons.button}
+                          {param id: 'button-update-all-plans' /}
+                          {param buttonText: 'Update/Create Plans' /}
+                          {param href: $relUrl + '/reload-all/.' /}
+                        {/call}
+                    {/param}
+                {/call}
+            {/param}
         {/call}
     {/param}
 {/call}
-<div>
-<h3>Configuring Jenkins:</h3>
-<p>
-Jenkins configurations include the following fields:
-<ul>
-<li><b>name</b>: The name users will see when they select this jenkins server</li>
-<li><b>url</b>: The URL for the jenkins instance.  (e.g. https://jenkins.example.com:8080/)</li>
-<li><b>Authentication Mode</b>: The authentication mode to use for jenkins to talk back to stash.  If you select Manual Credentials, create it in jenkins first then add the UUID of the credential in the password field, while using a valid username for stash in the username field (which is still used for comments on pull requests, etc.)</li>
-<li><b>username</b>: The username to use to log into jenkins (value is ignored if authentication is not enabled).
-<li><b>password</b>: The password to use to log into jenkins (value is ignored if authentication is not enabled).
-<li><b>stashUsername</b>: The username to use to log into stash from jenkins (for cloning repos and reporting build results).  This account is automatically created if it does not exist already.  It is recommended you generate a reasonable username/password pair.  If you prefer for auditing purposes, you may use an account from crowd/LDAP by using the existing credentials in this field.</li>
-<li><b>stashPassword</b>: The password to use to log into stash from jenkins (same comment applies as for the username).</li>
-<li><b>maxVerifyChain</b>: The maximum number of builds to trigger for a single push.  Individual repositories also have this setting, but they are limited by the setting of the jenkins server as well.  Set to 0 for "no limit".  You probably want to set this to between 50% and 200% of the number of executors your jenkins instance has, depending on how long your build takes, your expected latency, and load.</li>
-</ul>
-</p>
-</div>
+
 </body>
 </html>
 {/template}

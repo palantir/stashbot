@@ -13,6 +13,9 @@
 // limitations under the License.
 package com.palantir.stash.stashbot.mocks;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +25,7 @@ import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.palantir.stash.stashbot.jobtemplate.JobTemplateManager;
 import com.palantir.stash.stashbot.jobtemplate.JobType;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JobMapping;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
@@ -47,6 +51,7 @@ public class MockJobTemplateFactory {
         Mockito.when(jtm.getDefaultVerifyJob()).thenReturn(verifyCommit);
         Mockito.when(jtm.getDefaultVerifyPullRequestJob()).thenReturn(verifyPR);
         Mockito.when(jtm.getDefaultPublishJob()).thenReturn(publish);
+        Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
     }
 
     public JobTemplate getJobTemplate(Repository repo, RepositoryConfiguration rc, JobType jt) throws Exception {
@@ -55,7 +60,9 @@ public class MockJobTemplateFactory {
         Mockito.when(template.getJobType()).thenReturn(jt);
 
         Mockito.when(template.getName()).thenReturn(jt.toString());
-        Mockito.when(template.getBuildNameFor(repo)).thenReturn("somename_" + jt.toString());
+        Mockito.when(template.getBuildNameFor(eq(repo), any(JenkinsServerConfiguration.class)))
+            .thenReturn(
+                "somename_" + jt.toString());
         Mockito.when(template.getTemplateFile()).thenReturn("src/test/resources/test-template.vm");
 
         JobMapping jm = Mockito.mock(JobMapping.class);
@@ -64,10 +71,11 @@ public class MockJobTemplateFactory {
         Mockito.when(jm.isVisible()).thenReturn(true);
         Mockito.when(jm.isEnabled()).thenReturn(true);
 
+        templates.add(template);
+
         Mockito.when(jtm.getJenkinsJobsForRepository(rc)).thenReturn(ImmutableList.copyOf(templates));
         Mockito.when(jtm.fromString(rc, jt.toString())).thenReturn(template);
 
-        templates.add(template);
         mappings.add(jm);
         return template;
     }

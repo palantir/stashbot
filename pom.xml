@@ -12,6 +12,13 @@
     <name>stashbot</name>
     <description>Stashbot is a plugin for Atlassian Stash that makes continuous integration via jenkins easy and self-servicable for end-users.</description>
     <packaging>atlassian-plugin</packaging>
+    <repositories>
+      <repository>
+        <name>stashbot-internal</name>
+        <id>stashbot-internal</id>
+        <url>file://${project.basedir}/libs</url>
+      </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -127,7 +134,7 @@
         <dependency>
             <groupId>com.offbytwo.jenkins</groupId>
             <artifactId>jenkins-client</artifactId>
-            <version>0.1.5</version>
+            <version>0.3.0.p1</version>
             <!-- excluding guava because jenkins-client uses 13 but stash needs a different version -->
             <exclusions>
                 <exclusion>
@@ -212,9 +219,9 @@
         </plugins>
     </build>
     <properties>
-        <stash.version>3.6.0</stash.version>
-        <stash.data.version>3.6.0</stash.data.version>
-        <stash.containerId>tomcat7x</stash.containerId>
+        <stash.version>3.11.4</stash.version>
+        <stash.data.version>3.11.4</stash.data.version>
+        <stash.containerId>tomcat8x</stash.containerId>
         <!--
         WARNING: manually sync this with the version in stash - variable in the
         pom has the same name but isn't imported for some reason.

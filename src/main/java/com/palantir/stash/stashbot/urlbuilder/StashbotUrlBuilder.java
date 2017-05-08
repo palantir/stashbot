@@ -67,19 +67,21 @@ public class StashbotUrlBuilder {
     }
 
     public String buildCloneUrl(Repository repo, JenkinsServerConfiguration jsc) {
-        RepositoryCloneLinksRequest rclr =
-            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
-        String url = rs.getCloneLinks(rclr).iterator().next().getHref();
+        RepositoryCloneLinksRequest rclr = null;
+        String url = null;
+
         // we build without username because we insert username AND password, and need both, in the case where we are using USERNAME_AND_PASSWORD.
         switch (jsc.getAuthenticationMode()) {
         case USERNAME_AND_PASSWORD:
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+            url = rs.getCloneLinks(rclr).iterator().next().getHref();
             url = url.replace("://",
                 "://" + mask(jsc.getStashUsername()) + ":" + mask(jsc.getStashPassword())
                     + "@");
             break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
-            // do nothing
-            // XXX: do we need to get the git/ssh link instead of the http link here?  maybe that's a new mode?
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").build();
+            url = rs.getCloneLinks(rclr).iterator().next().getHref();
             break;
         default:
             throw new IllegalStateException("Invalid value - update this code after adding an authentication mode");

@@ -14,6 +14,7 @@
 package com.palantir.stash.stashbot.jobtemplate;
 
 import com.atlassian.stash.repository.Repository;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 
 // Custom AO implementation
@@ -27,10 +28,12 @@ public class JobTemplateImpl {
     }
 
     // TODO: remove invalid characters from repo
-    public String getBuildNameFor(Repository repo) {
+    public String getBuildNameFor(Repository repo, JenkinsServerConfiguration jsc) {
         String project = repo.getProject().getKey();
         String nameSlug = repo.getSlug();
-        String key = project + "_" + nameSlug + "_" + dis.getJobType().toString();
+        String template = jsc.getJobTemplate();
+        template = template.replaceAll("\\$repo", nameSlug).replaceAll("\\$project", project);
+        String key = template + "_" + dis.getJobType().toString();
         // jenkins does toLowerCase() on all keys, so we must do the same
         return key.toLowerCase();
     }

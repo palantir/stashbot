@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService;
 import com.palantir.stash.stashbot.managers.VelocityManager;
 import com.palantir.stash.stashbot.persistence.JenkinsServerConfiguration;
+import com.palantir.stash.stashbot.persistence.JenkinsServerConfigurationImpl;
 import com.palantir.stash.stashbot.persistence.JobTemplate;
 import com.palantir.stash.stashbot.persistence.RepositoryConfiguration;
 import com.palantir.stash.stashbot.urlbuilder.StashbotUrlBuilder;
@@ -45,6 +46,11 @@ public class JenkinsJobXmlFormatter {
 
     private static final String PREBUILD_COMMAND_POSTFIX =
         "|| (echo \"PREBUILD FAILURE1 with status $?\" ; /bin/false) && echo \"PREBUILD SUCCESS\"";
+
+    private static final String GLOBAL_PREBUILD_COMMAND_PREFIX = "{ ";
+
+    private static final String GLOBAL_PREBUILD_COMMAND_POSTFIX =
+        "\n } || (echo \"GLOBALPREBUILD FAILURE1 with status $?\" ; /bin/false) && echo \"GLOBALPREBUILD SUCCESS\"";
 
     private final VelocityManager velocityManager;
     private final ConfigurationPersistenceService cpm;
@@ -82,27 +88,48 @@ public class JenkinsJobXmlFormatter {
         final JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration(rc.getJenkinsServerName());
 
-        RepositoryCloneLinksRequest rclr =
-            new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
-        String repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
-        String cleanRepositoryUrl = repositoryUrl;
+
+        RepositoryCloneLinksRequest rclr = null;
+        String repositoryUrl = null;
+        String cleanRepositoryUrl = null;
 
         // Handle the various Authentication modes
         switch (jsc.getAuthenticationMode()) {
         case USERNAME_AND_PASSWORD:
             // manually insert the username and pw we are configured to use
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("http").user(null).build();
+            repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
+            cleanRepositoryUrl = repositoryUrl;
             repositoryUrl = repositoryUrl.replace("://",
                 "://" + jsc.getStashUsername() + ":" + jsc.getStashPassword()
                     + "@");
             break;
         case CREDENTIAL_MANUALLY_CONFIGURED:
-            vc.put("credentialUUID", jsc.getStashPassword());
+            rclr = new RepositoryCloneLinksRequest.Builder().repository(repo).protocol("ssh").build();
+            // FIXME: Carl replaced the following line:
+            repositoryUrl = rs.getCloneLinks(rclr).iterator().next().getHref();
+            /* FIXME with something like the following:
+
+            Set<NamedLink> links = rs.getCloneLinks(sshrclr);
+            if (links.size() != 1) {
+                throw new RuntimeException("Unable to get a unique ssh clone URL for repo " + repo.getName());
+            }
+            repositoryUrl = links.iterator().next().getHref();
+
+             * But that was for CREDENTIAL_AUTOMATIC_SSH_KEY, and I don't know
+             * how similar/different it is from CREDENTIAL_MANUALLY_CONFIGURED.
+             */
+
+            cleanRepositoryUrl = repositoryUrl;
+            vc.put("credentialUUID", JenkinsServerConfigurationImpl.convertCredUUID(jsc.getStashPassword(), repo));
             break;
         }
         vc.put("repositoryUrl", repositoryUrl);
         vc.put("cleanRepositoryUrl", cleanRepositoryUrl);
 
         vc.put("prebuildCommand", prebuildCommand(rc.getPrebuildCommand()));
+
+        vc.put("globalPrebuildCommand", globalPrebuildCommand(jsc.getGlobalPrebuildCommand()));
 
         // Put build command depending on build type
         // TODO: figure out build command some other way?
@@ -199,16 +226,28 @@ public class JenkinsJobXmlFormatter {
         vc.put("artifactsEnabled", rc.getArtifactsEnabled());
         vc.put("artifactsPath", rc.getArtifactsPath());
 
-        // insert pinned data
+        // Timeout setting
+        Integer buildTimeout = rc.getBuildTimeout();
+        if (buildTimeout == -1) {
+            buildTimeout = jsc.getDefaultTimeout();
+        }
+        vc.put("buildTimeout", buildTimeout);
+
+
+        // insert pinned data and expiry info
         switch (jobTemplate.getJobType()) {
         case VERIFY_COMMIT:
         case VERIFY_PR:
             vc.put("isPinned", rc.getVerifyPinned());
             vc.put("label", rc.getVerifyLabel());
+            vc.put("verifyBuildExpiryDays", rc.getVerifyBuildExpiryDays());
+            vc.put("verifyBuildExpiryNumber", rc.getVerifyBuildExpiryNumber());
             break;
         case PUBLISH:
             vc.put("isPinned", rc.getPublishPinned());
             vc.put("label", rc.getPublishLabel());
+            vc.put("publishBuildExpiryDays", rc.getPublishBuildExpiryDays());
+            vc.put("publishBuildExpiryNumber", rc.getPublishBuildExpiryNumber());
             break;
         case NOOP:
             vc.put("isPinned", false);
@@ -225,7 +264,7 @@ public class JenkinsJobXmlFormatter {
 
     /**
      * XML specific parameter types
-     * 
+     *
      * @author cmyers
      */
     public static enum JenkinsBuildParamType {
@@ -236,9 +275,9 @@ public class JenkinsJobXmlFormatter {
     /**
      * Appends the shell magics to the build command to make it succeed/fail
      * properly.
-     * 
+     *
      * TODO: move this into the template?
-     * 
+     *
      * @param command
      * @return
      */
@@ -248,6 +287,10 @@ public class JenkinsJobXmlFormatter {
 
     private String prebuildCommand(String command) {
         return command + " " + PREBUILD_COMMAND_POSTFIX;
+    }
+
+    private String globalPrebuildCommand(String command) {
+        return GLOBAL_PREBUILD_COMMAND_PREFIX + " " + command + " " + GLOBAL_PREBUILD_COMMAND_POSTFIX;
     }
 
 }

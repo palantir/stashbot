@@ -45,7 +45,7 @@ public class JenkinsConfigurationServlet extends HttpServlet {
 
     private final String PATH_PREFIX = "/stashbot/jenkins-admin";
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1L;
 
@@ -156,12 +156,22 @@ public class JenkinsConfigurationServlet extends HttpServlet {
             pageBuilderService.assembler().resources().requireContext("plugin.page.stashbot");
             ImmutableCollection<JenkinsServerConfiguration> jenkinsConfigs =
                 configurationPersistanceManager.getAllJenkinsServerConfigurations();
+
+            // Pick default pane
+            String defaultJenkinsConfig = null;
+            for (JenkinsServerConfiguration i : jenkinsConfigs) {
+                if (defaultJenkinsConfig == null || i.getName().equals("default")) {
+                    defaultJenkinsConfig = i.getName();
+                }
+            }
+
             soyTemplateRenderer.render(res.getWriter(),
                 "com.palantir.stash.stashbot:stashbotConfigurationResources",
                 "plugin.page.stashbot.jenkinsConfigurationPanel",
                 ImmutableMap.<String, Object> builder()
                     .put("relUrl", relUrl)
                     .put("jenkinsConfigs", jenkinsConfigs)
+                    .put("defaultJenkinsConfig", defaultJenkinsConfig)
                     .put("error", error)
                     .put("notice", notice)
                     .put("authenticationModeData", authDataBuilder.build())

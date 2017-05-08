@@ -20,6 +20,8 @@ import net.java.ao.schema.NotNull;
 import net.java.ao.schema.Table;
 import net.java.ao.schema.Unique;
 
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildResultExpirySettings;
+
 @Table("RepoConfig001")
 @Preload
 public interface RepositoryConfiguration extends Entity {
@@ -37,25 +39,25 @@ public interface RepositoryConfiguration extends Entity {
     public void setCiEnabled(Boolean url);
 
     @NotNull
-    @Default("empty")
+    @Default("refs/(heads/master|tags/.*)")
     public String getPublishBranchRegex();
 
     public void setPublishBranchRegex(String publishBranchRegex);
 
     @NotNull
-    @Default("/bin/true")
+    @Default("./scripts/publish.sh")
     public String getPublishBuildCommand();
 
     public void setPublishBuildCommand(String publishBuildCommand);
 
     @NotNull
-    @Default("empty")
+    @Default("refs/heads/.*")
     public String getVerifyBranchRegex();
 
     public void setVerifyBranchRegex(String verifyBranchRegex);
 
     @NotNull
-    @Default("/bin/true")
+    @Default("./scripts/verify.sh")
     public String getVerifyBuildCommand();
 
     public void setVerifyBuildCommand(String verifyBuildCommand);
@@ -181,4 +183,33 @@ public interface RepositoryConfiguration extends Entity {
 
     public void setPreserveJenkinsJobConfig(Boolean preserveJenkinsJobConfig);
 
+
+    @NotNull
+    @Default("-1")
+    public Integer getBuildTimeout();
+
+    public void setBuildTimeout(Integer buildTimeout);
+
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_VERIFY_DAYS)
+    public Integer getVerifyBuildExpiryDays();
+    public void setVerifyBuildExpiryDays(Integer verifyBuildExpiryDays);
+
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_VERIFY_NUMBER)
+    public Integer getVerifyBuildExpiryNumber();
+    public void setVerifyBuildExpiryNumber(Integer verifyBuildExpiryNumber);
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_PUBLISH_DAYS)
+    public Integer getPublishBuildExpiryDays();
+    public void setPublishBuildExpiryDays(Integer publishBuildExpiryDays);
+
+
+    @NotNull
+    @Default(BuildResultExpirySettings.DEFAULT_PUBLISH_NUMBER)
+    public Integer getPublishBuildExpiryNumber();
+    public void setPublishBuildExpiryNumber(Integer publishBuildExpiryNumber);
 }

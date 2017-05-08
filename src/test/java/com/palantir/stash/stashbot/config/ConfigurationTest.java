@@ -42,6 +42,7 @@ import com.atlassian.stash.pull.PullRequestRef;
 import com.atlassian.stash.repository.Repository;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.BuildResultExpirySettings;
 import com.palantir.stash.stashbot.config.ConfigurationPersistenceService.EmailSettings;
 import com.palantir.stash.stashbot.config.ConfigurationTest.DataStuff;
 import com.palantir.stash.stashbot.event.StashbotMetadataUpdatedEvent;
@@ -183,7 +184,7 @@ public class ConfigurationTest {
             "verifyBranchRegex", "verifyBuildCommand",
             false, "N/A", "publishBranchRegex",
             "publishBuildCommand", false, "N/A", "prebuildCommand", "default", true, false, "N/A", false, "N/A",
-            size, new EmailSettings(true, "a@a.a", true, true, true), false, false);
+            size, new EmailSettings(true, "a@a.a", true, true, true), false, false, -1, new BuildResultExpirySettings());
 
         RepositoryConfiguration rc = cpm
             .getRepositoryConfigurationForRepository(repo);
@@ -212,7 +213,7 @@ public class ConfigurationTest {
                 "verifyBranchRegex", "verifyBuildCommand",
                 false, "N/A",
                 "publishBranchRegex", "publishBuildCommand", false, "N/A", "prebuildCommand", "BADNAME", true, false,
-                "N/A", false, "N/A", null, new EmailSettings(), false, false);
+                "N/A", false, "N/A", null, new EmailSettings(), false, false, -1, new BuildResultExpirySettings());
             Assert.fail("Should have thrown exception");
         } catch (Exception e) {
             // success
@@ -290,6 +291,7 @@ public class ConfigurationTest {
             new DBParam("PASSWORD", "somepw"),
             new DBParam("STASH_USERNAME", "someuser"),
             new DBParam("STASH_PASSWORD", "somepw"),
+            new DBParam("PREFIX_TEMPLATE", "/"),
             new DBParam("MAX_VERIFY_CHAIN", 1));
         JenkinsServerConfiguration jsc = cpm
             .getJenkinsServerConfiguration("sometest");

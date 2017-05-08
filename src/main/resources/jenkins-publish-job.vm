@@ -25,6 +25,12 @@
 <project>
   <actions/>
   <description>This is the default publish job created automatically by stashbot, and cannot be changed in Jenkins.  Stash Project Link: &lt;a href="$esc.xml($cleanRepositoryUrl)"&gt;$esc.xml($cleanRepositoryUrl)&lt;/a&gt;</description>
+  <logRotator class="hudson.tasks.LogRotator">
+    <daysToKeep>$publishBuildExpiryDays</daysToKeep>
+    <numToKeep>$publishBuildExpiryNumber</numToKeep>
+    <artifactDaysToKeep>-1</artifactDaysToKeep>
+    <artifactNumToKeep>-1</artifactNumToKeep>
+  </logRotator>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -99,6 +105,9 @@
   <concurrentBuild>true</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
+        <command>$esc.xml($globalPrebuildCommand)</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
         <!-- for insane, incomprehensible reasons, jenkins does not do this automatically -->
         <command>(git reset --hard HEAD &amp;&amp; git clean -fdx) || (echo "SETUP exited with status $? ; FAILURE1" ; /bin/false)</command>
     </hudson.tasks.Shell>
@@ -130,6 +139,17 @@
           <logTexts>
             <hudson.plugins.postbuildtask.LogProperties>
               <logText>BUILD FAILURE1</logText>
+              <operator>AND</operator>
+            </hudson.plugins.postbuildtask.LogProperties>
+          </logTexts>
+          <EscalateStatus>false</EscalateStatus>
+          <RunIfJobSuccessful>false</RunIfJobSuccessful>
+          <script>$esc.xml($failedCommand)</script>
+        </hudson.plugins.postbuildtask.TaskProperties>
+        <hudson.plugins.postbuildtask.TaskProperties>
+          <logTexts>
+            <hudson.plugins.postbuildtask.LogProperties>
+              <logText>Build timed out \(after $buildTimeout minutes\)</logText>
               <operator>AND</operator>
             </hudson.plugins.postbuildtask.LogProperties>
           </logTexts>
@@ -186,5 +206,12 @@
     </hudson.tasks.ArtifactArchiver>
 #end
   </publishers>
-  <buildWrappers/>
+  <buildWrappers>
+    <hudson.plugins.build__timeout.BuildTimeoutWrapper plugin="build-timeout@1.15">
+      <strategy class="hudson.plugins.build_timeout.impl.AbsoluteTimeOutStrategy">
+          <timeoutMinutes>$buildTimeout</timeoutMinutes>
+      </strategy>
+      <operationList/>
+    </hudson.plugins.build__timeout.BuildTimeoutWrapper>
+  </buildWrappers>
 </project>
